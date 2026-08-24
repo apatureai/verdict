@@ -5,7 +5,7 @@ import {
   extractBrandBlock,
   parseTokensJson,
   type ContextBlockInput,
-} from "@engine/context";
+} from "@apatureai/verdict-context";
 
 /**
  * Assemble the design context a review is grounded against, from files that live

@@ -1,5 +1,5 @@
-import type { SqlExecutor } from "@engine/db";
-import { jobPrefix, type ObjectStore } from "@engine/storage";
+import type { SqlExecutor } from "@apatureai/verdict-db";
+import { jobPrefix, type ObjectStore } from "@apatureai/verdict-storage";
 
 /**
  * Data-subject erasure workflow (GDPR Art. 17 / DPA, #54), tied to the at-rest

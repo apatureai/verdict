@@ -1,5 +1,5 @@
-import { enforceGroundingAuthority } from "@engine/critique";
-import type { EngineReviewResult } from "@engine/types";
+import { enforceGroundingAuthority } from "@apatureai/verdict-critique";
+import type { EngineReviewResult } from "@apatureai/verdict-types";
 import { describe, expect, it } from "vitest";
 import {
   GroundingAuthorityError,

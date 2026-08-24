@@ -1,11 +1,11 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, join, normalize, resolve, sep } from "node:path";
-import type { ScreenshotSink } from "@engine/capture";
+import type { ScreenshotSink } from "@apatureai/verdict-capture";
 
 /**
  * `ScreenshotSink` that writes PNGs to a directory, so a local run produces
  * files someone can actually open. The production path writes the identical
- * bytes to object storage through `@engine/storage`; the object KEY is the same
+ * bytes to object storage through `@apatureai/verdict-storage`; the object KEY is the same
  * string in both cases, which is what keeps the review result portable.
  */
 export class FileScreenshotSink implements ScreenshotSink {

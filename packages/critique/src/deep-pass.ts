@@ -1,4 +1,4 @@
-import type { PreviewBuildFact } from "@engine/types";
+import type { PreviewBuildFact } from "@apatureai/verdict-types";
 import { cachePrefix } from "./cache.js";
 import type { ModelClient, ModelImage, ModelMessage } from "./model.js";
 import { wrapUntrustedPageContent } from "./prompt.js";

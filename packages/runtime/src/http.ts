@@ -1,6 +1,6 @@
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from "node:http";
 import type { AddressInfo } from "node:net";
-import type { ApiRequest, ApiResponse } from "@engine/api";
+import type { ApiRequest, ApiResponse } from "@apatureai/verdict-api";
 
 export interface ReadinessChecks {
   database(): Promise<boolean>;

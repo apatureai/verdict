@@ -8,7 +8,7 @@ export interface PutOptions {
    * so the at-rest encryption is transparent to consumers. Resolve it from the
    * tenant's tier with `tenantKmsKeyId` (paid → per-tenant CMK, free/public →
    * shared CMK). Backends without native SSE-KMS (R2) ignore it and rely on the
-   * envelope path (`@engine/secrets`).
+   * envelope path (`@apatureai/verdict-secrets`).
    */
   kmsKeyId?: string;
 }

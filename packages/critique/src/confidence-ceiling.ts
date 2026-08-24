@@ -1,4 +1,4 @@
-import type { Finding } from "@engine/types";
+import type { Finding } from "@apatureai/verdict-types";
 
 /**
  * Confidence-ceiling propagation (TRD §5, #70). When the capture stability gate

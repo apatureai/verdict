@@ -32,8 +32,8 @@ Expected output: one WCAG contrast ratio, then a single grounded `contrast`
 finding for the low-contrast node (the compliant node produces none).
 
 The example imports from the built workspace output
-(`../packages/capture/dist/index.js`). The `@engine/*` packages are not yet on
+(`../packages/capture/dist/index.js`). The `@apatureai/verdict-*` packages are not yet on
 npm — see [the release workflow](../.github/workflows/release.yml) and the
 CHANGELOG for the publishing plan. Once they are published, the import becomes
-`import { contrastRatio, contrastViolations } from "@engine/capture";` with
+`import { contrastRatio, contrastViolations } from "@apatureai/verdict-capture";` with
 nothing else changed.

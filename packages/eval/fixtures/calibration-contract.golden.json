@@ -1,5 +1,5 @@
 {
-  "$comment": "Cross-repo calibration contract (@engine/eval is canonical; sigil mirrors — sigil#2). Regenerate: pnpm --filter @engine/eval gen:calibration-contract. Consumed by packages/eval tests here and by sigil's calibration-contract test.",
+  "$comment": "Cross-repo calibration contract (@apatureai/verdict-eval is canonical; sigil mirrors — sigil#2). Regenerate: pnpm --filter @apatureai/verdict-eval gen:calibration-contract. Consumed by packages/eval tests here and by sigil's calibration-contract test.",
   "vectors": [
     {
       "name": "uniform-200",

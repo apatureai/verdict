@@ -1,4 +1,4 @@
-import { PIXEL_BUDGETS } from "@engine/capture";
+import { PIXEL_BUDGETS } from "@apatureai/verdict-capture";
 import type {
   CalibrationRuntimeBinding,
   CaptureImage,
@@ -6,7 +6,7 @@ import type {
   Critique,
   CritiqueOptions,
   RepoContext,
-} from "@engine/types";
+} from "@apatureai/verdict-types";
 import type { ModelImage, ModelRequest } from "./model.js";
 import { defaultModelFactory } from "./mock-model.js";
 import { resolvePassModel, type ModelClientFactory, type PassModelOverrides } from "./registry.js";

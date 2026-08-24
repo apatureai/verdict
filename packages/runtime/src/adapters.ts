@@ -1,12 +1,12 @@
-import type { GenomeRule, Embedder } from "@engine/context";
+import type { GenomeRule, Embedder } from "@apatureai/verdict-context";
 import {
   createOpenAICompatibleCreate,
   DashScopeModelClient,
   type ModelClientFactory,
   type OpenAILikeClient,
-} from "@engine/critique";
-import type { ObjectStore } from "@engine/storage";
-import type { CaptureContext } from "@engine/types";
+} from "@apatureai/verdict-critique";
+import type { ObjectStore } from "@apatureai/verdict-storage";
+import type { CaptureContext } from "@apatureai/verdict-types";
 import OpenAI from "openai";
 import { z } from "zod";
 import {
@@ -20,7 +20,7 @@ import type { MeasuredCapture, MeasuredCaptureInSandbox } from "./measurement.js
 /**
  * What a capture service measured while it captured (#19).
  *
- * The kinds are the closed `CheckKind` enum from `@engine/capture`, so a service
+ * The kinds are the closed `CheckKind` enum from `@apatureai/verdict-capture`, so a service
  * cannot introduce a measurement class the prompt builders and the breakage
  * classifier have never heard of. `detail` is the sentence the deep prompt
  * quotes verbatim, so it crosses as free text; nothing downstream parses it.

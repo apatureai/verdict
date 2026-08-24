@@ -1,4 +1,4 @@
-import type { ModelChoice } from "@engine/cli";
+import type { ModelChoice } from "@apatureai/verdict-cli";
 
 /**
  * Argument parsing for `judgment-engine-serve`. Pure: it never touches the

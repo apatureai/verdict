@@ -1,4 +1,4 @@
-import type { RepoContext } from "@engine/types";
+import type { RepoContext } from "@apatureai/verdict-types";
 import { describe, expect, it } from "vitest";
 import {
   critique,

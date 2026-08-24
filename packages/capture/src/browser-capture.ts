@@ -1,4 +1,4 @@
-import type { Capture, CaptureContext, CaptureImage, GeometryRect, Viewport } from "@engine/types";
+import type { Capture, CaptureContext, CaptureImage, GeometryRect, Viewport } from "@apatureai/verdict-types";
 import {
   DEVICE_SCALE_FACTOR,
   VIEWPORT_SIZES,

@@ -1,5 +1,5 @@
 // Regenerate the cross-repo calibration contract (sigil#2):
-//   pnpm --filter @engine/eval gen:calibration-contract
+//   pnpm --filter @apatureai/verdict-eval gen:calibration-contract
 import { writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { renderCalibrationContract } from "../dist/calibration-contract.js";

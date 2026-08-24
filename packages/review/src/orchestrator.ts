@@ -1,4 +1,4 @@
-import { PIXEL_BUDGETS, pageHealthFootnote } from "@engine/capture";
+import { PIXEL_BUDGETS, pageHealthFootnote } from "@apatureai/verdict-capture";
 import type {
   CalibrationRuntimeBinding,
   CaptureContext,
@@ -9,14 +9,14 @@ import type {
   MeasurementReport,
   ReviewCoverage,
   WireViewport,
-} from "@engine/types";
+} from "@apatureai/verdict-types";
 import {
   buildContextBlock,
   retrieveGenomeRules,
   type ContextBlockInput,
   type Embedder,
   type GenomeIndex,
-} from "@engine/context";
+} from "@apatureai/verdict-context";
 import {
   assembleCritique,
   buildSystemPrompt,
@@ -30,9 +30,9 @@ import {
   type PassModelOverrides,
   type TriageRoute,
   type WireProjectionOptions,
-} from "@engine/critique";
-import type { ModelImage } from "@engine/critique";
-import type { Critique, EngineReviewResult, PreviewBuildFact } from "@engine/types";
+} from "@apatureai/verdict-critique";
+import type { ModelImage } from "@apatureai/verdict-critique";
+import type { Critique, EngineReviewResult, PreviewBuildFact } from "@apatureai/verdict-types";
 
 /**
  * End-to-end review orchestrator (TRD §6, #109): the keystone that composes the
@@ -66,7 +66,7 @@ export interface ReviewRoute {
    * Cached baseline perceptual hash (#34/#41), if any.
    *
    * NOT POPULATED ON ANY SHIPPED SURFACE. Both front doors onto this
-   * orchestrator (`@engine/cli` and `@engine/serve`) run one capture in one
+   * orchestrator (`@apatureai/verdict-cli` and `@apatureai/verdict-serve`) run one capture in one
    * process and hold no record of a previous one, so there is no baseline to
    * pass. The field is real and the code behind it is real and tested; what does
    * not exist is a baseline store keyed by (repo, route, viewport) with a
@@ -107,7 +107,7 @@ export interface ReviewRoute {
 /** Live I/O seams, all injected so the orchestrator is fully testable with stubs. */
 export interface ReviewDeps {
   /**
-   * The capture seam (#11/#22). `createBrowserCapture` from `@engine/capture`
+   * The capture seam (#11/#22). `createBrowserCapture` from `@apatureai/verdict-capture`
    * is the live Chromium implementation; tests inject a stub.
    */
   captureInSandbox: CaptureInSandbox;
@@ -199,7 +199,7 @@ export interface ReviewInput {
  * Build the frozen system prompt for this review from the resolved repo context.
  *
  * The rubric, the grounding rules and the instruction-hierarchy defense against
- * prompt injection all live in `buildSystemPrompt` (`@engine/critique`); the
+ * prompt injection all live in `buildSystemPrompt` (`@apatureai/verdict-critique`); the
  * orchestrator's job is only to derive its two inputs from the context block, so
  * both stay in lockstep: the brand dimension is scored exactly when a brand block
  * was extracted, and every detected component library contributes its rubric
@@ -310,7 +310,7 @@ export async function runReview(input: ReviewInput, deps: ReviewDeps): Promise<E
   //    (#104) is resolved by the caller and injected.
   const contextBlock = buildContextBlock(input.context);
 
-  // 2. Capture (#11, injected). Chromium in `@engine/capture` is the live
+  // 2. Capture (#11, injected). Chromium in `@apatureai/verdict-capture` is the live
   //    implementation; tests inject a stub so this composes without a browser.
   const capture = await deps.captureInSandbox(input.url, input.captureContext);
   const selectors = geometrySelectors(capture.geometry);

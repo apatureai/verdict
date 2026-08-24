@@ -132,7 +132,7 @@ const CASES = [
     // pixel of it is reachable.
     html:
       `<pre style="width:240px;overflow-x:auto;white-space:pre">` +
-      `$ pnpm --filter @engine/capture exec vitest run --reporter verbose</pre>`,
+      `$ pnpm --filter @apatureai/verdict-capture exec vitest run --reporter verbose</pre>`,
     expectOverflow: [],
   },
 ];

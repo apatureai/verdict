@@ -1,4 +1,4 @@
-import type { CalibrationRuntimeBinding, Finding } from "@engine/types";
+import type { CalibrationRuntimeBinding, Finding } from "@apatureai/verdict-types";
 import { describe, expect, it } from "vitest";
 import { runValidationTail } from "../src/validation-tail.js";
 import type { CalibrationRuntimeIdentity } from "../src/calibration-binding.js";

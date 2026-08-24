@@ -1,4 +1,4 @@
-import type { Dimension, Grade, Severity } from "@engine/types";
+import type { Dimension, Grade, Severity } from "@apatureai/verdict-types";
 
 /**
  * Golden-set labeling tooling (TRD §10, #45). The 150 human-labeled PR snapshots

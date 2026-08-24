@@ -17,7 +17,7 @@ import {
 describe("preference-example contract artifact", () => {
   it("is up to date with the TS source of truth (regen check)", () => {
     const committed = readFileSync(contractArtifactPath(), "utf8");
-    // `pnpm --filter @engine/feedback contract:gen` regenerates this file.
+    // `pnpm --filter @apatureai/verdict-feedback contract:gen` regenerates this file.
     expect(contractToJson()).toBe(committed);
   });
 

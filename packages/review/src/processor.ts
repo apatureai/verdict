@@ -1,4 +1,4 @@
-import type { EngineReviewResult } from "@engine/types";
+import type { EngineReviewResult } from "@apatureai/verdict-types";
 import { runReview, type ReviewDeps, type ReviewInput } from "./orchestrator.js";
 
 export type ReviewDepsProvider<TJob> =
@@ -13,7 +13,7 @@ export type ReviewDepsProvider<TJob> =
  * "EM2 replaces this with the real capture + critique pipeline".
  *
  * Generic over the job shape (`TJob`) so this package does NOT depend on
- * `@engine/jobs`: the caller supplies a `toReviewInput` mapper that derives the
+ * `@apatureai/verdict-jobs`: the caller supplies a `toReviewInput` mapper that derives the
  * orchestrator input from its own job record (depth, opaque review request,
  * resolved context/capture inputs). Live I/O (capture seam, model factory,
  * genome embedder) is injected once via `deps`.

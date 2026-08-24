@@ -1,5 +1,5 @@
-import { allRoutesConfirmedUnchanged, hashesWithin } from "@engine/capture";
-import type { BaselineChangeOptions, TileChangeScore } from "@engine/capture";
+import { allRoutesConfirmedUnchanged, hashesWithin } from "@apatureai/verdict-capture";
+import type { BaselineChangeOptions, TileChangeScore } from "@apatureai/verdict-capture";
 import { z } from "zod";
 import type { ModelClient, ModelImage } from "./model.js";
 

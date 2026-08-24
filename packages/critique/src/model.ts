@@ -1,4 +1,4 @@
-import type { Viewport } from "@engine/types";
+import type { Viewport } from "@apatureai/verdict-types";
 
 /**
  * Per-pass model abstraction (TRD §6/§7, #26). Every model backend sits behind

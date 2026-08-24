@@ -7,7 +7,7 @@ const GOLDEN = fileURLToPath(new URL("../fixtures/calibration-contract.golden.js
 
 describe("cross-repo calibration contract (sigil#2)", () => {
   it("the committed contract matches this package's math exactly", () => {
-    // Regenerate with: pnpm --filter @engine/eval gen:calibration-contract
+    // Regenerate with: pnpm --filter @apatureai/verdict-eval gen:calibration-contract
     expect(renderCalibrationContract()).toBe(readFileSync(GOLDEN, "utf8"));
   });
 

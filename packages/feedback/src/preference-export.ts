@@ -1,6 +1,6 @@
-import type { SqlExecutor } from "@engine/db";
-import { objectKey } from "@engine/storage";
-import type { Dimension, Severity, Viewport } from "@engine/types";
+import type { SqlExecutor } from "@apatureai/verdict-db";
+import { objectKey } from "@apatureai/verdict-storage";
+import type { Dimension, Severity, Viewport } from "@apatureai/verdict-types";
 import { isPiiClean } from "./pii.js";
 import type { FeedbackSignal, RaterPermission } from "./store.js";
 import { isTrainingGrade, weightedConsensus } from "./weighting.js";

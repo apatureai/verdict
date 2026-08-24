@@ -1,5 +1,5 @@
 {
-  "name": "@engine/capture",
+  "name": "@apatureai/verdict-capture",
   "version": "0.1.3",
   "license": "MIT",
   "author": "Aditya Prathapa",
@@ -27,7 +27,7 @@
     "prepublishOnly": "tsc -b"
   },
   "dependencies": {
-    "@engine/types": "workspace:*",
+    "@apatureai/verdict-types": "workspace:*",
     "playwright-core": "1.62.1"
   }
 }

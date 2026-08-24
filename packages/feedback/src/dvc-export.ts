@@ -1,6 +1,6 @@
 import { Buffer } from "node:buffer";
 import { createHash } from "node:crypto";
-import type { ObjectStore } from "@engine/storage";
+import type { ObjectStore } from "@apatureai/verdict-storage";
 import type { PreferenceExample } from "./preference-export.js";
 
 /**

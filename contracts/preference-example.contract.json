@@ -5,7 +5,7 @@
     "packages/feedback/src/preference-export.ts",
     "packages/feedback/src/dvc-export.ts"
   ],
-  "$doc": "Canonical TS<->Python schema contract for PreferenceExample. Generated; regenerate with `pnpm --filter @engine/feedback contract:gen`. DO NOT EDIT BY HAND.",
+  "$doc": "Canonical TS<->Python schema contract for PreferenceExample. Generated; regenerate with `pnpm --filter @apatureai/verdict-feedback contract:gen`. DO NOT EDIT BY HAND.",
   "version": 1,
   "enums": {
     "Dimension": [

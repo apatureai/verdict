@@ -3,7 +3,7 @@ import type {
   ConfidenceUnavailableReason,
   Critique,
   Finding,
-} from "@engine/types";
+} from "@apatureai/verdict-types";
 import { ENGINE_VERSION, PROMPT_VERSION, RUBRIC_VERSION } from "./critique.js";
 import type { DeepPassRouteResult } from "./deep-pass.js";
 import { worstGrade } from "./grade.js";

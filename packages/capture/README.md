@@ -1,4 +1,4 @@
-# @engine/capture
+# @apatureai/verdict-capture
 
 The capture and measurement layer of [verdict](https://github.com/apatureai/verdict):
 deterministic headless-Chromium capture, a DOM geometry map, and the
@@ -9,7 +9,7 @@ The check functions are pure — no browser, no model, no API key — so they ru
 identically on captured data and in a unit test.
 
 ```ts
-import { contrastRatio, contrastViolations } from "@engine/capture";
+import { contrastRatio, contrastViolations } from "@apatureai/verdict-capture";
 
 contrastRatio({ r: 138, g: 138, b: 138 }, { r: 255, g: 255, b: 255 }); // 3.45
 ```
@@ -19,5 +19,5 @@ full pipeline and a runnable example under
 [`examples/`](https://github.com/apatureai/verdict/tree/main/examples).
 
 > Status: 0.1.x, API may still move. Requires Node >= 24. The Playwright entry
-> point (`@engine/capture/playwright`) additionally needs `playwright-core`'s
+> point (`@apatureai/verdict-capture/playwright`) additionally needs `playwright-core`'s
 > Chromium; the pure check functions do not.

@@ -194,7 +194,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build eval package
-        run: pnpm --filter @engine/eval... build
+        run: pnpm --filter @apatureai/verdict-eval... build
 
       - name: Gate promotes the passing candidate
         run: node packages/eval/dist/release-gate-cli.js packages/eval/fixtures/release/passing.advisory.json

@@ -1,11 +1,11 @@
-import type { Viewport } from "@engine/types";
+import type { Viewport } from "@apatureai/verdict-types";
 
 /**
  * The browser surface the live capture worker drives (TRD §4.1). Playwright's
  * own `Page`/`BrowserContext` types are large, overloaded and chromium-specific;
  * this port is the narrow subset capture actually uses, so:
  *
- * - `@engine/capture` has no compile-time coupling to a browser library, and
+ * - `@apatureai/verdict-capture` has no compile-time coupling to a browser library, and
  * - the whole capture path is unit-testable against a fake page (no browser).
  *
  * `playwright-browser.ts` binds a real Chromium to this port.
@@ -195,7 +195,7 @@ export interface CaptureBrowser {
   close(): Promise<void>;
 }
 
-/** Where captured PNG bytes are written. `ObjectStore` from `@engine/storage` satisfies it. */
+/** Where captured PNG bytes are written. `ObjectStore` from `@apatureai/verdict-storage` satisfies it. */
 export interface ScreenshotSink {
   put(key: string, body: Uint8Array, options?: { contentType?: string }): Promise<void>;
 }

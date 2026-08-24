@@ -4,9 +4,9 @@ import {
   type JobRecord,
   type JobStore,
   type ReviewDepth,
-} from "@engine/jobs";
-import { objectKey, type ObjectStore } from "@engine/storage";
-import { SCHEMA_VERSION, type EngineReviewResult } from "@engine/types";
+} from "@apatureai/verdict-jobs";
+import { objectKey, type ObjectStore } from "@apatureai/verdict-storage";
+import { SCHEMA_VERSION, type EngineReviewResult } from "@apatureai/verdict-types";
 import {
   INSTALLATION_HEADER,
   SIGNATURE_HEADER,

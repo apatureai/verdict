@@ -1,4 +1,4 @@
-import type { PassModelOverrides } from "@engine/critique";
+import type { PassModelOverrides } from "@apatureai/verdict-critique";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -9,7 +9,7 @@ import {
   resolveModelRuntime,
   type ImageUrlResolver,
   type ModelClientFactory,
-} from "@engine/critique";
+} from "@apatureai/verdict-critique";
 import type { ModelChoice } from "./args.js";
 import type { ReportModelKind } from "./report.js";
 

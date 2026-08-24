@@ -1,7 +1,7 @@
-import { resolveComponentLibraries } from "@engine/context";
-import type { JobRecord } from "@engine/jobs";
-import type { ReviewInput } from "@engine/review";
-import type { PreviewBuildFact, Viewport } from "@engine/types";
+import { resolveComponentLibraries } from "@apatureai/verdict-context";
+import type { JobRecord } from "@apatureai/verdict-jobs";
+import type { ReviewInput } from "@apatureai/verdict-review";
+import type { PreviewBuildFact, Viewport } from "@apatureai/verdict-types";
 import { z } from "zod";
 
 const viewportSchema = z.enum(["mobile", "tablet", "desktop"]);

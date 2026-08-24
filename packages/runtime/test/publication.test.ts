@@ -1,15 +1,15 @@
-import { signEngineRequest } from "@engine/api";
-import type { ModelClientFactory, ModelRequest, ModelResponse } from "@engine/critique";
-import { pgliteExecutor, runMigrations } from "@engine/db";
-import { JobStore } from "@engine/jobs";
-import { InMemoryObjectStore, type ObjectStore } from "@engine/storage";
+import { signEngineRequest } from "@apatureai/verdict-api";
+import type { ModelClientFactory, ModelRequest, ModelResponse } from "@apatureai/verdict-critique";
+import { pgliteExecutor, runMigrations } from "@apatureai/verdict-db";
+import { JobStore } from "@apatureai/verdict-jobs";
+import { InMemoryObjectStore, type ObjectStore } from "@apatureai/verdict-storage";
 import {
   NO_MODEL_DISCLOSURE_PREFIX,
   type Capture,
   type CaptureContext,
   type EngineReviewResult,
   type Finding,
-} from "@engine/types";
+} from "@apatureai/verdict-types";
 import { PGlite } from "@electric-sql/pglite";
 import { afterEach, describe, expect, it } from "vitest";
 import {

@@ -3,7 +3,7 @@ import type { ChatChunk, ChatCompletionsCreate, ChatCreateParams } from "./dashs
 /**
  * Dependency-free OpenAI-compatible transport for `DashScopeModelClient` (#27,
  * #76). `createOpenAICompatibleCreate` adapts the official OpenAI SDK; this is
- * the same seam implemented over `fetch` + SSE, so `@engine/critique` can talk to
+ * the same seam implemented over `fetch` + SSE, so `@apatureai/verdict-critique` can talk to
  * a real endpoint (DashScope's compatible mode, a self-hosted vLLM/SGLang server,
  * or anything else exposing `POST {baseUrl}/chat/completions`) without taking an
  * SDK dependency.

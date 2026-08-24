@@ -1,5 +1,5 @@
 {
-  "name": "@engine/eval",
+  "name": "@apatureai/verdict-eval",
   "version": "0.1.3",
   "private": true,
   "license": "MIT",
@@ -22,8 +22,8 @@
     "build": "tsc -b"
   },
   "dependencies": {
-    "@engine/db": "workspace:*",
-    "@engine/types": "workspace:*"
+    "@apatureai/verdict-db": "workspace:*",
+    "@apatureai/verdict-types": "workspace:*"
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.5.4"

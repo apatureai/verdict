@@ -1,4 +1,4 @@
-import type { Finding, Grade, Severity } from "@engine/types";
+import type { Finding, Grade, Severity } from "@apatureai/verdict-types";
 
 /**
  * Grade helpers (#106). The grade is the model's holistic judgment, but the

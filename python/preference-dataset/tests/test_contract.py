@@ -42,7 +42,7 @@ SCHEMA_TYPES = {"PreferenceExample": PreferenceExample, "Finding": Finding}
 def contract() -> dict[str, Any]:
     assert CONTRACT_PATH.exists(), (
         f"contract artifact missing at {CONTRACT_PATH}; regenerate with "
-        "`pnpm --filter @engine/feedback contract:gen`"
+        "`pnpm --filter @apatureai/verdict-feedback contract:gen`"
     )
     return json.loads(CONTRACT_PATH.read_text(encoding="utf-8"))
 

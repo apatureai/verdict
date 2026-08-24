@@ -5,7 +5,7 @@ import {
   type JobStore,
   type RecoveredJob,
   type RecoverExpiredOptions,
-} from "@engine/jobs";
+} from "@apatureai/verdict-jobs";
 import { Client } from "pg";
 
 export interface NotificationSource {

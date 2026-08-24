@@ -1,7 +1,7 @@
 import { mkdir } from "node:fs/promises";
 import { resolve } from "node:path";
-import { createJobApi, type ApiRequest, type ApiResponse } from "@engine/api";
-import type { CaptureBrowser } from "@engine/capture";
+import { createJobApi, type ApiRequest, type ApiResponse } from "@apatureai/verdict-api";
+import type { CaptureBrowser } from "@apatureai/verdict-capture";
 import {
   FileScreenshotSink,
   lexicalEmbedder,
@@ -17,14 +17,14 @@ import {
   type ModelChoice,
   type ResolvedLocalModel,
   passModelsFromEnv,
-} from "@engine/cli";
-import type { ContextBlockInput } from "@engine/context";
-import { pgliteExecutor, runMigrations } from "@engine/db";
-import { CancellationCoordinator, JobStore, type JobRecord } from "@engine/jobs";
-import { EngineHttpServer } from "@engine/runtime/http";
-import { EngineWorker } from "@engine/runtime/worker";
-import { InMemoryObjectStore } from "@engine/storage";
-import type { EngineReviewResult } from "@engine/types";
+} from "@apatureai/verdict-cli";
+import type { ContextBlockInput } from "@apatureai/verdict-context";
+import { pgliteExecutor, runMigrations } from "@apatureai/verdict-db";
+import { CancellationCoordinator, JobStore, type JobRecord } from "@apatureai/verdict-jobs";
+import { EngineHttpServer } from "@apatureai/verdict-runtime/http";
+import { EngineWorker } from "@apatureai/verdict-runtime/worker";
+import { InMemoryObjectStore } from "@apatureai/verdict-storage";
+import type { EngineReviewResult } from "@apatureai/verdict-types";
 import { PGlite } from "@electric-sql/pglite";
 import {
   artifactUrl,
@@ -39,12 +39,12 @@ import { toLocalReviewRequest } from "./request.js";
 /**
  * verdict's job API, served for real, with nothing to provision.
  *
- * The async job API in `@engine/api` was always a complete transport: HMAC
+ * The async job API in `@apatureai/verdict-api` was always a complete transport: HMAC
  * verification, tenant scoping, exact idempotency, cancellation, claim-generation
  * fencing. What it never had was a review behind it. Its `processor` used to
  * default to a stub that answered every job with `findings: []` and
  * `promptVersion: "stub@0"`, and the only composition root that bound the real
- * pipeline (`@engine/runtime`) needs Postgres, an S3-compatible bucket and a
+ * pipeline (`@apatureai/verdict-runtime`) needs Postgres, an S3-compatible bucket and a
  * `CAPTURE_ENDPOINT` capture fleet that does not exist in this repository. So
  * the honest answer to "can I point something at verdict over HTTP" was no.
  *

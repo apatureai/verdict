@@ -1,8 +1,8 @@
 import { mkdtemp, readFile, readdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import type { CaptureBrowser, CapturePage, ExtractedPage } from "@engine/capture";
-import { NO_MODEL_DISCLOSURE_PREFIX, type EngineReviewResult } from "@engine/types";
+import type { CaptureBrowser, CapturePage, ExtractedPage } from "@apatureai/verdict-capture";
+import { NO_MODEL_DISCLOSURE_PREFIX, type EngineReviewResult } from "@apatureai/verdict-types";
 import { describe, expect, it } from "vitest";
 import { parseArgs, renderDeterministicFacts, runCli, type RunIo } from "../src/index.js";
 
@@ -10,7 +10,7 @@ import { parseArgs, renderDeterministicFacts, runCli, type RunIo } from "../src/
  * The CLI end to end against a FAKE browser: the demo site is really served, the
  * canned script is really parsed, the orchestrator really runs, and the artifacts
  * are really written, but no Chromium is launched, so this runs in CI. The
- * browser binding itself is covered by `@engine/capture`'s port tests; what is
+ * browser binding itself is covered by `@apatureai/verdict-capture`'s port tests; what is
  * asserted here is that the pieces are wired together and that the grounding gate
  * deletes the two deliberately-ungrounded findings in the bundled script.
  */

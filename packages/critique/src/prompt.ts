@@ -1,4 +1,4 @@
-import type { Dimension } from "@engine/types";
+import type { Dimension } from "@apatureai/verdict-types";
 
 /**
  * Frozen system prompt: the 8-dimension rubric + anti-hallucination clause
@@ -75,7 +75,7 @@ const DIMENSION_RUBRIC: Record<Dimension, string> = {
  * checks routinely measure (they run over text nodes). The engine could measure
  * an overflow on a `<p>`, force a deep review because of it, hand the model the
  * measurement, and delete the resulting finding. The map now carries every
- * measured element (`serializeGeometry` in `@engine/capture`), so the two rules
+ * measured element (`serializeGeometry` in `@apatureai/verdict-capture`), so the two rules
  * are consistent, and the prompt says so rather than leaving the model to
  * discover it.
  */

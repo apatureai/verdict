@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { loadGoldenResult, loadPreCalibrationResult } from "@engine/types";
-import type { Critique, Finding, MeasurementReport, ReviewCoverage } from "@engine/types";
+import { loadGoldenResult, loadPreCalibrationResult } from "@apatureai/verdict-types";
+import type { Critique, Finding, MeasurementReport, ReviewCoverage } from "@apatureai/verdict-types";
 import { describe, expect, it } from "vitest";
 import { measuredFactsUnjudged, toEngineReviewResult } from "../src/index.js";
 

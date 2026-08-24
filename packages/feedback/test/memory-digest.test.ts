@@ -1,4 +1,4 @@
-import { pgliteExecutor, runMigrations } from "@engine/db";
+import { pgliteExecutor, runMigrations } from "@apatureai/verdict-db";
 import { PGlite } from "@electric-sql/pglite";
 import { describe, expect, it } from "vitest";
 import {

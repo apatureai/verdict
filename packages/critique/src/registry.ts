@@ -1,4 +1,4 @@
-import type { ReviewDepth } from "@engine/types";
+import type { ReviewDepth } from "@apatureai/verdict-types";
 import type { ModelBackend, ModelClient } from "./model.js";
 
 /** Resolved model selection for one pass. */

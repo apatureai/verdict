@@ -3,14 +3,14 @@ import type {
   CapturePage,
   ExtractedPage,
   ScreenshotSink,
-} from "@engine/capture";
+} from "@apatureai/verdict-capture";
 import type {
   ModelClient,
   ModelRequest,
   ModelResponse,
   PassModelConfig,
-} from "@engine/critique";
-import type { ContextBlockInput, Embedder, GenomeRule } from "@engine/context";
+} from "@apatureai/verdict-critique";
+import type { ContextBlockInput, Embedder, GenomeRule } from "@apatureai/verdict-context";
 import { describe, expect, it } from "vitest";
 import {
   lexicalEmbedder,

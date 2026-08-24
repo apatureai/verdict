@@ -1,4 +1,4 @@
-import type { SqlExecutor } from "@engine/db";
+import type { SqlExecutor } from "@apatureai/verdict-db";
 
 /**
  * Per-tenant training-consent store (#74). Default OFF; cross-tenant training

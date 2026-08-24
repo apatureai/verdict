@@ -5,7 +5,7 @@
  * different seeds diverge.
  */
 import { describe, expect, it } from "vitest";
-import { mulberry32 } from "@engine/eval";
+import { mulberry32 } from "@apatureai/verdict-eval";
 
 describe("mulberry32", () => {
   it("is deterministic: the same seed yields the same stream", () => {

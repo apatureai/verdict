@@ -6,7 +6,7 @@ import type {
   CaptureInSandbox,
   GeometryRect,
   Viewport,
-} from "@engine/types";
+} from "@apatureai/verdict-types";
 import type {
   ModelClient,
   ModelRequest,
@@ -14,10 +14,10 @@ import type {
   ModelCallOptions,
   ModelBackend,
   PassModelConfig,
-} from "@engine/critique";
-import { buildGenomeIndex, type Embedder } from "@engine/context";
-import { assertVersionStamped } from "@engine/critique";
-import { loadGoldenResult } from "@engine/types";
+} from "@apatureai/verdict-critique";
+import { buildGenomeIndex, type Embedder } from "@apatureai/verdict-context";
+import { assertVersionStamped } from "@apatureai/verdict-critique";
+import { loadGoldenResult } from "@apatureai/verdict-types";
 import { describe, expect, it } from "vitest";
 import {
   runReview as runReviewRaw,

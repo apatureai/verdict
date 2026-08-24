@@ -1,7 +1,7 @@
 import { mkdir } from "node:fs/promises";
 import { join, relative, resolve } from "node:path";
-import { pageHealthFootnote, type CaptureBrowser } from "@engine/capture";
-import type { PageHealth } from "@engine/types";
+import { pageHealthFootnote, type CaptureBrowser } from "@apatureai/verdict-capture";
+import type { PageHealth } from "@apatureai/verdict-types";
 import type { CliOptions } from "./args.js";
 import { FileScreenshotSink } from "./file-sink.js";
 import { loadRepoGenome } from "./genome-source.js";

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { Critique } from "@engine/types";
+import type { Critique } from "@apatureai/verdict-types";
 import { authorizeGrounding, enforceGroundingAuthority, inMemoryGroundingAuthority } from "../src/index.js";
 
 function critique(over: Partial<Critique> = {}): Critique {

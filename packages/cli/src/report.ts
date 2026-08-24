@@ -1,5 +1,5 @@
-import { toMeasurementReport, type DeterministicFinding, type StabilityCheck } from "@engine/capture";
-import { nothingReviewed, type EngineReviewResult } from "@engine/types";
+import { toMeasurementReport, type DeterministicFinding, type StabilityCheck } from "@apatureai/verdict-capture";
+import { nothingReviewed, type EngineReviewResult } from "@apatureai/verdict-types";
 import type { LocalGrounding } from "./grounding.js";
 
 /**
@@ -111,7 +111,7 @@ export function groupFacts(findings: DeterministicFinding[]): FactGroup[] {
 
 /**
  * The measured facts, as the report's numbered list. These are computed from the
- * captured DOM by `@engine/capture`, so they are true in every model mode and
+ * captured DOM by `@apatureai/verdict-capture`, so they are true in every model mode and
  * are the whole of what an offline run legitimately tells you about a page.
  */
 export function renderFacts(summary: RunSummary): string[] {

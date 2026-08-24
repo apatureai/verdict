@@ -24,12 +24,12 @@ fi
 docker run --rm --entrypoint sh "$image" -c \
   'dpkg --compare-versions "$(dpkg-query -W liblzma5 | cut -f2)" ge "5.8.1-1+deb13u1"'
 
-release_command='  release_command = "node node_modules/@engine/db/dist/cli/migrate.js"'
+release_command='  release_command = "node node_modules/@apatureai/verdict-db/dist/cli/migrate.js"'
 if ! grep --fixed-strings --line-regexp "$release_command" fly.toml >/dev/null; then
   echo "fly.toml release command does not match the package-scoped runtime image" >&2
   exit 1
 fi
-docker run --rm --entrypoint test "$image" -f node_modules/@engine/db/dist/cli/migrate.js
+docker run --rm --entrypoint test "$image" -f node_modules/@apatureai/verdict-db/dist/cli/migrate.js
 
 # Throwaway CI-local values only: the DB URL points at the ephemeral
 # postgres:17-alpine service container defined in .github/workflows/ci.yml, and
@@ -38,7 +38,7 @@ database_url=postgresql://postgres:postgres@127.0.0.1:5432/postgres
 docker run --rm --network host \
   --env DATABASE_URL="$database_url" \
   --entrypoint node \
-  "$image" node_modules/@engine/db/dist/cli/migrate.js
+  "$image" node_modules/@apatureai/verdict-db/dist/cli/migrate.js
 
 docker run --detach --name "$capture_container" --network host \
   --entrypoint node \

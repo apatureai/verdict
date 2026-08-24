@@ -1,5 +1,5 @@
 /**
- * Cross-repo calibration contract (sigil#2). @engine/eval's ECE/Brier math is
+ * Cross-repo calibration contract (sigil#2). @apatureai/verdict-eval's ECE/Brier math is
  * the org's canonical calibration IP; the standalone assurance lane (sigil)
  * mirrors it rather than importing it (private repos, no registry; a literal
  * dependency would also complicate sigil's independence provenance). This
@@ -72,7 +72,7 @@ export function renderCalibrationContract(): string {
   return `${JSON.stringify(
     {
       $comment:
-        "Cross-repo calibration contract (@engine/eval is canonical; sigil mirrors — sigil#2). Regenerate: pnpm --filter @engine/eval gen:calibration-contract. Consumed by packages/eval tests here and by sigil's calibration-contract test.",
+        "Cross-repo calibration contract (@apatureai/verdict-eval is canonical; sigil mirrors — sigil#2). Regenerate: pnpm --filter @apatureai/verdict-eval gen:calibration-contract. Consumed by packages/eval tests here and by sigil's calibration-contract test.",
       vectors,
     },
     null,

@@ -10,19 +10,19 @@ import {
   type DeterministicFinding,
   checksRunFor,
   type ScreenshotSink,
-} from "@engine/capture";
+} from "@apatureai/verdict-capture";
 import { enforceGroundingAuthority, type ModelClientFactory,
   type PassModelOverrides,
-} from "@engine/critique";
-import { reviewSystemPrompt, runReview, type ReviewRoute } from "@engine/review";
-import { buildGenomeIndex, type ContextBlockInput, type Embedder } from "@engine/context";
+} from "@apatureai/verdict-critique";
+import { reviewSystemPrompt, runReview, type ReviewRoute } from "@apatureai/verdict-review";
+import { buildGenomeIndex, type ContextBlockInput, type Embedder } from "@apatureai/verdict-context";
 import type {
   CaptureContext,
   Critique,
   EngineReviewResult,
   PreviewBuildFact,
   Viewport,
-} from "@engine/types";
+} from "@apatureai/verdict-types";
 import {
   resolveGrounding,
   withDisclosure,
@@ -36,7 +36,7 @@ import {
  * database, no object store and no capture fleet.
  *
  * This module exists so there is exactly ONE local pipeline, not two. The
- * terminal CLI (`run.ts`) and the local HTTP job server (`@engine/serve`) are
+ * terminal CLI (`run.ts`) and the local HTTP job server (`@apatureai/verdict-serve`) are
  * two front doors onto this function; neither reimplements a step, so a result
  * polled from `GET /jobs/:id` and a result written to `out/review.json` are the
  * same bytes for the same input. Every live I/O is a parameter: the browser,

@@ -1,4 +1,4 @@
-import { buildGenomeIndex, cosineSimilarity, retrieveGenomeRules } from "@engine/context";
+import { buildGenomeIndex, cosineSimilarity, retrieveGenomeRules } from "@apatureai/verdict-context";
 import { describe, expect, it } from "vitest";
 import {
   lexicalEmbedder,

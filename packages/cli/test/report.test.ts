@@ -1,5 +1,5 @@
-import type { DeterministicFinding } from "@engine/capture";
-import type { EngineReviewResult } from "@engine/types";
+import type { DeterministicFinding } from "@apatureai/verdict-capture";
+import type { EngineReviewResult } from "@apatureai/verdict-types";
 import { describe, expect, it } from "vitest";
 import {
   ungroundedDisclosure,

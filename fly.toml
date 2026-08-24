@@ -13,7 +13,7 @@ primary_region = "iad"
   WORKER_MAX_ATTEMPTS = "3"
 
 [deploy]
-  release_command = "node node_modules/@engine/db/dist/cli/migrate.js"
+  release_command = "node node_modules/@apatureai/verdict-db/dist/cli/migrate.js"
 
 [http_service]
   internal_port = 8080

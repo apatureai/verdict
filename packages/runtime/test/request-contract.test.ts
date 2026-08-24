@@ -1,9 +1,9 @@
-import { signEngineRequest } from "@engine/api";
-import type { ModelClientFactory, ModelRequest, ModelResponse } from "@engine/critique";
-import { pgliteExecutor, runMigrations } from "@engine/db";
-import { JobStore, type JobRecord } from "@engine/jobs";
-import { InMemoryObjectStore } from "@engine/storage";
-import type { CaptureContext, EngineReviewResult } from "@engine/types";
+import { signEngineRequest } from "@apatureai/verdict-api";
+import type { ModelClientFactory, ModelRequest, ModelResponse } from "@apatureai/verdict-critique";
+import { pgliteExecutor, runMigrations } from "@apatureai/verdict-db";
+import { JobStore, type JobRecord } from "@apatureai/verdict-jobs";
+import { InMemoryObjectStore } from "@apatureai/verdict-storage";
+import type { CaptureContext, EngineReviewResult } from "@apatureai/verdict-types";
 import { PGlite } from "@electric-sql/pglite";
 import { afterEach, describe, expect, it } from "vitest";
 import {

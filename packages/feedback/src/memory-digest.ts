@@ -1,5 +1,5 @@
-import type { SqlExecutor } from "@engine/db";
-import type { Dimension } from "@engine/types";
+import type { SqlExecutor } from "@apatureai/verdict-db";
+import type { Dimension } from "@apatureai/verdict-types";
 import type { FeedbackSignal, RaterPermission } from "./store.js";
 import { raterWeight, SIGNAL_POLARITY } from "./weighting.js";
 

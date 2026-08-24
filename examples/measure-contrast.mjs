@@ -11,9 +11,9 @@
 //     pnpm build
 //     node examples/measure-contrast.mjs
 //
-// The import below reaches into the built workspace output. Once the @engine/*
+// The import below reaches into the built workspace output. Once the @apatureai/verdict-*
 // packages are published to npm (see the release workflow), the same import
-// becomes `import { ... } from "@engine/capture";` with nothing else changed.
+// becomes `import { ... } from "@apatureai/verdict-capture";` with nothing else changed.
 import {
   contrastRatio,
   contrastViolations,

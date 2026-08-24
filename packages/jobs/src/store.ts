@@ -1,4 +1,4 @@
-import type { SqlExecutor } from "@engine/db";
+import type { SqlExecutor } from "@apatureai/verdict-db";
 import { jobPriority } from "./priority.js";
 import { jobSubmissionDigest } from "./submission-digest.js";
 
