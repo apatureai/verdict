@@ -7,10 +7,10 @@ export default tseslint.config(
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
-    // Node scripts under scripts/, plus the one-command entry point at the root.
-    // TypeScript sources get their globals from @types/node, but these are plain
-    // ESM and eslint has to be told.
-    files: ["scripts/**/*.mjs", "demo.mjs"],
+    // Node scripts under scripts/, the runnable examples/, plus the one-command
+    // entry point at the root. TypeScript sources get their globals from
+    // @types/node, but these are plain ESM and eslint has to be told.
+    files: ["scripts/**/*.mjs", "examples/**/*.mjs", "demo.mjs"],
     languageOptions: {
       globals: {
         Buffer: "readonly",
