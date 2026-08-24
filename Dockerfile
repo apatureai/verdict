@@ -13,7 +13,7 @@ RUN pnpm install --frozen-lockfile
 RUN pnpm build
 # Materialize only the runtime package's production dependency closure. This
 # avoids shipping the root test/build toolchain.
-RUN pnpm --filter @engine/runtime deploy --prod /prod/runtime
+RUN pnpm --filter @apatureai/verdict-runtime deploy --prod /prod/runtime
 
 FROM node:24-trixie-slim AS runtime
 ENV NODE_ENV=production

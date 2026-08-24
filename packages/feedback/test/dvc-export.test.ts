@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { InMemoryObjectStore } from "@engine/storage";
+import { InMemoryObjectStore } from "@apatureai/verdict-storage";
 import {
   buildDvcDataset,
   dvcCachePath,

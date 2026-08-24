@@ -7,8 +7,8 @@ import {
   toRawGeometryElements,
   toTextNodeStyles,
   type ExtractedPage,
-} from "@engine/capture";
-import type { Finding, Viewport } from "@engine/types";
+} from "@apatureai/verdict-capture";
+import type { Finding, Viewport } from "@apatureai/verdict-types";
 import { describe, expect, it } from "vitest";
 import { hallucinationGate } from "../src/index.js";
 

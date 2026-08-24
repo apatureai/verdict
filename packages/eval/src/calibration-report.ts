@@ -3,7 +3,7 @@ import type {
   CalibrationRuntimeBinding,
   ConfidenceSource,
   ConfidenceUnavailableReason,
-} from "@engine/types";
+} from "@apatureai/verdict-types";
 import {
   applyCalibrationTransform,
   type CalibrationTransformV1,

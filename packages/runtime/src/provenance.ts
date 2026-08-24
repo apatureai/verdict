@@ -4,18 +4,18 @@ import type {
   ModelClientFactory,
   ModelRequest,
   ModelResponse,
-} from "@engine/critique";
+} from "@apatureai/verdict-critique";
 import {
   NO_MODEL_DISCLOSURE_PREFIX,
   noModelDisclosure,
   type EngineReviewResult,
   type JudgmentProvenance,
-} from "@engine/types";
+} from "@apatureai/verdict-types";
 
 /**
  * Where the deployable composition states whether anything judged a page.
  *
- * `@engine/types` explains why the statement has to ride INSIDE the payload: a
+ * `@apatureai/verdict-types` explains why the statement has to ride INSIDE the payload: a
  * caller of the HTTP job API never sees a terminal report, it sees one JSON
  * document and acts on it. Both local front doors have stamped it since the
  * provenance contract landed. This composition, the one behind the production
@@ -25,13 +25,13 @@ import {
  * provenance is missing, but it also meant this composition could never publish
  * a verdict a consumer would act on.
  *
- * The vocabulary is deliberately the one `@engine/serve` uses, down to the
+ * The vocabulary is deliberately the one `@apatureai/verdict-serve` uses, down to the
  * `engine` value, because the two are the same wire surface: a signed job in,
  * one polled JSON result out. Provenance answers "what produced this judgment",
  * not "which deployment ran it", so a reader of either result reads one set of
  * words rather than two.
  *
- * What is NOT shared is where the answer comes from. `@engine/serve` chose its
+ * What is NOT shared is where the answer comes from. `@apatureai/verdict-serve` chose its
  * own model client and can read the answer off that choice. This composition is
  * always configured with a real model backend, so configuration would answer
  * `model_backed: true` for every run including the ones where no model was ever
@@ -43,7 +43,7 @@ import {
 
 /**
  * `engine` value for a review produced by the job API. Identical to
- * `@engine/serve`'s `LOCAL_ENGINE_NAME` on purpose (see above); the fields that
+ * `@apatureai/verdict-serve`'s `LOCAL_ENGINE_NAME` on purpose (see above); the fields that
  * distinguish a run are `model` and `detail`.
  */
 export const RUNTIME_ENGINE_NAME = "verdict-http";
@@ -146,7 +146,7 @@ export function witnessModelCalls(factory: ModelClientFactory): JudgmentWitness 
  * reader and a delivery surface deduplicating on `NO_MODEL_DISCLOSURE_PREFIX`
  * see the same line from either surface.
  *
- * `overall` is where this deliberately diverges from `@engine/serve`. That
+ * `overall` is where this deliberately diverges from `@apatureai/verdict-serve`. That
  * surface overwrites it because its unjudged path is the mock or canned client,
  * which writes a confident narrative about a page it never saw. The unjudged
  * path HERE is a run that reviewed nothing, and the wire projection has already
@@ -183,7 +183,7 @@ export class UnattestedResultError extends Error {
  * Publication guard. Nothing leaves this composition without saying how it was
  * produced, so a future code path that forgets to stamp fails the attempt
  * loudly instead of publishing a grade of unknown origin. Same guard, same
- * refusal, as `@engine/serve`'s `assertAttested`.
+ * refusal, as `@apatureai/verdict-serve`'s `assertAttested`.
  */
 export function assertAttested(result: EngineReviewResult): EngineReviewResult {
   const provenance = result.provenance;

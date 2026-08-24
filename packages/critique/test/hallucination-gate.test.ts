@@ -1,4 +1,4 @@
-import type { Finding } from "@engine/types";
+import type { Finding } from "@apatureai/verdict-types";
 import { describe, expect, it } from "vitest";
 import { hallucinationGate } from "../src/index.js";
 

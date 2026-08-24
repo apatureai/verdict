@@ -1,4 +1,4 @@
-import type { ReviewDepth } from "@engine/types";
+import type { ReviewDepth } from "@apatureai/verdict-types";
 import type { Rect } from "./checks.js";
 
 /**

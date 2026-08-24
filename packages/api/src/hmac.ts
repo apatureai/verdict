@@ -7,7 +7,7 @@ import { createHmac, timingSafeEqual } from "node:crypto";
  * signature. The engine verifies before processing and scopes ALL tenant access
  * to the *verified* installationId, so a bug or compromise can't misroute a job
  * into another tenant's data. Header names match Gate's client. The secret comes
- * from the KMS-backed store (`@engine/secrets` `engineHmacSecret`).
+ * from the KMS-backed store (`@apatureai/verdict-secrets` `engineHmacSecret`).
  */
 export const SIGNATURE_HEADER = "x-gate-signature";
 export const INSTALLATION_HEADER = "x-gate-installation";

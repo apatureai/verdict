@@ -1,4 +1,4 @@
-import { pgliteExecutor, runMigrations, type SqlExecutor } from "@engine/db";
+import { pgliteExecutor, runMigrations, type SqlExecutor } from "@apatureai/verdict-db";
 import { PGlite } from "@electric-sql/pglite";
 import { beforeEach, describe, expect, it } from "vitest";
 import { FeedbackStore, weightedConsensus } from "../src/index.js";

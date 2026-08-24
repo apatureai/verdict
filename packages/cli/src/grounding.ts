@@ -1,4 +1,4 @@
-import type { ContextBlockInput, GenomeRule } from "@engine/context";
+import type { ContextBlockInput, GenomeRule } from "@apatureai/verdict-context";
 
 /**
  * Whether the repository's own design system reached the model, written into the

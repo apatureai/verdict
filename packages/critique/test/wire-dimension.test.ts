@@ -1,4 +1,4 @@
-import type { Critique, Dimension, Finding, Severity } from "@engine/types";
+import type { Critique, Dimension, Finding, Severity } from "@apatureai/verdict-types";
 import { describe, expect, it } from "vitest";
 import { toEngineReviewResult } from "../src/index.js";
 

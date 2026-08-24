@@ -1,5 +1,5 @@
-import type { SecretStore } from "@engine/secrets";
-import type { PassModelOverrides } from "@engine/critique";
+import type { SecretStore } from "@apatureai/verdict-secrets";
+import type { PassModelOverrides } from "@apatureai/verdict-critique";
 
 export interface RuntimeConfig {
   port: number;

@@ -1,4 +1,4 @@
-import type { CalibrationRuntimeBinding, Finding } from "@engine/types";
+import type { CalibrationRuntimeBinding, Finding } from "@apatureai/verdict-types";
 import { describe, expect, it } from "vitest";
 import { assembleCritique, toEngineReviewResult, type DeepPassRouteResult } from "../src/index.js";
 

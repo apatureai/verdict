@@ -1,4 +1,4 @@
-import type { CaptureContext, Viewport } from "@engine/types";
+import type { CaptureContext, Viewport } from "@apatureai/verdict-types";
 
 /**
  * Dark-mode capture planning (TRD §4.1/§4.2, #21). Dark mode must be captured

@@ -1,6 +1,6 @@
 import { S3Client } from "@aws-sdk/client-s3";
-import { createJobApi, createJobReviewProcessor } from "@engine/api";
-import { buildGenomeIndex, type Embedder } from "@engine/context";
+import { createJobApi, createJobReviewProcessor } from "@apatureai/verdict-api";
+import { buildGenomeIndex, type Embedder } from "@apatureai/verdict-context";
 import {
   ENGINE_VERSION,
   PROMPT_VERSION,
@@ -9,18 +9,18 @@ import {
   resolvePassModel,
   type ModelClientFactory,
   type PassModelOverrides,
-} from "@engine/critique";
-import { pgExecutor } from "@engine/db";
+} from "@apatureai/verdict-critique";
+import { pgExecutor } from "@apatureai/verdict-db";
 import {
   createCalibrationRuntimeBinding,
   ModelPromptRegistry,
   type PromotedCalibration,
-} from "@engine/eval";
-import { CancellationCoordinator, JobStore, type JobRecord } from "@engine/jobs";
-import { EngineMetrics, initTelemetry, METER_NAME, type Telemetry } from "@engine/observability";
-import { EnvSecretStore } from "@engine/secrets";
-import { S3ObjectStore, type ObjectStore } from "@engine/storage";
-import type { EngineReviewResult, GroundingAuthorityUnknownReason } from "@engine/types";
+} from "@apatureai/verdict-eval";
+import { CancellationCoordinator, JobStore, type JobRecord } from "@apatureai/verdict-jobs";
+import { EngineMetrics, initTelemetry, METER_NAME, type Telemetry } from "@apatureai/verdict-observability";
+import { EnvSecretStore } from "@apatureai/verdict-secrets";
+import { S3ObjectStore, type ObjectStore } from "@apatureai/verdict-storage";
+import type { EngineReviewResult, GroundingAuthorityUnknownReason } from "@apatureai/verdict-types";
 import { Pool } from "pg";
 import { HttpCaptureClient, HttpGenomeResolver, createOpenAIAdapters, type CaptureClient, type GenomeResolver } from "./adapters.js";
 import {

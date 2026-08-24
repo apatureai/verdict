@@ -1,4 +1,4 @@
-import type { Dimension, Grade } from "@engine/types";
+import type { Dimension, Grade } from "@apatureai/verdict-types";
 import { findingKey, type LabeledFinding } from "./golden-set.js";
 import { mulberry32 } from "./rng.js";
 

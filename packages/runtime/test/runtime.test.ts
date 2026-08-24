@@ -1,18 +1,18 @@
-import { signEngineRequest } from "@engine/api";
+import { signEngineRequest } from "@apatureai/verdict-api";
 import {
   defaultModelFactory,
   type ModelClientFactory,
   type ModelResponse,
-} from "@engine/critique";
-import { pgliteExecutor, runMigrations } from "@engine/db";
+} from "@apatureai/verdict-critique";
+import { pgliteExecutor, runMigrations } from "@apatureai/verdict-db";
 import {
   calibrationAttestedPayloadHash,
   ModelPromptRegistry,
   type CalibrationReportV1,
-} from "@engine/eval";
-import { JobStore, type JobRecord } from "@engine/jobs";
-import { InMemoryObjectStore } from "@engine/storage";
-import type { Capture, CaptureContext, CaptureInSandbox, EngineReviewResult } from "@engine/types";
+} from "@apatureai/verdict-eval";
+import { JobStore, type JobRecord } from "@apatureai/verdict-jobs";
+import { InMemoryObjectStore } from "@apatureai/verdict-storage";
+import type { Capture, CaptureContext, CaptureInSandbox, EngineReviewResult } from "@apatureai/verdict-types";
 import { PGlite } from "@electric-sql/pglite";
 import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";

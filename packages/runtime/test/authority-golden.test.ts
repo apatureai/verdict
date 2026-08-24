@@ -4,8 +4,8 @@
  * that repository and never generated here, which is why the mirrored fixture
  * still carries the old repository name inside it.
  */
-import { authorizeGrounding, enforceGroundingAuthority } from "@engine/critique";
-import type { EngineReviewResult } from "@engine/types";
+import { authorizeGrounding, enforceGroundingAuthority } from "@apatureai/verdict-critique";
+import type { EngineReviewResult } from "@apatureai/verdict-types";
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";

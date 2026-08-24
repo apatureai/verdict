@@ -1,4 +1,4 @@
-import type { ContextBlockInput } from "@engine/context";
+import type { ContextBlockInput } from "@apatureai/verdict-context";
 import { describe, expect, it } from "vitest";
 import {
   contextGroundingParts,

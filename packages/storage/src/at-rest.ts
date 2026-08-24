@@ -32,7 +32,7 @@ export function retentionSecondsForTier(tier: RetentionTier): number {
 /**
  * Resolve the SSE-KMS key id for a tenant (§11 hierarchy): paid tenants get
  * their own per-tenant CMK; free/public share the managed CMK. The per-repo DEK
- * envelope (`@engine/secrets`) sits under whichever CMK this returns.
+ * envelope (`@apatureai/verdict-secrets`) sits under whichever CMK this returns.
  */
 export function tenantKmsKeyId(
   tier: RetentionTier,

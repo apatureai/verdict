@@ -1,4 +1,4 @@
-import type { Viewport } from "@engine/types";
+import type { Viewport } from "@apatureai/verdict-types";
 import type { DeterministicFinding, Rect } from "./checks.js";
 
 /**

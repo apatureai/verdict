@@ -1,7 +1,7 @@
 import { mkdtemp, readFile, readdir, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { signEngineRequest, type ApiRequest } from "@engine/api";
+import { signEngineRequest, type ApiRequest } from "@apatureai/verdict-api";
 import {
   fixturesDir,
   parseArgs,
@@ -11,8 +11,8 @@ import {
   UNGROUNDED_DISCLOSURE_PREFIX,
   type RunIo,
   type StaticSite,
-} from "@engine/cli";
-import { NO_MODEL_DISCLOSURE_PREFIX, type EngineReviewResult } from "@engine/types";
+} from "@apatureai/verdict-cli";
+import { NO_MODEL_DISCLOSURE_PREFIX, type EngineReviewResult } from "@apatureai/verdict-types";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { artifactToken, createLocalEngine, type LocalEngine } from "../src/index.js";
 import { fakeBrowser } from "./fake-browser.js";

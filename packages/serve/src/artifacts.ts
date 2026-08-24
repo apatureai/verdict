@@ -1,8 +1,8 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { readFile, readdir, stat } from "node:fs/promises";
 import { extname, join } from "node:path";
-import { FileScreenshotSink } from "@engine/cli";
-import type { RawRequest, RawResponse } from "@engine/runtime/http";
+import { FileScreenshotSink } from "@apatureai/verdict-cli";
+import type { RawRequest, RawResponse } from "@apatureai/verdict-runtime/http";
 
 /**
  * Serving the files a review left behind.

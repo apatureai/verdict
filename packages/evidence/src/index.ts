@@ -1,5 +1,5 @@
 /**
- * `@engine/evidence`: the producer of the signed `DerivedEvidenceBundleV1`
+ * `@apatureai/verdict-evidence`: the producer of the signed `DerivedEvidenceBundleV1`
  * Entropy Engine's acceptance gate consumes (judgment-engine#156).
  *
  * Judgment Engine owns checkout/capture, adapter authorization, artifact

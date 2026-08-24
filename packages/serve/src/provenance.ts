@@ -1,10 +1,10 @@
-import { NO_MODEL_DISCLOSURE_PREFIX, nothingReviewed, type EngineReviewResult } from "@engine/types";
+import { NO_MODEL_DISCLOSURE_PREFIX, nothingReviewed, type EngineReviewResult } from "@apatureai/verdict-types";
 import { LocalEngineError } from "./errors.js";
 
 /**
  * Where this server states whether anything judged a page.
  *
- * The stamp itself is `@engine/cli`'s `localJudgmentProvenance` /
+ * The stamp itself is `@apatureai/verdict-cli`'s `localJudgmentProvenance` /
  * `stampJudgmentProvenance`, shared verbatim with the terminal CLI so the two
  * front doors onto the same pipeline describe a run in one vocabulary rather
  * than two. All this module adds is the engine name and the publication guard.

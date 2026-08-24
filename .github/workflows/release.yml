@@ -1,10 +1,10 @@
 name: Release
 
-# Publishes the public @engine/* packages to npm when a version tag is pushed.
+# Publishes the public @apatureai/verdict-* packages to npm when a version tag is pushed.
 #
 # MAINTAINER SETUP (required once, before the first tagged release):
-#   1. Create an npm automation token with publish rights for the @engine scope
-#      (npmjs.com → Access Tokens → Generate → "Automation"). The @engine scope
+#   1. Create an npm automation token with publish rights for the @apatureai scope
+#      (npmjs.com → Access Tokens → Generate → "Automation"). The @apatureai scope
 #      must exist and be owned by the publishing account, and each package's
 #      publishConfig.access is "public".
 #   2. Add it to this repository as an Actions secret named NPM_TOKEN
@@ -80,7 +80,7 @@ jobs:
         run: |
           set -euo pipefail
           for pkg in types capture critique; do
-            echo "::group::publish @engine/$pkg"
-            pnpm --filter "@engine/$pkg" publish --provenance --access public --no-git-checks
+            echo "::group::publish @apatureai/verdict-$pkg"
+            pnpm --filter "@apatureai/verdict-$pkg" publish --provenance --access public --no-git-checks
             echo "::endgroup::"
           done

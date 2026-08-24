@@ -1,4 +1,4 @@
-import type { MeasurementKind, MeasurementReport, Viewport, WireMeasurement, WireViewport } from "@engine/types";
+import type { MeasurementKind, MeasurementReport, Viewport, WireMeasurement, WireViewport } from "@apatureai/verdict-types";
 import { VIEWPORT_SIZES } from "./browser-port.js";
 import { compositeOver, isOpaque, parseCssColor } from "./color.js";
 

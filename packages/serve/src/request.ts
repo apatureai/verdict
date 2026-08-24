@@ -1,7 +1,7 @@
-import type { LocalGenome, LocalReviewRequest } from "@engine/cli";
-import type { ContextBlockInput } from "@engine/context";
-import type { JobRecord } from "@engine/jobs";
-import { toReviewInput } from "@engine/runtime/input";
+import type { LocalGenome, LocalReviewRequest } from "@apatureai/verdict-cli";
+import type { ContextBlockInput } from "@apatureai/verdict-context";
+import type { JobRecord } from "@apatureai/verdict-jobs";
+import { toReviewInput } from "@apatureai/verdict-runtime/input";
 import { LocalEngineError } from "./errors.js";
 
 /**

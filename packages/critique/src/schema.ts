@@ -1,4 +1,4 @@
-import type { Dimension, Grade, Severity, Viewport } from "@engine/types";
+import type { Dimension, Grade, Severity, Viewport } from "@apatureai/verdict-types";
 import { z } from "zod";
 
 /**

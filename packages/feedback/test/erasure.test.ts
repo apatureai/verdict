@@ -1,5 +1,5 @@
-import { pgliteExecutor, runMigrations, type SqlExecutor } from "@engine/db";
-import { InMemoryObjectStore, jobPrefix, objectKey } from "@engine/storage";
+import { pgliteExecutor, runMigrations, type SqlExecutor } from "@apatureai/verdict-db";
+import { InMemoryObjectStore, jobPrefix, objectKey } from "@apatureai/verdict-storage";
 import { PGlite } from "@electric-sql/pglite";
 import { beforeEach, describe, expect, it } from "vitest";
 import {

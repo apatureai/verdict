@@ -44,7 +44,7 @@ export type ConfidenceUnavailableReason =
 
 /**
  * Validated eval-owned binding injected into the critique package. The report
- * itself remains serializable and owned by `@engine/eval`; only this runtime
+ * itself remains serializable and owned by `@apatureai/verdict-eval`; only this runtime
  * projection crosses into serving.
  */
 export interface CalibrationRuntimeBinding {

@@ -1,7 +1,7 @@
 import type {
   GroundingAuthorityProvenance,
   GroundingAuthorityUnknownReason,
-} from "@engine/types";
+} from "@apatureai/verdict-types";
 
 export const AUTHORITY_CONTRACT_VERSION = "uidna-authority/1" as const;
 export const DEFAULT_AUTHORITY_MAX_AGE_MS = 60_000;

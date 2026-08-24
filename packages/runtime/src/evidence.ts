@@ -1,5 +1,5 @@
-import type { ReviewInput } from "@engine/review";
-import type { Capture, EngineReviewResult, Finding } from "@engine/types";
+import type { ReviewInput } from "@apatureai/verdict-review";
+import type { Capture, EngineReviewResult, Finding } from "@apatureai/verdict-types";
 
 /**
  * The evidence half of a published review: the shot a finding points at, and a

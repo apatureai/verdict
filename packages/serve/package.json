@@ -1,5 +1,5 @@
 {
-  "name": "@engine/serve",
+  "name": "@apatureai/verdict-serve",
   "version": "0.1.3",
   "private": true,
   "license": "MIT",
@@ -24,16 +24,16 @@
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.4",
-    "@engine/api": "workspace:*",
-    "@engine/capture": "workspace:*",
-    "@engine/cli": "workspace:*",
-    "@engine/context": "workspace:*",
-    "@engine/critique": "workspace:*",
-    "@engine/db": "workspace:*",
-    "@engine/jobs": "workspace:*",
-    "@engine/review": "workspace:*",
-    "@engine/runtime": "workspace:*",
-    "@engine/storage": "workspace:*",
-    "@engine/types": "workspace:*"
+    "@apatureai/verdict-api": "workspace:*",
+    "@apatureai/verdict-capture": "workspace:*",
+    "@apatureai/verdict-cli": "workspace:*",
+    "@apatureai/verdict-context": "workspace:*",
+    "@apatureai/verdict-critique": "workspace:*",
+    "@apatureai/verdict-db": "workspace:*",
+    "@apatureai/verdict-jobs": "workspace:*",
+    "@apatureai/verdict-review": "workspace:*",
+    "@apatureai/verdict-runtime": "workspace:*",
+    "@apatureai/verdict-storage": "workspace:*",
+    "@apatureai/verdict-types": "workspace:*"
   }
 }

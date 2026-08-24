@@ -1,4 +1,4 @@
-import type { Grade } from "@engine/types";
+import type { Grade } from "@apatureai/verdict-types";
 
 /**
  * Final approval-authority decision for a UI-DNA-grounded result.

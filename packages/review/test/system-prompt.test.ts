@@ -1,7 +1,7 @@
-import type { Capture, CaptureContext, Critique } from "@engine/types";
-import type { ContextBlockInput } from "@engine/context";
-import type { ModelClient, ModelRequest, ModelResponse } from "@engine/critique";
-import { UNTRUSTED_CONTENT_TAG } from "@engine/critique";
+import type { Capture, CaptureContext, Critique } from "@apatureai/verdict-types";
+import type { ContextBlockInput } from "@apatureai/verdict-context";
+import type { ModelClient, ModelRequest, ModelResponse } from "@apatureai/verdict-critique";
+import { UNTRUSTED_CONTENT_TAG } from "@apatureai/verdict-critique";
 import { describe, expect, it } from "vitest";
 import { reviewSystemPrompt, runReview, type ReviewInput } from "../src/index.js";
 

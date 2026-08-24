@@ -1,4 +1,4 @@
-import type { SqlExecutor } from "@engine/db";
+import type { SqlExecutor } from "@apatureai/verdict-db";
 
 /**
  * Feedback store (TRD §8). Persists the signals on findings that become the data

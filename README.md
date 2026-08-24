@@ -534,10 +534,10 @@ Those two measurements are genuinely about your page, and so are the screenshots
 ### Using it as a library
 
 ```ts
-import { createBrowserCapture, factsForRoute } from "@engine/capture";
-import { launchChromiumCaptureBrowser } from "@engine/capture/playwright";
-import { resolveModelRuntime } from "@engine/critique";
-import { runReview } from "@engine/review";
+import { createBrowserCapture, factsForRoute } from "@apatureai/verdict-capture";
+import { launchChromiumCaptureBrowser } from "@apatureai/verdict-capture/playwright";
+import { resolveModelRuntime } from "@apatureai/verdict-critique";
+import { runReview } from "@apatureai/verdict-review";
 
 const browser = await launchChromiumCaptureBrowser();
 const capture = createBrowserCapture({ browser, sink: myObjectStore, keyPrefix: "captures" });
@@ -551,15 +551,15 @@ const result = await runReview(
 ```
 
 `sink` is anything with `put(key, bytes)`; `InMemoryObjectStore` and `S3ObjectStore` from
-`@engine/storage` both satisfy it.
+`@apatureai/verdict-storage` both satisfy it.
 
-Three packages — `@engine/types`, `@engine/capture` and `@engine/critique` — are prepared for npm
+Three packages — `@apatureai/verdict-types`, `@apatureai/verdict-capture` and `@apatureai/verdict-critique` — are prepared for npm
 publication (public `publishConfig`, a `files`/`exports`/`prepublishOnly` build, and a
 [`release.yml`](.github/workflows/release.yml) that publishes on a version tag with provenance). They
-are **not published yet**: the maintainer must add an `NPM_TOKEN` secret and confirm the `@engine`
+are **not published yet**: the maintainer must add an `NPM_TOKEN` secret and confirm the `@apatureai`
 scope first, so today the import path is still vendoring the tree and adding
-`"@engine/capture": "workspace:*"` to the package that imports it. The snippet above also uses
-`@engine/review` and `@engine/storage`, which remain `"private": true`. For a runnable, no-key taste
+`"@apatureai/verdict-capture": "workspace:*"` to the package that imports it. The snippet above also uses
+`@apatureai/verdict-review` and `@apatureai/verdict-storage`, which remain `"private": true`. For a runnable, no-key taste
 of the published surface without vendoring the whole tree, see
 [`examples/measure-contrast.mjs`](examples/). See [Status and roadmap](#status-and-roadmap) for the
 rest of the public-surface decision.
@@ -642,7 +642,7 @@ Every live I/O (capture, the model client factory, the embedder) is injected, wh
 pipeline runs deterministically in tests against fakes.
 
 **Grounding means two specific things.** First, the critique is judged against the repo's own design
-system: `@engine/context` extracts design tokens (a `tokens.json`, CSS custom properties, or a
+system: `@apatureai/verdict-context` extracts design tokens (a `tokens.json`, CSS custom properties, or a
 resolved Tailwind v3/v4 config), detects component libraries, maps a diff to affected routes, and
 serializes all of it into one context block whose bytes are stable, so prefix caching on the model
 endpoint actually hits. Second, every finding must carry a physical address: the `route` it was found
@@ -1074,13 +1074,13 @@ welcome on any of them.
   (`packages/cli/fixtures/canned-critique.json`) is authored by hand, not recorded from a model. A
   captured real transcript, replayable offline, would make the default run representative instead of
   illustrative. Start at `packages/critique/src/model-runtime.ts`.
-- **Published `@engine/*` packages.** The public surface is prepared but not yet published:
-  `@engine/types`, `@engine/capture` and `@engine/critique` (the dependency closure of the two
+- **Published `@apatureai/verdict-*` packages.** The public surface is prepared but not yet published:
+  `@apatureai/verdict-types`, `@apatureai/verdict-capture` and `@apatureai/verdict-critique` (the dependency closure of the two
   obvious first packages) carry publish config, a `prepublishOnly` build, and a
   [`release.yml`](.github/workflows/release.yml) that publishes them on a version tag with
   provenance. Remaining maintainer work: add the `NPM_TOKEN` secret, confirm ownership of the
-  `@engine` npm scope (it is an internal scope name; publishing under it, or renaming, is a
-  maintainer call), and decide whether to widen the surface past those three.
+  `@apatureai` npm scope (the org's public scope), and decide whether to widen the surface past
+  those three.
 - **Enforce the egress policy at the network layer.** `packages/capture/src/egress.ts` holds the
   egress/SSRF rules, including cloud-metadata blocking, as pure functions. Nothing calls them on the
   live capture path, and capture runs Chromium in your own process. Wiring the policy into

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { capturesDarkMode, planColorSchemeContexts } from "../src/index.js";
-import type { Viewport } from "@engine/types";
+import type { Viewport } from "@apatureai/verdict-types";
 
 const VIEWPORTS: Viewport[] = ["mobile", "tablet", "desktop"];
 

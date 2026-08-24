@@ -1,4 +1,4 @@
-import { nothingReviewed, nothingSurvivedValidation } from "@engine/types";
+import { nothingReviewed, nothingSurvivedValidation } from "@apatureai/verdict-types";
 import type {
   Critique,
   EngineReviewResult,
@@ -7,7 +7,7 @@ import type {
   MeasurementReport,
   ReviewCoverage,
   WireFinding,
-} from "@engine/types";
+} from "@apatureai/verdict-types";
 
 /**
  * Project the engine's internal `Critique` into the consumer-facing wire result

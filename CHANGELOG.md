@@ -29,6 +29,14 @@ tag that does not match `package.json`).
 
 ### Changed
 
+- **Packages renamed to the `@apatureai/*` scope.** Every workspace package moved
+  off the internal `@engine/*` scope onto `@apatureai/verdict-<name>` so the tree
+  publishes under one org scope: `@engine/types` → `@apatureai/verdict-types`,
+  `@engine/capture` → `@apatureai/verdict-capture`, `@engine/critique` →
+  `@apatureai/verdict-critique` (the three publishable packages), and the private
+  packages the same way. Nothing had been published yet, so no published names
+  changed. Consumers vendoring the tree should update their `@engine/*` imports
+  and `workspace:*` references to the new names.
 - **Each deterministic check now answers three ways, not two:** it *declines*
   and emits nothing when the number is not computable from what was captured,
   *reports* without block-eligibility when the measurement is true but a capture
@@ -66,12 +74,12 @@ tag that does not match `package.json`).
 - README quickstart transcript refreshed to include the `Design-system grounding`
   section (`no_genome_file`) and corrected to the current measurement count and
   test totals; a `CHANGELOG.md` link added.
-- `@engine/types`, `@engine/capture`, and `@engine/critique` are prepared for npm
+- `@apatureai/verdict-types`, `@apatureai/verdict-capture`, and `@apatureai/verdict-critique` are prepared for npm
   publication (public `publishConfig` with provenance, `files`/`exports`,
   `repository`, per-package `README`/`LICENSE`, and a `prepublishOnly` build),
   with a [`release.yml`](.github/workflows/release.yml) that publishes them on a
   version tag. The maintainer must add the `NPM_TOKEN` secret and confirm the
-  `@engine` scope before the first publish.
+  `@apatureai` scope before the first publish.
 - Added `examples/measure-contrast.mjs`, a no-key runnable example of the
   deterministic measurement library, with an `examples/README.md`.
 - Every `package.json` version aligned to `0.1.3` to match the latest tag.

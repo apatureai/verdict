@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { join, relative } from "node:path";
-import type { GenomeRule } from "@engine/context";
+import type { GenomeRule } from "@apatureai/verdict-context";
 import type { LocalGenome } from "./grounding.js";
 
 /**

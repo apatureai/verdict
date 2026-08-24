@@ -26,7 +26,7 @@
  * module resolution), so this stays a cheap transform over the two files' text.
  *
  * Lives under `scripts/` (outside the `src/**` tsc build) so it can run directly
- * with Node's type stripping: `pnpm --filter @engine/feedback contract:gen`.
+ * with Node's type stripping: `pnpm --filter @apatureai/verdict-feedback contract:gen`.
  */
 
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
@@ -308,7 +308,7 @@ export function buildContract(): Contract {
     ],
     $doc:
       "Canonical TS<->Python schema contract for PreferenceExample. Generated; " +
-      "regenerate with `pnpm --filter @engine/feedback contract:gen`. DO NOT EDIT BY HAND.",
+      "regenerate with `pnpm --filter @apatureai/verdict-feedback contract:gen`. DO NOT EDIT BY HAND.",
     version: 1,
     enums,
     types,

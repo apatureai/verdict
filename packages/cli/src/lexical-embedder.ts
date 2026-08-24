@@ -1,4 +1,4 @@
-import type { Embedder } from "@engine/context";
+import type { Embedder } from "@apatureai/verdict-context";
 
 /**
  * The embedder a local run actually has.

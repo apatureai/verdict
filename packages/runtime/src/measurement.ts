@@ -4,14 +4,14 @@ import {
   toMeasurementReport,
   checksRunFor,
   type DeterministicFinding,
-} from "@engine/capture";
-import type { ReviewInput, ReviewRoute } from "@engine/review";
-import type { Capture, CaptureContext, MeasurementReport } from "@engine/types";
+} from "@apatureai/verdict-capture";
+import type { ReviewInput, ReviewRoute } from "@apatureai/verdict-review";
+import type { Capture, CaptureContext, MeasurementReport } from "@apatureai/verdict-types";
 
 /**
  * The measured half of a review, on the deployable path.
  *
- * `@engine/capture` measures contrast, overflow and touch targets while it
+ * `@apatureai/verdict-capture` measures contrast, overflow and touch targets while it
  * captures, and the orchestrator threads those measurements into two different
  * places: `facts` grounds the deep prompt, and `deterministicBreakage` overrules
  * a triage pass that declined to look. The CLI and the local HTTP server both
@@ -34,7 +34,7 @@ import type { Capture, CaptureContext, MeasurementReport } from "@engine/types";
  * the CLI uses, so the two paths cannot phrase a measurement differently.
  *
  * What this does NOT do, deliberately: measure anything itself. The checks in
- * `@engine/capture` run over computed styles and scroll widths read out of a live
+ * `@apatureai/verdict-capture` run over computed styles and scroll widths read out of a live
  * DOM, and this process has no DOM: it has a capture service's answer. So a
  * capture service that sends no measurements produces a review with no measured
  * facts, and `measurementGap` says exactly that instead of leaving the absence

@@ -1,5 +1,5 @@
 {
-  "name": "@engine/feedback",
+  "name": "@apatureai/verdict-feedback",
   "version": "0.1.3",
   "private": true,
   "license": "MIT",
@@ -21,9 +21,9 @@
     "contract:gen": "node scripts/preference-contract.ts"
   },
   "dependencies": {
-    "@engine/db": "workspace:*",
-    "@engine/storage": "workspace:*",
-    "@engine/types": "workspace:*"
+    "@apatureai/verdict-db": "workspace:*",
+    "@apatureai/verdict-storage": "workspace:*",
+    "@apatureai/verdict-types": "workspace:*"
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.5.4",

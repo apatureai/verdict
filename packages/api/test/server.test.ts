@@ -1,8 +1,8 @@
-import { pgliteExecutor, runMigrations } from "@engine/db";
-import { CancellationCoordinator, JobStore } from "@engine/jobs";
-import { InMemoryObjectStore } from "@engine/storage";
+import { pgliteExecutor, runMigrations } from "@apatureai/verdict-db";
+import { CancellationCoordinator, JobStore } from "@apatureai/verdict-jobs";
+import { InMemoryObjectStore } from "@apatureai/verdict-storage";
 import { PGlite } from "@electric-sql/pglite";
-import type { EngineReviewResult } from "@engine/types";
+import type { EngineReviewResult } from "@apatureai/verdict-types";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
   createJobApi,

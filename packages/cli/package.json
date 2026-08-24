@@ -1,5 +1,5 @@
 {
-  "name": "@engine/cli",
+  "name": "@apatureai/verdict-cli",
   "version": "0.1.3",
   "private": true,
   "license": "MIT",
@@ -12,11 +12,11 @@
   "files": ["dist", "fixtures"],
   "scripts": { "test": "vitest run" },
   "dependencies": {
-    "@engine/capture": "workspace:*",
-    "@engine/context": "workspace:*",
-    "@engine/critique": "workspace:*",
-    "@engine/review": "workspace:*",
-    "@engine/storage": "workspace:*",
-    "@engine/types": "workspace:*"
+    "@apatureai/verdict-capture": "workspace:*",
+    "@apatureai/verdict-context": "workspace:*",
+    "@apatureai/verdict-critique": "workspace:*",
+    "@apatureai/verdict-review": "workspace:*",
+    "@apatureai/verdict-storage": "workspace:*",
+    "@apatureai/verdict-types": "workspace:*"
   }
 }

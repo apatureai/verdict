@@ -1,4 +1,4 @@
-import type { PreviewBuildFact } from "@engine/types";
+import type { PreviewBuildFact } from "@apatureai/verdict-types";
 import { describe, expect, it } from "vitest";
 import {
   MAX_BUILD_FACTS,

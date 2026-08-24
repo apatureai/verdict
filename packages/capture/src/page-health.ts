@@ -1,4 +1,4 @@
-import type { CaptureStability, PageHealth } from "@engine/types";
+import type { CaptureStability, PageHealth } from "@apatureai/verdict-types";
 
 /**
  * Page-health footnote (TRD §4.2). Console errors and failed network requests

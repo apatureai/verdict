@@ -1,4 +1,4 @@
-import type { Viewport } from "@engine/types";
+import type { Viewport } from "@apatureai/verdict-types";
 import { describe, expect, it } from "vitest";
 import {
   contrastSeverity,

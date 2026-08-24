@@ -1,14 +1,14 @@
-import type { JobRecord } from "@engine/jobs";
+import type { JobRecord } from "@apatureai/verdict-jobs";
 import {
   createReviewProcessor,
   type ReviewDepsProvider,
   type ReviewInput,
-} from "@engine/review";
-import type { EngineReviewResult } from "@engine/types";
+} from "@apatureai/verdict-review";
+import type { EngineReviewResult } from "@apatureai/verdict-types";
 import type { JobProcessor } from "./server.js";
 
 /**
- * Bind the end-to-end review orchestrator (#109, `@engine/review`) as the API's
+ * Bind the end-to-end review orchestrator (#109, `@apatureai/verdict-review`) as the API's
  * job processor, the real replacement for the EM0 `defaultProcessor` stub (whose
  * comment promised "EM2 replaces this with the real capture + critique
  * pipeline"). The async job path can now run the actual

@@ -1,4 +1,4 @@
-import type { Severity } from "@engine/types";
+import type { Severity } from "@apatureai/verdict-types";
 import type { CanarySpec } from "./canary.js";
 import type { LabeledFinding } from "./golden-set.js";
 import { injectionResistance, type InjectionCase } from "./injection-canary.js";

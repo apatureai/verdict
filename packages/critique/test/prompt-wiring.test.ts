@@ -1,4 +1,4 @@
-import type { CaptureImage, RepoContext } from "@engine/types";
+import type { CaptureImage, RepoContext } from "@apatureai/verdict-types";
 import { describe, expect, it } from "vitest";
 import {
   activeDimensions,

@@ -1,5 +1,5 @@
-import { PIXEL_BUDGETS } from "@engine/capture";
-import type { RepoContext } from "@engine/types";
+import { PIXEL_BUDGETS } from "@apatureai/verdict-capture";
+import type { RepoContext } from "@apatureai/verdict-types";
 import { describe, expect, it } from "vitest";
 import { critique, MockModelClient, type ModelClientFactory } from "../src/index.js";
 

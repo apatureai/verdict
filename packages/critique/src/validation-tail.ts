@@ -1,4 +1,4 @@
-import type { CalibrationRuntimeBinding, Finding, Grade } from "@engine/types";
+import type { CalibrationRuntimeBinding, Finding, Grade } from "@apatureai/verdict-types";
 import {
   applyCalibrationBinding,
   calibrationBindingMatches,

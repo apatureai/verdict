@@ -1,5 +1,5 @@
 {
-  "name": "@engine/storage",
+  "name": "@apatureai/verdict-storage",
   "version": "0.1.3",
   "private": true,
   "license": "MIT",

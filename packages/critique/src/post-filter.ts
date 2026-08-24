@@ -1,4 +1,4 @@
-import type { Finding } from "@engine/types";
+import type { Finding } from "@apatureai/verdict-types";
 
 /**
  * Trust-budget post-filter (TRD §6.5, #33). After the hallucination gate (#32):

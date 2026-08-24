@@ -1,5 +1,5 @@
-import { hasDisplayableConfidence, loadGoldenResult } from "@engine/types";
-import type { Critique, Finding, ReviewCoverage } from "@engine/types";
+import { hasDisplayableConfidence, loadGoldenResult } from "@apatureai/verdict-types";
+import type { Critique, Finding, ReviewCoverage } from "@apatureai/verdict-types";
 import { describe, expect, it } from "vitest";
 import { deriveTitle, toEngineReviewResult, wireFindingId } from "../src/index.js";
 
@@ -61,7 +61,7 @@ describe("toEngineReviewResult (wire projection — cross-repo contract)", () =>
     const result = toEngineReviewResult(critique(), { screenshotRetentionSeconds: 2592000 });
 
     // `provenance` is stamped by the surface that ran the review
-    // (`stampJudgmentProvenance` in @engine/cli), not by the projector, because
+    // (`stampJudgmentProvenance` in @apatureai/verdict-cli), not by the projector, because
     // only the surface knows whether a model was actually called. `coverage`
     // (#165) is supplied by the ORCHESTRATOR for the same kind of reason: only it
     // knows which routes reached a judgment, and a critique with zero findings

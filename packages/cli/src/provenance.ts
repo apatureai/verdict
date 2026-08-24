@@ -1,4 +1,4 @@
-import { noModelDisclosure, type EngineReviewResult, type JudgmentProvenance } from "@engine/types";
+import { noModelDisclosure, type EngineReviewResult, type JudgmentProvenance } from "@apatureai/verdict-types";
 import type { ReportModelKind } from "./report.js";
 
 /**

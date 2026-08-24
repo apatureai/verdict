@@ -1,4 +1,4 @@
-import type { Grade } from "@engine/types";
+import type { Grade } from "@apatureai/verdict-types";
 import { describe, expect, it } from "vitest";
 import {
   bootstrapAgreementCI,

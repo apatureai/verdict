@@ -1,4 +1,4 @@
-import type { CalibrationRuntimeBinding, Finding } from "@engine/types";
+import type { CalibrationRuntimeBinding, Finding } from "@apatureai/verdict-types";
 
 export interface CalibrationRuntimeIdentity {
   model: string;

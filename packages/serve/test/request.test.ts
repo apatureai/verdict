@@ -1,4 +1,4 @@
-import type { JobRecord } from "@engine/jobs";
+import type { JobRecord } from "@apatureai/verdict-jobs";
 import { describe, expect, it } from "vitest";
 import { toLocalReviewRequest } from "../src/index.js";
 

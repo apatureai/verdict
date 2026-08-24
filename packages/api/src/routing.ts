@@ -1,4 +1,4 @@
-import type { ReviewDepth } from "@engine/jobs";
+import type { ReviewDepth } from "@apatureai/verdict-jobs";
 
 /**
  * Depth -> model routing (TRD §5). The triage pass uses the fast/cheap model to

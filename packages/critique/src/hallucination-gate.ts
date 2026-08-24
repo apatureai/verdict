@@ -1,4 +1,4 @@
-import type { Finding } from "@engine/types";
+import type { Finding } from "@apatureai/verdict-types";
 
 /**
  * Post-parse validation gate + hallucination metric (TRD §6.4, #32), the core

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { launchChromiumCaptureBrowser } from "@engine/capture/playwright";
+import { launchChromiumCaptureBrowser } from "@apatureai/verdict-capture/playwright";
 import { ArgError, parseArgs, USAGE } from "./args.js";
 import { runCli } from "./run.js";
 

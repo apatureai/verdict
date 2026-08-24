@@ -66,9 +66,9 @@ locally with `docker build`.
 
 ## Conventions that will trip you up
 
-- **TypeScript project references.** `packages/*` are `@engine/*` workspace packages wired together
+- **TypeScript project references.** `packages/*` are `@apatureai/verdict-*` workspace packages wired together
   with `tsc -b` project references. A new cross-package dependency needs three things: the
-  `dependencies` entry (`"@engine/foo": "workspace:*"`), the `references` entry in the importing
+  `dependencies` entry (`"@apatureai/verdict-foo": "workspace:*"`), the `references` entry in the importing
   package's `tsconfig.json`, and the alias already handled generically by `vitest.config.ts`. If
   `tsc -b` complains about a missing reference, that is why.
 - **ESM with explicit extensions.** The workspace is `"type": "module"`. Relative imports inside a

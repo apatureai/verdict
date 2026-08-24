@@ -1,4 +1,4 @@
-import type { Dimension, Severity } from "@engine/types";
+import type { Dimension, Severity } from "@apatureai/verdict-types";
 
 /**
  * Synthetic-canary generator (TRD §10, #44). A programmatic defect injector that

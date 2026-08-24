@@ -9,7 +9,7 @@ import { fontStabilityLaunchFlags } from "./font-policy.js";
  * through the port and tested against a fake.
  *
  * `playwright-core` is imported dynamically so that merely importing
- * `@engine/capture` (which `@engine/critique` does, for the pixel budgets) never
+ * `@apatureai/verdict-capture` (which `@apatureai/verdict-critique` does, for the pixel budgets) never
  * loads a browser library. The browser BINARY is a separate, explicit install:
  *
  *   pnpm exec playwright-core install chromium

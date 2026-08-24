@@ -1,4 +1,4 @@
-import type { ResultMetadata } from "@engine/types";
+import type { ResultMetadata } from "@apatureai/verdict-types";
 
 /**
  * Version stamping (#68). Every Findings result carries
@@ -49,7 +49,7 @@ export function assertVersionStamped(metadata: ResultMetadata): void {
 
 /**
  * The `{engine.*}` OTel span attributes for the version stamp: the same fields
- * `@engine/observability` `setVersionAttributes` puts on critique spans (#8), so
+ * `@apatureai/verdict-observability` `setVersionAttributes` puts on critique spans (#8), so
  * traces are filterable by model/prompt/capture revision.
  */
 export function versionSpanAttributes(metadata: ResultMetadata): Record<string, string> {

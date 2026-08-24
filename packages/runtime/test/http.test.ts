@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
-import type { ApiRequest, ApiResponse } from "@engine/api";
+import type { ApiRequest, ApiResponse } from "@apatureai/verdict-api";
 import { EngineHttpServer, type RawRequest, type RawResponse } from "../src/http.js";
 
 /**

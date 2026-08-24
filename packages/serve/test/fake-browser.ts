@@ -1,7 +1,7 @@
-import type { CaptureBrowser, CapturePage, ExtractedPage } from "@engine/capture";
+import type { CaptureBrowser, CapturePage, ExtractedPage } from "@apatureai/verdict-capture";
 
 /**
- * The same fake page `@engine/cli`'s end-to-end test drives, so the HTTP path
+ * The same fake page `@apatureai/verdict-cli`'s end-to-end test drives, so the HTTP path
  * and the CLI path can be compared on identical capture bytes. No Chromium is
  * launched anywhere in this package's tests.
  */

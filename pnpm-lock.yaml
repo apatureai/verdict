@@ -33,32 +33,32 @@ importers:
 
   packages/api:
     dependencies:
-      '@engine/critique':
+      '@apatureai/verdict-critique':
         specifier: workspace:*
         version: link:../critique
-      '@engine/jobs':
+      '@apatureai/verdict-jobs':
         specifier: workspace:*
         version: link:../jobs
-      '@engine/review':
+      '@apatureai/verdict-review':
         specifier: workspace:*
         version: link:../review
-      '@engine/storage':
+      '@apatureai/verdict-storage':
         specifier: workspace:*
         version: link:../storage
-      '@engine/types':
+      '@apatureai/verdict-types':
         specifier: workspace:*
         version: link:../types
     devDependencies:
+      '@apatureai/verdict-db':
+        specifier: workspace:*
+        version: link:../db
       '@electric-sql/pglite':
         specifier: ^0.5.4
         version: 0.5.4
-      '@engine/db':
-        specifier: workspace:*
-        version: link:../db
 
   packages/capture:
     dependencies:
-      '@engine/types':
+      '@apatureai/verdict-types':
         specifier: workspace:*
         version: link:../types
       playwright-core:
@@ -67,28 +67,28 @@ importers:
 
   packages/cli:
     dependencies:
-      '@engine/capture':
+      '@apatureai/verdict-capture':
         specifier: workspace:*
         version: link:../capture
-      '@engine/context':
+      '@apatureai/verdict-context':
         specifier: workspace:*
         version: link:../context
-      '@engine/critique':
+      '@apatureai/verdict-critique':
         specifier: workspace:*
         version: link:../critique
-      '@engine/review':
+      '@apatureai/verdict-review':
         specifier: workspace:*
         version: link:../review
-      '@engine/storage':
+      '@apatureai/verdict-storage':
         specifier: workspace:*
         version: link:../storage
-      '@engine/types':
+      '@apatureai/verdict-types':
         specifier: workspace:*
         version: link:../types
 
   packages/context:
     dependencies:
-      '@engine/types':
+      '@apatureai/verdict-types':
         specifier: workspace:*
         version: link:../types
       postcss:
@@ -106,10 +106,10 @@ importers:
 
   packages/critique:
     dependencies:
-      '@engine/capture':
+      '@apatureai/verdict-capture':
         specifier: workspace:*
         version: link:../capture
-      '@engine/types':
+      '@apatureai/verdict-types':
         specifier: workspace:*
         version: link:../types
       zod:
@@ -131,10 +131,10 @@ importers:
 
   packages/eval:
     dependencies:
-      '@engine/db':
+      '@apatureai/verdict-db':
         specifier: workspace:*
         version: link:../db
-      '@engine/types':
+      '@apatureai/verdict-types':
         specifier: workspace:*
         version: link:../types
     devDependencies:
@@ -144,19 +144,19 @@ importers:
 
   packages/evidence:
     dependencies:
-      '@engine/types':
+      '@apatureai/verdict-types':
         specifier: workspace:*
         version: link:../types
 
   packages/feedback:
     dependencies:
-      '@engine/db':
+      '@apatureai/verdict-db':
         specifier: workspace:*
         version: link:../db
-      '@engine/storage':
+      '@apatureai/verdict-storage':
         specifier: workspace:*
         version: link:../storage
-      '@engine/types':
+      '@apatureai/verdict-types':
         specifier: workspace:*
         version: link:../types
     devDependencies:
@@ -169,7 +169,7 @@ importers:
 
   packages/jobs:
     dependencies:
-      '@engine/db':
+      '@apatureai/verdict-db':
         specifier: workspace:*
         version: link:../db
     devDependencies:
@@ -210,60 +210,60 @@ importers:
 
   packages/review:
     dependencies:
-      '@engine/capture':
+      '@apatureai/verdict-capture':
         specifier: workspace:*
         version: link:../capture
-      '@engine/context':
+      '@apatureai/verdict-context':
         specifier: workspace:*
         version: link:../context
-      '@engine/critique':
+      '@apatureai/verdict-critique':
         specifier: workspace:*
         version: link:../critique
-      '@engine/types':
+      '@apatureai/verdict-types':
         specifier: workspace:*
         version: link:../types
 
   packages/runtime:
     dependencies:
+      '@apatureai/verdict-api':
+        specifier: workspace:*
+        version: link:../api
+      '@apatureai/verdict-capture':
+        specifier: workspace:*
+        version: link:../capture
+      '@apatureai/verdict-context':
+        specifier: workspace:*
+        version: link:../context
+      '@apatureai/verdict-critique':
+        specifier: workspace:*
+        version: link:../critique
+      '@apatureai/verdict-db':
+        specifier: workspace:*
+        version: link:../db
+      '@apatureai/verdict-eval':
+        specifier: workspace:*
+        version: link:../eval
+      '@apatureai/verdict-jobs':
+        specifier: workspace:*
+        version: link:../jobs
+      '@apatureai/verdict-observability':
+        specifier: workspace:*
+        version: link:../observability
+      '@apatureai/verdict-review':
+        specifier: workspace:*
+        version: link:../review
+      '@apatureai/verdict-secrets':
+        specifier: workspace:*
+        version: link:../secrets
+      '@apatureai/verdict-storage':
+        specifier: workspace:*
+        version: link:../storage
+      '@apatureai/verdict-types':
+        specifier: workspace:*
+        version: link:../types
       '@aws-sdk/client-s3':
         specifier: ^3.1091.0
         version: 3.1091.0
-      '@engine/api':
-        specifier: workspace:*
-        version: link:../api
-      '@engine/capture':
-        specifier: workspace:*
-        version: link:../capture
-      '@engine/context':
-        specifier: workspace:*
-        version: link:../context
-      '@engine/critique':
-        specifier: workspace:*
-        version: link:../critique
-      '@engine/db':
-        specifier: workspace:*
-        version: link:../db
-      '@engine/eval':
-        specifier: workspace:*
-        version: link:../eval
-      '@engine/jobs':
-        specifier: workspace:*
-        version: link:../jobs
-      '@engine/observability':
-        specifier: workspace:*
-        version: link:../observability
-      '@engine/review':
-        specifier: workspace:*
-        version: link:../review
-      '@engine/secrets':
-        specifier: workspace:*
-        version: link:../secrets
-      '@engine/storage':
-        specifier: workspace:*
-        version: link:../storage
-      '@engine/types':
-        specifier: workspace:*
-        version: link:../types
       openai:
         specifier: ^6.48.0
         version: 6.48.0(@aws-sdk/credential-provider-node@3.972.70)(@smithy/signature-v4@5.6.7)(zod@4.4.3)
@@ -285,42 +285,42 @@ importers:
 
   packages/serve:
     dependencies:
+      '@apatureai/verdict-api':
+        specifier: workspace:*
+        version: link:../api
+      '@apatureai/verdict-capture':
+        specifier: workspace:*
+        version: link:../capture
+      '@apatureai/verdict-cli':
+        specifier: workspace:*
+        version: link:../cli
+      '@apatureai/verdict-context':
+        specifier: workspace:*
+        version: link:../context
+      '@apatureai/verdict-critique':
+        specifier: workspace:*
+        version: link:../critique
+      '@apatureai/verdict-db':
+        specifier: workspace:*
+        version: link:../db
+      '@apatureai/verdict-jobs':
+        specifier: workspace:*
+        version: link:../jobs
+      '@apatureai/verdict-review':
+        specifier: workspace:*
+        version: link:../review
+      '@apatureai/verdict-runtime':
+        specifier: workspace:*
+        version: link:../runtime
+      '@apatureai/verdict-storage':
+        specifier: workspace:*
+        version: link:../storage
+      '@apatureai/verdict-types':
+        specifier: workspace:*
+        version: link:../types
       '@electric-sql/pglite':
         specifier: ^0.5.4
         version: 0.5.4
-      '@engine/api':
-        specifier: workspace:*
-        version: link:../api
-      '@engine/capture':
-        specifier: workspace:*
-        version: link:../capture
-      '@engine/cli':
-        specifier: workspace:*
-        version: link:../cli
-      '@engine/context':
-        specifier: workspace:*
-        version: link:../context
-      '@engine/critique':
-        specifier: workspace:*
-        version: link:../critique
-      '@engine/db':
-        specifier: workspace:*
-        version: link:../db
-      '@engine/jobs':
-        specifier: workspace:*
-        version: link:../jobs
-      '@engine/review':
-        specifier: workspace:*
-        version: link:../review
-      '@engine/runtime':
-        specifier: workspace:*
-        version: link:../runtime
-      '@engine/storage':
-        specifier: workspace:*
-        version: link:../storage
-      '@engine/types':
-        specifier: workspace:*
-        version: link:../types
 
   packages/storage:
     dependencies:

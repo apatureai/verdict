@@ -1,4 +1,4 @@
-import type { Viewport } from "@engine/types";
+import type { Viewport } from "@apatureai/verdict-types";
 import type { InteractiveElement, TextNodeStyle } from "./checks.js";
 import { flattenBackground, flattenGradientBackdrops } from "./color.js";
 import type { ExtractedElement, ExtractedPage } from "./browser-port.js";

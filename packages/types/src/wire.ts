@@ -128,7 +128,7 @@ export type GradeUnavailableReason =
   | "nothing_survived_validation"
   | "measured_facts_unjudged";
 
-/** The deterministic check kinds on the wire; mirrors `CheckKind` in `@engine/capture`. */
+/** The deterministic check kinds on the wire; mirrors `CheckKind` in `@apatureai/verdict-capture`. */
 export type MeasurementKind = "contrast" | "overflow" | "touch_target";
 
 /**
