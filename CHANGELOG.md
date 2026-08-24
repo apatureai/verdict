@@ -10,10 +10,17 @@ pages carry the long-form prose these notes summarize.
 
 ## [Unreleased]
 
-Changes on `main` since the v0.1.3 tag, not yet cut as a release. When the next
+Changes on `main` since the v0.1.4 tag, not yet cut as a release. When the next
 release is tagged, move these under its version heading and bump `version` in
 every `package.json` to match (the `release.yml` workflow refuses to publish a
 tag that does not match `package.json`).
+
+## [0.1.4] — 2026-08-24
+
+**First npm-published release**: `@apatureai/verdict-types`,
+`@apatureai/verdict-capture`, and `@apatureai/verdict-critique` are published to
+the npm registry (with provenance) from this tag onward; earlier tags existed
+only as git tags.
 
 ### Added
 
@@ -157,7 +164,8 @@ First tagged release — a version you can pin. Not a 1.0; the API may still mov
   exercised on passing and regressed candidates, pytest for both Python
   packages, and the Rust crate.
 
-[Unreleased]: https://github.com/apatureai/verdict/compare/v0.1.3...HEAD
+[Unreleased]: https://github.com/apatureai/verdict/compare/v0.1.4...HEAD
+[0.1.4]: https://github.com/apatureai/verdict/compare/v0.1.3...v0.1.4
 [0.1.3]: https://github.com/apatureai/verdict/compare/v0.1.1...v0.1.3
 [0.1.1]: https://github.com/apatureai/verdict/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/apatureai/verdict/releases/tag/v0.1.0
