@@ -2,6 +2,8 @@
 
 [![CI](https://img.shields.io/github/actions/workflow/status/apatureai/verdict/ci.yml?branch=main&label=CI)](https://github.com/apatureai/verdict/actions/workflows/ci.yml) [![license](https://img.shields.io/github/license/apatureai/verdict)](LICENSE) [![node](https://img.shields.io/badge/node-%3E%3D24-brightgreen)](.node-version)
 
+> Part of the [Apature stack](https://github.com/apatureai) — automated design review for rendered UI. The [org profile](https://github.com/apatureai/.github/blob/main/profile/README.md) maps how the pieces compose.
+
 **Give it a URL and it measures your rendered page with a real headless Chromium: WCAG contrast
 ratios, horizontal overflow and touch-target sizes, computed from the captured DOM. That half needs
 no API key. Point it at a vision-language model as well and it critiques the screenshots too, then
