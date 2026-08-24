@@ -78,7 +78,7 @@ Nothing else is edited. Step 4 found the browser already cached from an earlier 
 on a machine that has never had it, that step prints download progress for about 275 MB instead.
 
 The page it reviews is served and rendered during the run, not replayed. The screenshots are
-photographs of a browser that had the page open a second earlier, and the 18 measured facts are
+photographs of a browser that had the page open a second earlier, and the 13 measured facts are
 computed from the DOM that browser reported. The critique is the one part that is canned, which the
 run states rather than hides, and [step 3](#3-add-a-model-and-the-critique-half-turns-on) turns the
 real one on. The [quickstart](#quickstart) below is the same run in parts, for when you want the
@@ -290,7 +290,7 @@ Measured facts  (computed from the captured DOM, no model involved)
    1. [contrast] / #hero-subtitle (mobile, tablet, desktop)
       text contrast 3.23:1 is below WCAG AA 4.5:1
    2. [overflow] / #promo-code (mobile, tablet, desktop)
-      content width 345px exceeds container 140px (horizontal overflow)
+      content width 345px exceeds container 140px and is clipped (overflow-x: hidden, text-overflow: clip, white-space: nowrap); not gated because the element is animated, so the content may scroll into view on its own and the affordance is the motion rather than anything in its computed style
    3. [touch_target] / #icon-close (mobile, tablet)
       touch target 20x20px is below the 24x24px minimum in WCAG 2.2 SC 2.5.8 Target Size (Minimum), level AA
    4. [contrast] /pricing #pricing-fineprint (mobile, tablet, desktop)
@@ -300,6 +300,10 @@ Measured facts  (computed from the captured DOM, no model involved)
       (Minimum), level AA, and is below the 44x44px minimum in WCAG 2.2 SC 2.5.5 Target Size
       (Enhanced), level AAA
   every measurement: out/deterministic-facts.txt
+
+Design-system grounding
+  none (no_genome_file)
+  [verdict] no design-system rule grounded this review (no_genome_file): no UI-DNA snapshot was found at packages/cli/fixtures/demo-site/ui-dna.json. No approved design-system rule was retrieved for any route. The critique was still grounded on what this repository does state about its design (9 design token(s), a brand block, 2 detected component librar(ies)) and on the measured facts, so it is a weaker review, not an empty one.
 
 Grounding gate
   5 replayed finding(s) parsed, 2 dropped for citing a route or element that was never captured
@@ -327,6 +331,7 @@ Wrote
   out/geometry.json
   out/deterministic-facts.txt
   note: review.json carries the fixture's own grade field. It is not a grade for this page.
+        its provenance block says the same in band: model_backed is false.
 
 Done in 8.0s.
 ```
@@ -546,9 +551,16 @@ const result = await runReview(
 `sink` is anything with `put(key, bytes)`; `InMemoryObjectStore` and `S3ObjectStore` from
 `@engine/storage` both satisfy it.
 
-Every `@engine/*` package is currently `"private": true` and none is published to npm, so the import
-path today is vendoring the tree and adding `"@engine/capture": "workspace:*"` to the package that
-imports it. Publishing them is a roadmap item; see [Status and roadmap](#status-and-roadmap).
+Three packages — `@engine/types`, `@engine/capture` and `@engine/critique` — are prepared for npm
+publication (public `publishConfig`, a `files`/`exports`/`prepublishOnly` build, and a
+[`release.yml`](.github/workflows/release.yml) that publishes on a version tag with provenance). They
+are **not published yet**: the maintainer must add an `NPM_TOKEN` secret and confirm the `@engine`
+scope first, so today the import path is still vendoring the tree and adding
+`"@engine/capture": "workspace:*"` to the package that imports it. The snippet above also uses
+`@engine/review` and `@engine/storage`, which remain `"private": true`. For a runnable, no-key taste
+of the published surface without vendoring the whole tree, see
+[`examples/measure-contrast.mjs`](examples/). See [Status and roadmap](#status-and-roadmap) for the
+rest of the public-surface decision.
 
 ### The release gate
 
@@ -889,7 +901,7 @@ reports database, capture fleet and worker capacity separately. Migrations run v
 pnpm lint       # eslint, --max-warnings=0
 pnpm typecheck  # tsc -b across the project references
 pnpm build      # tsc -b, emits dist/
-pnpm test       # tsc -b && vitest run  ->  1043 passed (128 files), 32s to 70s
+pnpm test       # tsc -b && vitest run  ->  1177 passed (132 files), 32s to 70s
 ```
 
 One test file:
@@ -1060,9 +1072,13 @@ welcome on any of them.
   (`packages/cli/fixtures/canned-critique.json`) is authored by hand, not recorded from a model. A
   captured real transcript, replayable offline, would make the default run representative instead of
   illustrative. Start at `packages/critique/src/model-runtime.ts`.
-- **Published `@engine/*` packages.** Everything is `"private": true`, so consuming this as a library
-  means vendoring. Deciding a public surface (`@engine/capture` and `@engine/critique` are the
-  obvious first two) and adding build and publish config is self-contained work.
+- **Published `@engine/*` packages.** The public surface is prepared but not yet published:
+  `@engine/types`, `@engine/capture` and `@engine/critique` (the dependency closure of the two
+  obvious first packages) carry publish config, a `prepublishOnly` build, and a
+  [`release.yml`](.github/workflows/release.yml) that publishes them on a version tag with
+  provenance. Remaining maintainer work: add the `NPM_TOKEN` secret, confirm ownership of the
+  `@engine` npm scope (it is an internal scope name; publishing under it, or renaming, is a
+  maintainer call), and decide whether to widen the surface past those three.
 - **Enforce the egress policy at the network layer.** `packages/capture/src/egress.ts` holds the
   egress/SSRF rules, including cloud-metadata blocking, as pure functions. Nothing calls them on the
   live capture path, and capture runs Chromium in your own process. Wiring the policy into
@@ -1135,6 +1151,9 @@ Contributions are welcome, including small ones. [CONTRIBUTING.md](CONTRIBUTING.
 test and lint commands, the conventions that will trip you up (project references, ESM extensions,
 the no-network-in-tests rule) and how pull requests are reviewed. The roadmap above is the list of
 things most worth picking up. Open an issue first if you want to check that a direction makes sense.
+
+Notable changes per release are recorded in [CHANGELOG.md](CHANGELOG.md); each entry maps to a git
+tag and its GitHub release.
 
 The license is MIT and there is no CLA.
 

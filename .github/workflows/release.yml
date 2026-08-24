@@ -1,0 +1,86 @@
+name: Release
+
+# Publishes the public @engine/* packages to npm when a version tag is pushed.
+#
+# MAINTAINER SETUP (required once, before the first tagged release):
+#   1. Create an npm automation token with publish rights for the @engine scope
+#      (npmjs.com → Access Tokens → Generate → "Automation"). The @engine scope
+#      must exist and be owned by the publishing account, and each package's
+#      publishConfig.access is "public".
+#   2. Add it to this repository as an Actions secret named NPM_TOKEN
+#      (Settings → Secrets and variables → Actions → New repository secret).
+#   3. Push a tag whose name matches package.json, e.g. `git tag v0.1.3 && git push origin v0.1.3`.
+#
+# Without NPM_TOKEN the "Publish" step fails fast with an auth error; nothing is
+# published. The workflow is a no-op on every other event.
+
+on:
+  push:
+    tags:
+      - "v*"
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  # Required for npm provenance (build attestations signed by the OIDC identity).
+  id-token: write
+
+jobs:
+  publish:
+    name: publish public packages to npm
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6
+        with:
+          version: 9.15.0
+
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # The tag drives the release, but the published artifact must match the
+      # source. If the tag is vX.Y.Z the root package.json must say X.Y.Z, or the
+      # tag==version invariant is already broken and we stop before publishing.
+      - name: Assert the tag matches package.json
+        run: |
+          set -euo pipefail
+          tag="${GITHUB_REF_NAME#v}"
+          pkg="$(node -p "require('./package.json').version")"
+          if [ "$tag" != "$pkg" ]; then
+            echo "tag $GITHUB_REF_NAME does not match package.json version $pkg"
+            exit 1
+          fi
+
+      - name: Build
+        run: pnpm build
+
+      - name: Test
+        run: pnpm test
+
+      # `pnpm publish` rewrites each package's `workspace:*` dependency ranges to
+      # the concrete published version before packing. --provenance attaches a
+      # signed build attestation (needs id-token: write, above). --no-git-checks
+      # because a tag build is detached, not on a branch.
+      - name: Publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          set -euo pipefail
+          for pkg in types capture critique; do
+            echo "::group::publish @engine/$pkg"
+            pnpm --filter "@engine/$pkg" publish --provenance --access public --no-git-checks
+            echo "::endgroup::"
+          done

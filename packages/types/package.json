@@ -1,13 +1,26 @@
 {
   "name": "@engine/types",
-  "version": "0.1.0",
-  "private": true,
+  "version": "0.1.3",
   "license": "MIT",
+  "author": "Aditya Prathapa",
   "type": "module",
-  "description": "Single source for the Judgment Engine contracts: critique() + captureInSandbox() + Finding/Critique.",
+  "description": "Shared contracts for verdict: the critique() + capture interfaces and the Finding / Critique / wire result types.",
+  "keywords": ["verdict", "design-review", "types", "contracts"],
+  "homepage": "https://github.com/apatureai/verdict/tree/main/packages/types#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/apatureai/verdict.git",
+    "directory": "packages/types"
+  },
+  "bugs": { "url": "https://github.com/apatureai/verdict/issues" },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": { ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" } },
   "files": ["dist", "fixtures"],
-  "scripts": { "test": "vitest run" }
+  "publishConfig": { "access": "public", "provenance": true },
+  "scripts": {
+    "build": "tsc -b",
+    "test": "vitest run",
+    "prepublishOnly": "tsc -b"
+  }
 }
