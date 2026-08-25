@@ -61,8 +61,15 @@ export type ChatCompletionsCreate = (
   options: { signal?: AbortSignal },
 ) => Promise<AsyncIterable<ChatChunk>>;
 
-/** Resolve an object-storage key to a (signed) URL the model can fetch (#6). */
-export type ImageUrlResolver = (image: ModelImage) => string | Promise<string>;
+/**
+ * Resolve an object-storage key to a (signed) URL — or an inlined data URI — the
+ * model can consume (#6). The per-call `maxPixels` budget (#69/G5) is threaded in so
+ * a resolver that inlines bytes can DOWNSCALE the tile to the budget BEFORE upload
+ * (the local `data:` path), instead of sending a full-resolution PNG on every call
+ * including triage. A resolver that returns a fetchable URL may ignore it (the
+ * server-side `max_pixels` extra still applies where the endpoint honours it).
+ */
+export type ImageUrlResolver = (image: ModelImage, maxPixels?: number) => string | Promise<string>;
 
 export interface DashScopeOptions {
   /** Temperature for the Thinking/deep pass. */
@@ -70,7 +77,11 @@ export interface DashScopeOptions {
   resolveImageUrl?: ImageUrlResolver;
 }
 
-async function toOpenAIMessages(messages: ModelMessage[], resolveUrl: ImageUrlResolver): Promise<unknown[]> {
+async function toOpenAIMessages(
+  messages: ModelMessage[],
+  resolveUrl: ImageUrlResolver,
+  maxPixels?: number,
+): Promise<unknown[]> {
   return Promise.all(messages.map(async (m) => {
     if (!m.images || m.images.length === 0) return { role: m.role, content: m.content };
     return {
@@ -80,7 +91,7 @@ async function toOpenAIMessages(messages: ModelMessage[], resolveUrl: ImageUrlRe
         ...await Promise.all(
           m.images.map(async (img) => ({
             type: "image_url",
-            image_url: { url: await resolveUrl(img) },
+            image_url: { url: await resolveUrl(img, maxPixels) },
           })),
         ),
       ],
@@ -127,7 +138,7 @@ export class DashScopeModelClient implements ModelClient {
     const stream = await this.create(
       {
         model: request.model,
-        messages: await toOpenAIMessages(request.messages, this.resolveUrl),
+        messages: await toOpenAIMessages(request.messages, this.resolveUrl, request.maxPixels),
         stream: true,
         stream_options: { include_usage: true },
         temperature: request.thinking ? this.thinkingTemperature : undefined,

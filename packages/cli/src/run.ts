@@ -83,7 +83,7 @@ export async function runCli(options: CliOptions, io: RunIo): Promise<number> {
     const model = await resolveLocalModel({
       choice: options.model,
       env: io.env,
-      resolveImageUrl: (image) => sink.dataUriFor(image.objectKey),
+      resolveImageUrl: (image, maxPixels) => sink.dataUriFor(image.objectKey, maxPixels),
       ...(options.script ? { scriptPath: options.script } : {}),
       displayPath: show,
     });

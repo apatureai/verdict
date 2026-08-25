@@ -1,6 +1,6 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, join, normalize, resolve, sep } from "node:path";
-import type { ScreenshotSink } from "@apatureai/verdict-capture";
+import { fitPngToBudget, type ScreenshotSink } from "@apatureai/verdict-capture";
 
 /**
  * `ScreenshotSink` that writes PNGs to a directory, so a local run produces
@@ -40,10 +40,21 @@ export class FileScreenshotSink implements ScreenshotSink {
    * `data:` URI for a key. A live model fetches image URLs itself, and it cannot
    * reach a path on this machine, so a local run inlines the bytes. Production
    * uses a short-TTL signed object-store URL instead (`ObjectStore.signedGetUrl`).
+   *
+   * When a per-call `maxPixels` budget is given (#69/G5), the PNG is DOWNSCALED to
+   * that budget before it is base64-inlined, so the triage pass and the deep pass
+   * each upload a tile fitted to their own tier instead of a full-resolution PNG on
+   * every call. The captured file on disk is untouched — only the bytes sent to the
+   * model shrink — so the annotated screenshot still renders at full resolution and
+   * geometry (captured space) needs no rescale.
    */
-  async dataUriFor(key: string): Promise<string> {
+  async dataUriFor(key: string, maxPixels?: number): Promise<string> {
     const bytes = await readFile(this.pathFor(key));
-    return `data:image/png;base64,${bytes.toString("base64")}`;
+    if (maxPixels === undefined || maxPixels <= 0) {
+      return `data:image/png;base64,${bytes.toString("base64")}`;
+    }
+    const fitted = fitPngToBudget(bytes, maxPixels);
+    return `data:image/png;base64,${fitted.png.toString("base64")}`;
   }
 
   /** Path of the directory this sink writes into. */

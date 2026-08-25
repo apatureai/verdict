@@ -417,6 +417,11 @@ export async function runReview(input: ReviewInput, deps: ReviewDeps): Promise<E
     {
       client: modelFactory(triageConfig),
       model: triageConfig.model,
+      // G5: triage runs at its OWN, smaller pixel budget, not the deep budget. The
+      // resolver downscales each tile to this before upload, so a triage call that
+      // emits ~42 output tokens stops paying for a full-resolution (deep-budget)
+      // image. `PIXEL_BUDGETS.triage` is ~1.0MP vs deep's ~3.1MP.
+      maxPixels: PIXEL_BUDGETS.triage,
       ...(deps.signal ? { signal: deps.signal } : {}),
     },
     triageRoutes,
