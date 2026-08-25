@@ -16,16 +16,30 @@ import type { RawGeometryElement } from "./geometry.js";
  * against recorded extractor payloads, with no browser needed.
  */
 
-/** Elements whose rects are worth recording; anything else is noise in the map. */
+/**
+ * Named allow-list (judge-unlock spec §2.3 Part A). The historic list was the
+ * navigation + text-node vocabulary; the F3 failure was that `table`, `section`,
+ * `header`, `footer`, `main`, `td`, `th` (and every card/bar) were never
+ * captured, so the biggest defects on a page did not exist in any artifact this
+ * system produces. Widened to the page-structure vocabulary, plus a bounded
+ * structural scan (Part B, in the expression below) for the `div`-based layouts
+ * CSS cannot name.
+ */
 const EXTRACT_SELECTOR =
-  "h1,h2,h3,h4,h5,h6,nav,button,a,input,select,textarea,p,li,label,span,summary,[role]";
+  "h1,h2,h3,h4,h5,h6,nav,header,footer,main,section,article,aside,form,fieldset,legend," +
+  "button,a,input,select,textarea,summary,details,dialog," +
+  "p,li,ul,ol,dl,dt,dd,label,span,blockquote,pre,code," +
+  "table,thead,tbody,tfoot,tr,th,td,caption," +
+  "img,picture,figure,figcaption,video,canvas,iframe,svg,hr," +
+  "[role]";
 
 /**
  * The extractor, as an IIFE expression. Deliberately dependency-free and
  * defensive: a page that throws in a getter must not fail the capture.
  */
 export const DOM_EXTRACT_EXPRESSION = `(() => {
-  const MAX_ELEMENTS = 400;
+  const MAX_ELEMENTS = 900;
+  const MAX_SCANNED_NODES = 2000;
   const cssPath = (el) => {
     const parts = [];
     let node = el;
@@ -122,17 +136,101 @@ export const DOM_EXTRACT_EXPRESSION = `(() => {
   const INTERACTIVE = new Set(["button", "a", "input", "select", "textarea", "summary"]);
   const hasOwnText = (el) =>
     Array.prototype.some.call(el.childNodes, (n) => n.nodeType === 3 && n.textContent.trim().length > 0);
+  // The element's OWN text (direct text nodes only), for the geometry label.
+  const ownTextOf = (el) => {
+    let t = "";
+    for (const n of el.childNodes) if (n.nodeType === 3) t += n.textContent;
+    return t.trim();
+  };
+  // Judge-unlock (spec §2.2): a compact, EXACT computed-style digest. Every value
+  // is read off getComputedStyle, never estimated from pixels. No backticks in
+  // this block: the whole function is a template literal injected into the page.
+  const pxOf = (v) => { const n = parseFloat(v); return Number.isFinite(n) ? Math.round(n * 100) / 100 : 0; };
+  const firstFamily = (v) => {
+    const first = String(v || "").split(",")[0] || "";
+    return first.trim().replace(/^["']|["']$/g, "");
+  };
+  const toColor = (c) => {
+    const s2 = String(c == null ? "" : c);
+    const m = /^rgba?\\(\\s*(\\d+)\\s*,\\s*(\\d+)\\s*,\\s*(\\d+)\\s*(?:,\\s*([0-9.]+)\\s*)?\\)$/.exec(s2);
+    if (!m) return s2;
+    const a = m[4] === undefined ? 1 : Number(m[4]);
+    if (a === 0) return "transparent";
+    if (a < 1) return s2;
+    const hex = (n) => ("0" + (Number(n) & 255).toString(16)).slice(-2);
+    return "#" + hex(m[1]) + hex(m[2]) + hex(m[3]);
+  };
+  const styleDigest = (s) => {
+    const disp = s.display;
+    const isFlexGrid = disp === "flex" || disp === "inline-flex" || disp === "grid" || disp === "inline-grid";
+    const lh = s.lineHeight;
+    const radii = [s.borderTopLeftRadius, s.borderTopRightRadius, s.borderBottomRightRadius, s.borderBottomLeftRadius].map(pxOf);
+    let maxRadius = 0;
+    for (const r of radii) if (r > maxRadius) maxRadius = r;
+    return {
+      fontFamily: firstFamily(s.fontFamily),
+      fontSizePx: pxOf(s.fontSize),
+      fontWeight: parseInt(s.fontWeight, 10) || 400,
+      lineHeightPx: (lh === "normal" || lh === "" || lh == null) ? null : pxOf(lh),
+      color: toColor(s.color),
+      backgroundColor: toColor(s.backgroundColor),
+      paddingPx: [pxOf(s.paddingTop), pxOf(s.paddingRight), pxOf(s.paddingBottom), pxOf(s.paddingLeft)],
+      marginPx: [pxOf(s.marginTop), pxOf(s.marginRight), pxOf(s.marginBottom), pxOf(s.marginLeft)],
+      gapPx: isFlexGrid ? [pxOf(s.columnGap), pxOf(s.rowGap)] : null,
+      borderRadiusPx: maxRadius,
+      display: (disp === "block" || disp === "inline") ? null : disp,
+    };
+  };
+  // True when this element's own box escapes the viewport, or it overflows itself.
+  const overflowsXOf = (el, rect) => {
+    try {
+      if (rect.right + window.scrollX > window.innerWidth + 1) return true;
+      if (el.scrollWidth > el.clientWidth + 1) return true;
+    } catch (_) { /* getters may throw */ }
+    return false;
+  };
+  const stableSel = (el) => {
+    if (el.id) return "#" + el.id;
+    const t = el.getAttribute("data-testid");
+    if (t) return '[data-testid="' + t + '"]';
+    return cssPath(el);
+  };
+  const isLayoutContainer = (el, s, rect) => {
+    const d = s.display;
+    if (d !== "flex" && d !== "inline-flex" && d !== "grid" && d !== "inline-grid") return false;
+    if (el.children.length < 2) return false;
+    return rect.width * rect.height >= 0.02 * window.innerWidth * window.innerHeight;
+  };
   const out = [];
-  const nodes = document.querySelectorAll(${JSON.stringify(EXTRACT_SELECTOR)});
-  for (const el of nodes) {
+  const offenders = [];
+  const namedSet = new Set(document.querySelectorAll(${JSON.stringify(EXTRACT_SELECTOR)}));
+  const all = document.body ? document.body.querySelectorAll("*") : [];
+  let scanned = 0;
+  for (const el of all) {
     if (out.length >= MAX_ELEMENTS) break;
     let rect;
     try { rect = el.getBoundingClientRect(); } catch (_) { continue; }
     if (rect.width <= 0 || rect.height <= 0) continue;
     const style = getComputedStyle(el);
     if (style.visibility === "hidden" || style.display === "none" || Number(style.opacity) === 0) continue;
+    // Part B (spec §2.3): a bounded structural scan admits div-based layout the
+    // named allow-list cannot reach — anything escaping the viewport, overflowing
+    // itself, or a substantial flex/grid container. Named elements are always
+    // admitted; the scan cap only bounds the structural test.
+    const isNamed = namedSet.has(el);
+    let structural = false;
+    if (!isNamed && scanned < MAX_SCANNED_NODES) {
+      scanned += 1;
+      structural = overflowsXOf(el, rect) || isLayoutContainer(el, style, rect);
+    }
+    // Record every escaping element as a candidate overflow offender.
+    if (rect.right + window.scrollX > window.innerWidth + 1 && !ancestorScrollsX(el)) {
+      offenders.push({ selector: stableSel(el), rightEdgePx: Math.round(rect.right + window.scrollX), widthPx: Math.round(rect.width) });
+    }
+    if (!isNamed && !structural) continue;
     const tag = el.tagName.toLowerCase();
     const role = el.getAttribute("role");
+    const ownText = ownTextOf(el);
     const record = {
       tag: tag,
       id: el.id || null,
@@ -147,6 +245,9 @@ export const DOM_EXTRACT_EXPRESSION = `(() => {
       },
       animated: isAnimated(el),
       interactive: INTERACTIVE.has(tag) || role === "button" || role === "link",
+      style: styleDigest(style),
+      overflowsX: overflowsXOf(el, rect),
+      ownText: ownText.length > 0 ? ownText : undefined,
       text: null,
     };
     if (record.interactive) {
@@ -201,6 +302,13 @@ export const DOM_EXTRACT_EXPRESSION = `(() => {
   const rootScheme = String(getComputedStyle(document.documentElement).colorScheme || "normal").toLowerCase();
   const prefersDark = typeof matchMedia === "function" && matchMedia("(prefers-color-scheme: dark)").matches;
   const darkCanvas = rootScheme.indexOf("dark") >= 0 && (rootScheme.indexOf("light") < 0 || prefersDark);
+  // Page-level overflow metrics (judge-unlock spec §2.3/§3.5). The widest
+  // escaping element is what attributes the document scroll width to a concrete
+  // selector (e.g. a 900px table), so the page_overflow finding names it.
+  const SCROLLS_X2 = new Set(["auto", "scroll", "overlay"]);
+  const rootOX = getComputedStyle(document.documentElement).overflowX;
+  const bodyOX = document.body ? getComputedStyle(document.body).overflowX : "visible";
+  offenders.sort((a, b) => b.rightEdgePx - a.rightEdgePx);
   return {
     elements: out,
     fonts: fonts,
@@ -210,6 +318,13 @@ export const DOM_EXTRACT_EXPRESSION = `(() => {
       document.documentElement.scrollHeight,
       document.body ? document.body.scrollHeight : 0,
     ),
+    documentWidth: Math.max(
+      document.documentElement.scrollWidth,
+      document.body ? document.body.scrollWidth : 0,
+    ),
+    viewportWidth: window.innerWidth,
+    rootScrollsX: SCROLLS_X2.has(rootOX) || SCROLLS_X2.has(bodyOX),
+    overflowOffenders: offenders.slice(0, 5),
   };
 })()`;
 
@@ -239,6 +354,14 @@ export function toRawGeometryElements(
       height: round(el.rect.height),
     },
     animated: el.animated,
+    // Judge-unlock (spec §2.2/§2.3): carry the computed-style digest, own text,
+    // overflow flag and interactivity through so the significance selector and
+    // the style census can read them. All optional/additive; a capture too old
+    // to report them leaves the map byte-identical.
+    ...(el.style !== undefined ? { style: el.style } : {}),
+    ...(el.ownText !== undefined ? { ownText: el.ownText } : {}),
+    ...(el.overflowsX !== undefined ? { overflowsX: el.overflowsX } : {}),
+    interactive: el.interactive,
   }));
 }
 

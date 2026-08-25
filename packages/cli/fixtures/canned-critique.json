@@ -18,15 +18,15 @@
       "overall": "The landing page reads clearly, but the announcement dismiss control is too small to hit and the hero headline competes with the primary action.",
       "findings": [
         {
-          "dimension": "accessibility",
+          "dimension": "consistency",
           "severity": "major",
           "confidence": 0.86,
           "route": "/",
           "viewport": "mobile",
           "elementRef": "#icon-close",
-          "title": "Dismiss control is a 20x20 touch target",
-          "description": "The announcement dismiss button measures 20x20 CSS px in the captured mobile viewport, below the 24x24 minimum, and it sits immediately beside the primary call to action so a mis-tap starts a trial.",
-          "suggestion": "Pad the control to at least 24x24, keeping the 20px visual box if the smaller glyph is wanted.",
+          "title": "Dismiss control breaks the icon-button pattern",
+          "description": "The announcement dismiss control renders as a bare glyph with no hit-area padding or hover affordance, unlike every other icon button on this page which share the design system's icon-button treatment, so it reads as decorative text rather than an action sitting beside the primary call to action.",
+          "suggestion": "Give the dismiss control the shared icon-button styling used elsewhere on the page.",
           "introducedByThisPr": true
         },
         {
@@ -61,14 +61,14 @@
       "overall": "The pricing page is legible, but the Scale plan's action is an arrow glyph rather than a labelled control.",
       "findings": [
         {
-          "dimension": "accessibility",
+          "dimension": "consistency",
           "severity": "major",
           "confidence": 0.79,
           "route": "/pricing",
           "viewport": "mobile",
           "elementRef": "#plan-scale-cta",
-          "title": "Scale plan action is a 30x30 arrow glyph",
-          "description": "The Scale plan's call to action is a 30x30 CSS px arrow with no text label, while the Team plan's is a full-width labelled link, so the two plans do not offer the same affordance.",
+          "title": "Scale plan action is an unlabelled arrow, unlike Team",
+          "description": "The Scale plan's call to action is a bare arrow glyph with no text label, while the Team plan uses a full-width labelled link, so the two plans present different affordances for the same step and the arrow reads as decoration.",
           "suggestion": "Give the Scale plan the same labelled control as Team.",
           "introducedByThisPr": true
         },

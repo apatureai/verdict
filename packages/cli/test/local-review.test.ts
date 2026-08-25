@@ -403,7 +403,7 @@ describe("runLocalReview on a run whose findings were all deleted", () => {
     expect(outcome.result).not.toHaveProperty("gradeUnavailableReason");
     // Measured, and clean: the positive statement, never an absent field.
     expect(outcome.result.measurements).toEqual({
-      checksRun: ["contrast", "overflow", "touch_target"],
+      checksRun: ["contrast", "overflow", "touch_target", "page_overflow"],
       violations: [],
     });
   });

@@ -168,6 +168,25 @@ export interface ValidationMetadata {
    * tail from salvage, on the same footing as `modelFindingsSeen`.
    */
   salvagedFindings?: number;
+  /**
+   * Findings DROPPED because their substance was a measurement the deterministic
+   * checker had already reported (judge-unlock §4.2/§4.4). Additive/optional;
+   * absent reads as 0.
+   */
+  duplicateFactDrops?: number;
+  /**
+   * Findings kept but DEMOTED for restating a reported measurement; excluded from
+   * the grade and from `netNewFindings` (judge-unlock §4.4).
+   */
+  restatedFindings?: number;
+  /**
+   * Surviving findings that made a claim no deterministic check had already
+   * published. THE NORTH-STAR NUMERATOR (judge-unlock §4.4): a run whose model
+   * restated everything reports `netNewFindings: 0` with `modelFindingsSeen > 0`,
+   * which is what makes a restating judge visibly unhelpful rather than
+   * invisibly useless.
+   */
+  netNewFindings?: number;
 }
 
 /**

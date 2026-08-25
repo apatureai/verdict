@@ -521,7 +521,11 @@ describe("BREAKAGE_KINDS", () => {
     expect(isBreakage(measured("touch_target"))).toBe(false);
   });
 
+  it("counts page_overflow: a page that does not fit its viewport is coming apart", () => {
+    expect(isBreakage({ ...measured("overflow"), kind: "page_overflow" })).toBe(true);
+  });
+
   it("keeps the classification in one reviewable place", () => {
-    expect([...BREAKAGE_KINDS]).toEqual(["overflow"]);
+    expect([...BREAKAGE_KINDS]).toEqual(["overflow", "page_overflow"]);
   });
 });

@@ -57,6 +57,37 @@ export interface CaptureImage {
   height: number;
 }
 
+/**
+ * Compact computed-style digest for one element (judge-unlock, spec §2.2). Every
+ * value is EXACT — read from `getComputedStyle` at capture time, never estimated
+ * from pixels. This is the evidence the model needs to make a judgment the
+ * deterministic checker cannot: a font-family violation, an off-scale spacing
+ * value, an off-token colour. Optional/additive throughout: a capture service
+ * too old to report it leaves the prompt byte-identical and the model is told the
+ * styles are unavailable.
+ */
+export interface StyleDigest {
+  /** First resolved family, quotes stripped, e.g. `Helvetica Neue`, `Georgia`, `SF Mono`. */
+  fontFamily: string;
+  fontSizePx: number;
+  fontWeight: number;
+  /** null when `normal`. */
+  lineHeightPx: number | null;
+  /** `#rrggbb` or `rgba(...)` when translucent. */
+  color: string;
+  /** The element's OWN background-color, `transparent` when none. Not the flattened stack. */
+  backgroundColor: string;
+  /** [top, right, bottom, left] in CSS px. */
+  paddingPx: [number, number, number, number];
+  marginPx: [number, number, number, number];
+  /** `column-gap`/`row-gap` when the element is a flex/grid container, else null. */
+  gapPx: [number, number] | null;
+  /** Largest corner radius in CSS px. */
+  borderRadiusPx: number;
+  /** Only when it is not `block`/`inline` (i.e. flex, grid, inline-flex, …); else null. */
+  display: string | null;
+}
+
 /** Recorded DOM geometry; element refs are grounded in real rects, not VLM pixels. */
 export interface GeometryRect {
   route: string;
@@ -64,6 +95,23 @@ export interface GeometryRect {
   selector: string;
   role: string | null;
   rect: { x: number; y: number; width: number; height: number };
+  /**
+   * Exact computed-style digest for this element (judge-unlock, spec §2.2).
+   * Absent on a capture-service too old to report it; absent leaves the prompt
+   * byte-identical to today, and the model is told the styles are unavailable.
+   */
+  style?: StyleDigest;
+  /**
+   * First 48 chars of the element's OWN text, sanitized. Page-derived DATA
+   * (spec §2.6), fenced as untrusted and never treated as instructions.
+   */
+  label?: string;
+  /**
+   * True when this element's border-box right edge exceeds the viewport width,
+   * or its scrollWidth exceeds its clientWidth. Drives mandatory inclusion in
+   * the geometry map (spec §2.4 T1). Absent is UNKNOWN, never `false`.
+   */
+  overflowsX?: boolean;
 }
 
 export interface PageHealth {

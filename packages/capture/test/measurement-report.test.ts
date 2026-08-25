@@ -292,7 +292,7 @@ describe("toMeasurementReport", () => {
   it("states which checks ran, so an empty violations list means something", () => {
     const measuredClean = toMeasurementReport([]);
     expect(measuredClean).toEqual({
-      checksRun: ["contrast", "overflow", "touch_target"],
+      checksRun: ["contrast", "overflow", "touch_target", "page_overflow"],
       violations: [],
     });
 

@@ -30,7 +30,7 @@ const calibration: CalibrationRuntimeBinding = {
   },
   identity: {
     model: "qwen3-vl-plus",
-    promptVersion: "system-prompt@v5",
+    promptVersion: "system-prompt@v6",
     engineVersion: "0.1.0",
     captureVersion: "stub@0",
     rubricVersion: "design-rubric@1",

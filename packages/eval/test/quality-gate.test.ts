@@ -38,6 +38,24 @@ describe("qualityGate (#48)", () => {
     expect(r.signoff).toEqual({ frozenCaptureSetId: "frozen-2026-06-19", by: "design-lead", passed: true });
   });
 
+  it("skips the net-new bar when the rate is not supplied (early bring-up)", () => {
+    const r = qualityGate(passing);
+    // Absent -> treated as passing at 1, never a silent failure.
+    expect(r.metrics.netNewFindingRate).toBe(1);
+    expect(r.failedBars.some((b) => b.includes("net-new"))).toBe(false);
+  });
+
+  it("fails the north-star bar when the net-new finding rate is below threshold", () => {
+    const r = qualityGate({ ...passing, netNewFindingRate: 0.3 });
+    expect(r.passed).toBe(false);
+    expect(r.failedBars.some((b) => b.includes("net-new finding rate"))).toBe(true);
+  });
+
+  it("passes the north-star bar at or above the default 0.6", () => {
+    const r = qualityGate({ ...passing, netNewFindingRate: 0.6 });
+    expect(r.passed).toBe(true);
+  });
+
   it("fails when a golden-set bar is missed (and records the failing sign-off)", () => {
     const r = qualityGate({ ...passing, blockerRecall: 0.5, kappa: 0.4, signoffBy: undefined });
     expect(r.passed).toBe(false);

@@ -14,6 +14,7 @@ import { reconcileNarrative } from "./narrative.js";
 import { parseCritiqueOutput } from "./schema.js";
 import { buildResultMetadata } from "./version-stamp.js";
 import { buildSystemPrompt, SYSTEM_PROMPT_VERSION } from "./prompt.js";
+import type { FactLedger } from "./fact-ledger.js";
 import { runValidationTail } from "./validation-tail.js";
 
 export const ENGINE_VERSION = "0.1.0";
@@ -33,6 +34,8 @@ export interface CritiqueDeps {
   geometrySelectors?: Iterable<string>;
   calibration?: CalibrationRuntimeBinding;
   confidenceUnavailableReason?: ConfidenceUnavailableReason;
+  /** Deterministic fact ledger (judge-unlock §4); enables the duplicate-of-measurement gate. */
+  factLedger?: FactLedger;
 }
 
 function toModelImages(images: CaptureImage[]): ModelImage[] {
@@ -96,6 +99,7 @@ export async function critique(
     geometrySelectors: deps.geometrySelectors,
     captureUnstable: options.captureUnstable === true,
     calibration: deps.calibration,
+    ...(deps.factLedger ? { factLedger: deps.factLedger } : {}),
     identity: {
       model: config.model,
       promptVersion: PROMPT_VERSION,
@@ -114,6 +118,9 @@ export async function critique(
     survivingFindings: tail.findings.length,
     hallucinationDrops: tail.hallucinationDrops,
     ungroundedFindings: tail.ungroundedFindings,
+    netNewFindings: tail.netNewFindings,
+    duplicateFactDrops: tail.duplicateFactDrops,
+    restatedFindings: tail.restatedFindings,
   });
 
   return {
@@ -130,6 +137,15 @@ export async function critique(
       // Same count the narrative reconciliation above is given: findings that
       // entered the tail, not findings that survived it.
       modelFindingsSeen: output?.findings.length ?? 0,
+      // Judge-unlock §4.4: the north-star counts. Emitted only when a ledger ran
+      // the duplicate gate, so a run without one is byte-identical.
+      ...(deps.factLedger
+        ? {
+            duplicateFactDrops: tail.duplicateFactDrops,
+            restatedFindings: tail.restatedFindings,
+            netNewFindings: tail.netNewFindings,
+          }
+        : {}),
     },
     metadata: buildResultMetadata({
       engineVersion: ENGINE_VERSION,

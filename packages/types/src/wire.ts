@@ -129,7 +129,7 @@ export type GradeUnavailableReason =
   | "measured_facts_unjudged";
 
 /** The deterministic check kinds on the wire; mirrors `CheckKind` in `@apatureai/verdict-capture`. */
-export type MeasurementKind = "contrast" | "overflow" | "touch_target";
+export type MeasurementKind = "contrast" | "overflow" | "touch_target" | "page_overflow";
 
 /**
  * One violation the engine COMPUTED from the captured DOM, on the wire.
@@ -317,6 +317,19 @@ export interface EngineReviewResult {
    * `ungroundedNarrative`.
    */
   hallucinationDrops?: number;
+  /**
+   * The judge-unlock NORTH STAR (§4.4): how many published findings made a claim
+   * no deterministic check had already reported — the net-new judgments this
+   * review actually contributed. Additive + optional on schema v1.
+   *
+   * A footnote, not a finding: it does not enter `findings[]`, does not touch the
+   * grade, and is projected only when the engine ran the duplicate-of-measurement
+   * gate (so a producer without it stays byte-identical). `0` with a non-empty
+   * `findings[]` is the sharpest signal a consumer can read — every published
+   * finding restated a measurement the checker already reported, and none was a
+   * judgment the checker could not make.
+   */
+  netNewFindings?: number;
   /**
    * The model's own prose, verbatim, on a result where it is not a description
    * of the page. Additive + optional on schema v1, like `coverage` and

@@ -152,7 +152,7 @@ export interface InteractiveElement {
   inlineTarget?: boolean;
 }
 
-export type CheckKind = "contrast" | "overflow" | "touch_target";
+export type CheckKind = "contrast" | "overflow" | "touch_target" | "page_overflow";
 
 /**
  * The check kinds that count as BREAKAGE: measured evidence that the page did
@@ -172,7 +172,7 @@ export type CheckKind = "contrast" | "overflow" | "touch_target";
  * has to be reviewable in one place rather than inferred from a filter buried in
  * a caller.
  */
-export const BREAKAGE_KINDS: readonly CheckKind[] = ["overflow"];
+export const BREAKAGE_KINDS: readonly CheckKind[] = ["overflow", "page_overflow"];
 
 /** Whether a measured finding is breakage (see `BREAKAGE_KINDS`). */
 export function isBreakage(finding: DeterministicFinding): boolean {
@@ -226,6 +226,26 @@ export interface DeterministicFinding {
    * Zero is a band; absent is not a band, and the two must never be conflated.
    */
   severity?: number;
+  /**
+   * Whether the check REPORTED this measurement (it is published to the reviewer)
+   * or looked and DECLINED it because an exception applied (judge-unlock §1.2/§4.1).
+   *
+   * `false` names the case the judge-unlock diagnosed as F1: the checker measured
+   * an element, an exception excused it, and the silence made the model treat the
+   * fact list as the complete set of admissible evidence. A declined measurement
+   * is surfaced to the model as "measured, declined, here is why" so it can judge
+   * it against this repository's stricter rule, and it is EXCLUDED from the
+   * duplicate-of-measurement gate (a repo-rule finding on a declined element is
+   * net-new).
+   *
+   * Optional and additive: absent reads as `true` (a reported violation),
+   * preserving every existing caller. `factsForRoute` and `toMeasurementReport`
+   * filter to `reported !== false`, so today's prompt fact list and wire report
+   * are byte-identical.
+   */
+  reported?: boolean;
+  /** Present only when `reported === false`: the criterion/exception applied. */
+  declineReason?: string;
 }
 
 interface Rgb {
@@ -603,7 +623,21 @@ export function classifyClip(node: TextNodeStyle): ClipVerdict {
   return { verdict: "content_loss" };
 }
 
-export function overflowViolations(nodes: TextNodeStyle[]): DeterministicFinding[] {
+export interface DeclineOptions {
+  /**
+   * When true, a measurement the check LOOKED AT and declined (an exception
+   * applied) is emitted as a `reported: false` finding carrying the reason,
+   * instead of being silently skipped (judge-unlock §4.1). Default false keeps
+   * every existing caller byte-identical: `overflowViolations`/
+   * `touchTargetViolations` return only reported violations unless asked.
+   */
+  includeDeclined?: boolean;
+}
+
+export function overflowViolations(
+  nodes: TextNodeStyle[],
+  options: DeclineOptions = {},
+): DeterministicFinding[] {
   const out: DeterministicFinding[] = [];
   for (const node of nodes) {
     // The tolerance for sub-pixel layout: `contentWidthPx` and the box width
@@ -631,7 +665,22 @@ export function overflowViolations(nodes: TextNodeStyle[]): DeterministicFinding
       // into view and does nothing whatever for content this element already
       // cut off at its own edge.
       const clip = classifyClip(node);
-      if (clip.verdict === "deliberate_truncation") continue;
+      if (clip.verdict === "deliberate_truncation") {
+        if (options.includeDeclined === true) {
+          out.push({
+            kind: "overflow",
+            route: node.route,
+            viewport: node.viewport,
+            selector: node.selector,
+            detail: `${measured} but is clipped with a truncation affordance, so it was not reported as content loss`,
+            reported: false,
+            declineReason: "a truncation affordance renders (text-overflow other than clip on non-wrapping content)",
+            blockEligible: false,
+            ...(severity === undefined ? {} : { severity }),
+          });
+        }
+        continue;
+      }
       const applied = `overflow-x: ${node.overflowX}, text-overflow: ${node.textOverflow ?? "not reported"}, white-space: ${node.whiteSpace ?? "not reported"}`;
       out.push({
         kind: "overflow",
@@ -726,7 +775,7 @@ function meetsSpacingException(
   return true;
 }
 
-export interface TouchTargetOptions {
+export interface TouchTargetOptions extends DeclineOptions {
   /**
    * Which criterion to measure against. Defaults to AA (SC 2.5.8, 24x24). Pass
    * `"AAA"` for SC 2.5.5 (44x44) if the repository has committed to it.
@@ -749,10 +798,27 @@ export function touchTargetViolations(
   for (const el of elements) {
     // A pointer-target criterion, on the surfaces it is about.
     if (!TOUCH_VIEWPORTS.includes(el.viewport)) continue;
+    const size = `${Math.round(el.rect.width)}x${Math.round(el.rect.height)}px`;
     // "Inline": a link in a sentence is sized by the line-height around it, and
     // both criteria exempt it. Enlarging it would damage the paragraph.
-    if (el.inlineTarget === true) continue;
-    const size = `${Math.round(el.rect.width)}x${Math.round(el.rect.height)}px`;
+    if (el.inlineTarget === true) {
+      if (options.includeDeclined === true && isUndersized(el.rect, criterion.minPx)) {
+        out.push({
+          kind: "touch_target",
+          route: el.route,
+          viewport: el.viewport,
+          selector: el.selector,
+          detail:
+            `touch target ${size} is below the ${criterion.minPx}x${criterion.minPx}px minimum in ` +
+            `${cite(criterion)}, but the Inline exception applies (a link in a run of text), so nothing was reported`,
+          reported: false,
+          declineReason: `the ${cite(criterion)} Inline exception applies (a link sized by the line-height of surrounding prose)`,
+          blockEligible: false,
+          ...(touchTargetSeverity(el.rect) === undefined ? {} : { severity: touchTargetSeverity(el.rect) }),
+        });
+      }
+      continue;
+    }
     // Banded off the BOX, not off the criterion in force, so the same 20px
     // control lands in the same band whether a repository measures at AA or at
     // AAA. A band that moved because the reader changed their mind about which
@@ -760,7 +826,31 @@ export function touchTargetViolations(
     const severity = touchTargetSeverity(el.rect);
 
     if (isUndersized(el.rect, criterion.minPx)) {
-      if (name === "AA" && meetsSpacingException(el, elements)) continue;
+      if (name === "AA" && meetsSpacingException(el, elements)) {
+        // The SC 2.5.8 Spacing exception excused this target under WCAG. The
+        // judge-unlock's sharpest case (§1.2): the repository's own rule may be
+        // stricter (24x24 with NO exception), so the model must see this as
+        // "measured, declined, here is why" rather than as silence. It is
+        // EXCLUDED from the duplicate-of-measurement gate, so a repo-rule finding
+        // on it is correctly counted as net-new.
+        if (options.includeDeclined === true) {
+          out.push({
+            kind: "touch_target",
+            route: el.route,
+            viewport: el.viewport,
+            selector: el.selector,
+            detail:
+              `touch target ${size} is below the ${criterion.minPx}x${criterion.minPx}px minimum in ` +
+              `${cite(criterion)}, but the criterion's Spacing exception applies (no other target within ` +
+              `${AA_TOUCH_TARGET_PX}px), so WCAG is not violated and nothing was reported`,
+            reported: false,
+            declineReason: `the ${cite(criterion)} Spacing exception applies (a 24px-diameter circle centred on it touches no other target)`,
+            blockEligible: false,
+            ...(severity === undefined ? {} : { severity }),
+          });
+        }
+        continue;
+      }
       out.push({
         kind: "touch_target",
         route: el.route,
@@ -818,19 +908,94 @@ export function touchTargetViolations(
   return out;
 }
 
+/**
+ * Page-level layout metrics for the `page_overflow` check (judge-unlock §3.5).
+ * One per (route, viewport). All optional beyond the widths so a capture too old
+ * to report them runs no page check, which reads as "not measured", never
+ * "clean".
+ */
+export interface PageMetrics {
+  route: string;
+  viewport: Viewport;
+  viewportWidthPx: number;
+  documentScrollWidthPx: number;
+  /** `<html>`/`<body>` scroll horizontally. Absent is UNKNOWN, never `false`. */
+  rootScrollsX?: boolean;
+  /** Widest escaping elements attributing the excess to a concrete selector. */
+  offenders?: Array<{ selector: string; rightEdgePx: number; widthPx: number }>;
+}
+
+/**
+ * The `page_overflow` deterministic check (judge-unlock §3.5). Fires when the
+ * document scroll width exceeds the viewport width by more than a pixel — the
+ * page laid out for a width it was not given. This closes the ARITHMETIC half of
+ * the biggest defect on the proof page (927 vs 390 from a 900px table), and by
+ * living in the fact ledger it stops the model from claiming the raw measurement
+ * as its own finding; the model's net-new contribution is the REMEDY class.
+ *
+ * `selector` is the reserved `"document"` ref — findings cite the offending
+ * element, not the document, so the gate must not accept `"document"` as an
+ * `element_ref`. The detail names the widest escaping element so a reader (and
+ * the model) can see what to fix.
+ */
+export function pageOverflowViolations(pages: PageMetrics[]): DeterministicFinding[] {
+  const out: DeterministicFinding[] = [];
+  for (const page of pages) {
+    const excess = page.documentScrollWidthPx - page.viewportWidthPx;
+    if (excess <= 1) continue;
+    const offenders = page.offenders ?? [];
+    const widest = offenders[0];
+    const attribution = widest
+      ? `; widest escaping element: ${widest.selector} (${Math.round(widest.widthPx)}px wide, right edge ${Math.round(widest.rightEdgePx)}px)`
+      : "";
+    out.push({
+      kind: "page_overflow",
+      route: page.route,
+      viewport: page.viewport,
+      selector: "document",
+      detail:
+        `document scroll width ${Math.round(page.documentScrollWidthPx)}px exceeds the ` +
+        `${Math.round(page.viewportWidthPx)}px viewport by ${Math.round(excess)}px${attribution}`,
+      // Fail-closed like the other checks: an unreported root-scroll field is
+      // UNKNOWN and never gates, and an escaping element must have been named.
+      blockEligible: page.rootScrollsX === false && offenders.length > 0,
+      ...(overflowSeverity(excess, page.viewport) === undefined
+        ? {}
+        : { severity: overflowSeverity(excess, page.viewport) }),
+    });
+  }
+  return out;
+}
+
 export interface DeterministicCheckInput {
   textNodes: TextNodeStyle[];
   interactive: InteractiveElement[];
   /** Target-size criterion for the touch-target check. Defaults to AA. */
   touchTargetCriterion?: TouchTargetCriterion;
+  /**
+   * Page-level metrics for the `page_overflow` check (judge-unlock §3.5).
+   * Optional and additive: absent runs no page check, which is "not measured",
+   * NOT "clean".
+   */
+  pages?: PageMetrics[];
+  /**
+   * When true, checks also emit the measurements they LOOKED AT and declined
+   * (judge-unlock §4.1), carrying `reported: false`. Default false keeps every
+   * existing caller byte-identical.
+   */
+  includeDeclined?: boolean;
 }
 
 /** Run all deterministic checks, returning the facts for the critique prompt. */
 export function deterministicChecks(input: DeterministicCheckInput): DeterministicFinding[] {
   return [
     ...contrastViolations(input.textNodes),
-    ...overflowViolations(input.textNodes),
-    ...touchTargetViolations(input.interactive, { criterion: input.touchTargetCriterion }),
+    ...overflowViolations(input.textNodes, { includeDeclined: input.includeDeclined === true }),
+    ...touchTargetViolations(input.interactive, {
+      criterion: input.touchTargetCriterion,
+      includeDeclined: input.includeDeclined === true,
+    }),
+    ...pageOverflowViolations(input.pages ?? []),
   ];
 }
 
@@ -839,6 +1004,7 @@ export const ALL_MEASUREMENT_KINDS: readonly MeasurementKind[] = [
   "contrast",
   "overflow",
   "touch_target",
+  "page_overflow",
 ];
 
 /**
@@ -909,6 +1075,10 @@ export function toMeasurementReport(
 ): MeasurementReport {
   const groups = new Map<string, WireMeasurement>();
   for (const finding of findings) {
+    // A declined measurement (judge-unlock §4.1) reaches the ledger and the
+    // prompt's "MEASURED AND DECLINED" block, never the wire report: the checker
+    // did not report it, so the wire must not either.
+    if (finding.reported === false) continue;
     // JSON, so no separator character can collide with a selector or detail.
     const key = JSON.stringify([finding.kind, finding.route, finding.selector, finding.detail]);
     const existing = groups.get(key);

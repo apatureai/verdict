@@ -330,16 +330,19 @@ describe("T9: the cross-repo golden fixtures stay byte-identical", () => {
  * would pass every behavioural test written before it. Anyone who touches these
  * two files has to come here and say why.
  */
-describe("T10: grade.ts and validation-tail.ts are not modified", () => {
+describe("T10: the grade stays a pure function of the surviving model findings", () => {
   const read = (name: string): string =>
     readFileSync(fileURLToPath(new URL(`../src/${name}`, import.meta.url)), "utf8");
 
-  it("neither file mentions a measurement", () => {
-    for (const name of ["grade.ts", "validation-tail.ts"]) {
-      const source = read(name);
-      expect(source.toLowerCase()).not.toContain("measurement");
-      expect(source).not.toContain("blockEligible");
-    }
+  it("grade.ts mentions no measurement and no blockEligible", () => {
+    // grade.ts is the file that owns the grade; a deterministic measurement must
+    // never become a grade input there. (validation-tail.ts now runs the
+    // duplicate-OF-measurement gate, which REMOVES restated findings before the
+    // grade — the opposite of threading a measurement INTO it — so it is no
+    // longer covered by this string guard; the behavioural guards below hold it.)
+    const grade = read("grade.ts");
+    expect(grade.toLowerCase()).not.toContain("measurement");
+    expect(grade).not.toContain("blockEligible");
   });
 
   it("gradeFromFindings and reconcileGrade take findings and nothing else", () => {
@@ -350,9 +353,19 @@ describe("T10: grade.ts and validation-tail.ts are not modified", () => {
     );
   });
 
-  it("ValidationTailInput gained no measurement field", () => {
+  it("the tail reconciles the grade over grounded findings, never over the fact ledger", () => {
+    // The judge-unlock duplicate gate consumes the ledger to DROP/DEMOTE findings;
+    // the grade is still reconciled over `grounded`, the surviving novel findings.
+    // A measurement (severity band, blockEligible, a raw ratio) is never handed to
+    // reconcileGrade. Pinned by source shape so a later change that reconciled the
+    // grade against the ledger, or fed a measurement literal into it, is caught.
     const tail = read("validation-tail.ts");
-    const input = tail.slice(tail.indexOf("export interface ValidationTailInput"));
-    expect(input).not.toMatch(/measure/i);
+    expect(tail).toContain("reconcileGrade(input.modelGrade, grounded)");
+    // The ledger feeds ONLY the duplicate gate, never the grade or the ceiling.
+    expect(tail).not.toContain("reconcileGrade(input.modelGrade, dup");
+    expect(tail).not.toContain("factLedger.entries");
+    // No measurement magnitude crosses into the tail's own logic.
+    expect(tail).not.toContain("blockEligible");
+    expect(tail).not.toContain("severity");
   });
 });

@@ -3,6 +3,7 @@ import { join } from "node:path";
 import {
   breakageForRoute,
   createBrowserCapture,
+  declinedForRoute,
   factsForRoute,
   toMeasurementReport,
   type BrowserCaptureResult,
@@ -11,7 +12,7 @@ import {
   checksRunFor,
   type ScreenshotSink,
 } from "@apatureai/verdict-capture";
-import { enforceGroundingAuthority, type ModelClientFactory,
+import { buildFactLedger, enforceGroundingAuthority, type ModelClientFactory,
   type PassModelOverrides,
 } from "@apatureai/verdict-critique";
 import { reviewSystemPrompt, runReview, type ReviewRoute } from "@apatureai/verdict-review";
@@ -280,17 +281,25 @@ export async function runLocalReview(
   // those routes not-reviewed instead of clean. Closing it needs a baseline
   // store keyed by repo and route with a retention and invalidation policy,
   // which is a feature, not a wiring fix.
+  const declined = captured.declinedFindings ?? [];
   const routes: ReviewRoute[] = request.routes.map((route) => {
     const facts = factsForRoute(captured.deterministicFindings, route);
+    const declinedFacts = declinedForRoute(declined, route);
     const breakage = breakageForRoute(captured.deterministicFindings, route);
     const text = captured.pageText[route];
     return {
       route,
       ...(facts.length > 0 ? { facts } : {}),
+      ...(declinedFacts.length > 0 ? { declinedFacts } : {}),
       ...(breakage.length > 0 ? { deterministicBreakage: breakage } : {}),
       ...(text ? { pageText: text } : {}),
     };
   });
+
+  // Judge-unlock §4.1/§4.3: build the fact ledger ONCE from the same reported +
+  // declined findings that produced the route facts, and thread it into the
+  // review so the duplicate-of-measurement gate runs in the validation tail.
+  const factLedger = buildFactLedger([...captured.deterministicFindings, ...declined]);
 
   let critique: Critique | null = null;
   const reviewed = await runReview(
@@ -300,6 +309,7 @@ export async function runLocalReview(
       context,
       captureContext,
       routes,
+      factLedger,
       // The measured half, published on the result rather than stopping at the
       // deep prompt. Same `DeterministicFinding[]` the two lines above turn into
       // prompt facts and triage breakage, grouped once for the wire.

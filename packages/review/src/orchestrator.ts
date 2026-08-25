@@ -32,7 +32,7 @@ import {
   type TriageRoute,
   type WireProjectionOptions,
 } from "@apatureai/verdict-critique";
-import type { ModelImage } from "@apatureai/verdict-critique";
+import type { ModelImage, FactLedger } from "@apatureai/verdict-critique";
 import type { Critique, EngineReviewResult, PreviewBuildFact } from "@apatureai/verdict-types";
 
 /**
@@ -97,8 +97,14 @@ export interface ReviewRoute {
    * own deterministic findings (`breakageForRoute`).
    */
   deterministicBreakage?: string[];
-  /** Deterministic facts (contrast/overflow/touch-target, #19) for the deep prompt. */
+  /** Deterministic facts (contrast/overflow/touch-target/page-overflow, #19) for the deep prompt's ALREADY-REPORTED block. */
   facts?: string[];
+  /**
+   * Measurements the checker DECLINED (judge-unlock §3.3/§4.1) for the deep
+   * prompt's MEASURED-AND-DECLINED block: the model's territory, where a finding
+   * on a WCAG-excused element is net-new. Built by the caller via `declinedForRoute`.
+   */
+  declinedFacts?: string[];
   /** Untrusted page DOM text (#53), fenced in the deep prompt. */
   pageText?: string;
   /** Per-repo memory digest suffix (#41). */
@@ -194,6 +200,14 @@ export interface ReviewInput {
   guidedDecoding?: boolean;
   /** Max concurrent deep-pass routes (#29, default 3). */
   concurrency?: number;
+  /**
+   * The deterministic fact ledger (judge-unlock §4.1), built ONCE by the caller
+   * from the same deterministic + declined findings that produced the route
+   * facts. Threaded to `assembleCritique` to run the duplicate-of-measurement
+   * gate. Absent ⇒ the gate is a no-op (byte-identical to before), which is what
+   * a caller that has not adopted the ledger gets.
+   */
+  factLedger?: FactLedger;
 }
 
 /**
@@ -445,6 +459,7 @@ export async function runReview(input: ReviewInput, deps: ReviewDeps): Promise<E
       images,
       ...(geometry.length > 0 ? { geometry } : {}),
       ...(cfg?.facts && cfg.facts.length > 0 ? { facts: cfg.facts } : {}),
+      ...(cfg?.declinedFacts && cfg.declinedFacts.length > 0 ? { declinedFacts: cfg.declinedFacts } : {}),
       ...(genomeRules.length > 0 ? { genomeRules } : {}),
       ...(cfg?.pageText ? { pageText: cfg.pageText } : {}),
       ...(cfg?.feedbackDigest ? { feedbackDigest: cfg.feedbackDigest } : {}),
@@ -525,6 +540,9 @@ export async function runReview(input: ReviewInput, deps: ReviewDeps): Promise<E
     // #160: the capture contributes only the instability fact; the validated
     // promoted report owns the numeric ceiling and post-filter threshold.
     captureUnstable: input.captureUnstable === true || capture.pageHealth.unstable,
+    // Judge-unlock §4.3: the duplicate-of-measurement gate runs inside the tail
+    // when the caller supplied a ledger, built once from the same findings.
+    ...(input.factLedger ? { factLedger: input.factLedger } : {}),
     ...(deps.calibration ? { calibration: deps.calibration } : {}),
     ...(deps.confidenceUnavailableReason
       ? { confidenceUnavailableReason: deps.confidenceUnavailableReason }
