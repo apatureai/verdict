@@ -1,0 +1,104 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="708" viewBox="0 0 1200 708"
+     role="img" aria-label="verdict terminal session: a canned review captures the demo site, measures 13 accessibility facts, and the grounding gate drops 2 replayed findings that cite nothing captured"
+     xml:space="preserve">
+  <style>
+    text { font-family: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, monospace;
+           font-size: 15px; }
+    .chrome { fill: #8B949E; font-size: 13px; }
+    .out    { fill: #C9D1D9; }
+    .dim    { fill: #8B949E; }
+    .acc    { fill: #4FB3C9; }
+    .hd     { fill: #E6EDF3; }
+
+    .line   { opacity: 0; }
+    .beat   { opacity: 0; }
+
+    /* one keyframes block per line; percentages encode reveal time over a 18s cycle */
+    @keyframes l0 { 0%,3.33% { opacity:0; transform:translateY(6px); } 5.33%,90% { opacity:1; transform:none; } 94%,100% { opacity:0; } }
+    @keyframes l1 { 0%,6.39% { opacity:0; transform:translateY(6px); } 8.39%,90% { opacity:1; transform:none; } 94%,100% { opacity:0; } }
+    @keyframes l2 { 0%,9.44% { opacity:0; transform:translateY(6px); } 11.44%,90% { opacity:1; transform:none; } 94%,100% { opacity:0; } }
+    @keyframes l3 { 0%,12.5% { opacity:0; transform:translateY(6px); } 14.5%,90% { opacity:1; transform:none; } 94%,100% { opacity:0; } }
+    @keyframes l4 { 0%,15.56% { opacity:0; transform:translateY(6px); } 17.56%,90% { opacity:1; transform:none; } 94%,100% { opacity:0; } }
+    @keyframes l5 { 0%,21.94% { opacity:0; transform:translateY(6px); } 23.94%,90% { opacity:1; transform:none; } 94%,100% { opacity:0; } }
+    @keyframes l6 { 0%,25% { opacity:0; transform:translateY(6px); } 27%,90% { opacity:1; transform:none; } 94%,100% { opacity:0; } }
+    @keyframes l7 { 0%,28.06% { opacity:0; transform:translateY(6px); } 30.06%,90% { opacity:1; transform:none; } 94%,100% { opacity:0; } }
+    @keyframes l8 { 0%,31.11% { opacity:0; transform:translateY(6px); } 33.11%,90% { opacity:1; transform:none; } 94%,100% { opacity:0; } }
+    @keyframes l9 { 0%,37.5% { opacity:0; transform:translateY(6px); } 39.5%,90% { opacity:1; transform:none; } 94%,100% { opacity:0; } }
+    @keyframes l10 { 0%,40.56% { opacity:0; transform:translateY(6px); } 42.56%,90% { opacity:1; transform:none; } 94%,100% { opacity:0; } }
+    @keyframes l11 { 0%,43.61% { opacity:0; transform:translateY(6px); } 45.61%,90% { opacity:1; transform:none; } 94%,100% { opacity:0; } }
+    @keyframes l12 { 0%,50% { opacity:0; transform:translateY(6px); } 52%,90% { opacity:1; transform:none; } 94%,100% { opacity:0; } }
+    @keyframes l13 { 0%,53.06% { opacity:0; transform:translateY(6px); } 55.06%,90% { opacity:1; transform:none; } 94%,100% { opacity:0; } }
+    @keyframes l14 { 0%,56.11% { opacity:0; transform:translateY(6px); } 58.11%,90% { opacity:1; transform:none; } 94%,100% { opacity:0; } }
+    @keyframes l15 { 0%,62.5% { opacity:0; transform:translateY(6px); } 64.5%,90% { opacity:1; transform:none; } 94%,100% { opacity:0; } }
+    @keyframes l16 { 0%,65.56% { opacity:0; transform:translateY(6px); } 67.56%,90% { opacity:1; transform:none; } 94%,100% { opacity:0; } }
+    @keyframes l17 { 0%,68.61% { opacity:0; transform:translateY(6px); } 70.61%,90% { opacity:1; transform:none; } 94%,100% { opacity:0; } }
+    @keyframes l18 { 0%,71.67% { opacity:0; transform:translateY(6px); } 73.67%,90% { opacity:1; transform:none; } 94%,100% { opacity:0; } }
+    @keyframes l19 { 0%,74.72% { opacity:0; transform:translateY(6px); } 76.72%,90% { opacity:1; transform:none; } 94%,100% { opacity:0; } }
+    @keyframes beat { 0%,78% { opacity:0; } 82%,90% { opacity:1; } 94%,100% { opacity:0; } }
+
+    .l0 { animation: l0 18s linear infinite; }
+    .l1 { animation: l1 18s linear infinite; }
+    .l2 { animation: l2 18s linear infinite; }
+    .l3 { animation: l3 18s linear infinite; }
+    .l4 { animation: l4 18s linear infinite; }
+    .l5 { animation: l5 18s linear infinite; }
+    .l6 { animation: l6 18s linear infinite; }
+    .l7 { animation: l7 18s linear infinite; }
+    .l8 { animation: l8 18s linear infinite; }
+    .l9 { animation: l9 18s linear infinite; }
+    .l10 { animation: l10 18s linear infinite; }
+    .l11 { animation: l11 18s linear infinite; }
+    .l12 { animation: l12 18s linear infinite; }
+    .l13 { animation: l13 18s linear infinite; }
+    .l14 { animation: l14 18s linear infinite; }
+    .l15 { animation: l15 18s linear infinite; }
+    .l16 { animation: l16 18s linear infinite; }
+    .l17 { animation: l17 18s linear infinite; }
+    .l18 { animation: l18 18s linear infinite; }
+    .l19 { animation: l19 18s linear infinite; }
+    .beat { animation: beat 18s linear infinite; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .line, .beat { animation: none !important; opacity: 1 !important; transform: none !important; }
+    }
+  </style>
+
+  <!-- terminal chrome (always dark; outside stays transparent so both README themes work) -->
+  <g aria-hidden="true">
+    <rect x="40" y="24" width="1120" height="644" rx="12"
+          fill="#0D1117" stroke="#30363D" stroke-width="1.5"/>
+    <circle cx="70" cy="52" r="6" fill="#30363D"/>
+    <circle cx="92" cy="52" r="6" fill="#30363D"/>
+    <circle cx="114" cy="52" r="6" fill="#30363D"/>
+    <line x1="40" y1="76" x2="1160" y2="76" stroke="#21262D" stroke-width="1.5"/>
+  </g>
+  <text x="140" y="57" class="chrome">$ node packages/cli/dist/main.js</text>
+
+  <!-- payoff highlight, behind its line -->
+  <g class="beat" aria-hidden="true">
+    <rect x="58" y="425" width="1084" height="26" rx="4" fill="#4FB3C9" opacity="0.14"/>
+    <rect x="58" y="425" width="3" height="26" fill="#4FB3C9"/>
+  </g>
+
+  <!-- transcript: first baseline y=104, line-height 26, x=72. Every line verbatim from hero-transcript.txt. -->
+  <g class="line l0"><text x="72" y="104" class="out">judgment-engine — reviewing http://127.0.0.1:62266 (bundled demo site)</text></g>
+  <g class="line l1"><text x="72" y="130" class="dim">  launching Chromium…</text></g>
+  <g class="line l2"><text x="72" y="156" class="dim">  capturing 2 route(s) × 3 viewport(s)…</text></g>
+  <g class="line l3"><text x="72" y="182" class="dim">  running triage + deep pass…</text></g>
+  <g class="line l4"><text x="600" y="208" class="dim ell" text-anchor="middle">⋯</text></g>
+  <g class="line l5"><text x="72" y="234" class="hd">Capture</text></g>
+  <g class="line l6"><text x="72" y="260" class="dim">  6 screenshot(s) written to out/screenshots</text></g>
+  <g class="line l7"><text x="72" y="286" class="dim">  66 DOM element(s) recorded in the geometry map</text></g>
+  <g class="line l8"><text x="72" y="312" class="dim">  page health: clean</text></g>
+  <g class="line l9"><text x="72" y="338" class="hd">Measured facts  (computed from the captured DOM, no model involved)</text></g>
+  <g class="line l10"><text x="72" y="364" class="out">  13 measurement(s) (contrast 6, overflow 3, touch_target 4) over 5 distinct element(s)</text></g>
+  <g class="line l11"><text x="600" y="390" class="dim ell" text-anchor="middle">⋯</text></g>
+  <g class="line l12"><text x="72" y="416" class="hd">Grounding gate</text></g>
+  <g class="line l13"><text x="72" y="442" class="acc">  5 replayed finding(s) parsed, 2 dropped for citing a route or element that was never captured</text></g>
+  <g class="line l14"><text x="600" y="468" class="dim ell" text-anchor="middle">⋯</text></g>
+  <g class="line l15"><text x="72" y="494" class="hd">Wrote</text></g>
+  <g class="line l16"><text x="72" y="520" class="dim">  out/review.json</text></g>
+  <g class="line l17"><text x="72" y="546" class="dim">  out/deterministic-facts.txt</text></g>
+  <g class="line l18"><text x="600" y="572" class="dim ell" text-anchor="middle">⋯</text></g>
+  <g class="line l19"><text x="72" y="598" class="out">Done in 7.9s.</text></g>
+</svg>

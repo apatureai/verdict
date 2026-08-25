@@ -1,14 +1,68 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="260" viewBox="0 0 1200 260" role="img" aria-label="verdict: the critique engine for rendered UI">
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="300" viewBox="0 0 1200 300"
+     role="img" aria-label="verdict: the critique engine for rendered UI">
   <!-- ground -->
-  <rect width="1200" height="260" fill="#FFFFFF"/>
-  <!-- wordmark -->
-  <text x="600" y="126" text-anchor="middle"
+  <rect width="1200" height="300" fill="#FFFFFF"/>
+
+  <!-- texture: fine dot grid, 24px pitch, 5% -->
+  <defs>
+    <pattern id="dots" width="24" height="24" patternUnits="userSpaceOnUse">
+      <circle cx="12" cy="12" r="1.1" fill="#1B1F24"/>
+    </pattern>
+  </defs>
+  <rect width="1200" height="300" fill="url(#dots)" opacity="0.05" aria-hidden="true"/>
+
+  <!-- motif: a wireframe page under review; the grounded callout holds,
+       the ungrounded one is struck and fading, its leader anchored to nothing -->
+  <g aria-hidden="true" stroke-linecap="round" stroke-linejoin="round">
+
+    <!-- page -->
+    <rect x="100" y="54" width="136" height="192" rx="8"
+          fill="#F6F8FA" stroke="#C7CFD7" stroke-width="2"/>
+    <line x1="100" y1="82" x2="236" y2="82" stroke="#C7CFD7" stroke-width="2"/>
+    <circle cx="116" cy="68" r="3" fill="#C7CFD7"/>
+    <circle cx="128" cy="68" r="3" fill="#C7CFD7"/>
+    <circle cx="140" cy="68" r="3" fill="#C7CFD7"/>
+
+    <!-- content skeleton -->
+    <rect x="114" y="96"  width="78"  height="10" rx="5" fill="#DCE2E8"/>
+    <rect x="114" y="116" width="106" height="6"  rx="3" fill="#E4E9EE"/>
+    <rect x="114" y="130" width="94"  height="6"  rx="3" fill="#E4E9EE"/>
+    <rect x="114" y="144" width="106" height="6"  rx="3" fill="#E4E9EE"/>
+    <!-- the element the grounded finding cites -->
+    <rect x="114" y="162" width="52" height="40" rx="4"
+          fill="#DCE2E8" stroke="#176578" stroke-width="2"/>
+    <rect x="114" y="216" width="106" height="6" rx="3" fill="#E4E9EE"/>
+    <rect x="114" y="230" width="84"  height="6" rx="3" fill="#E4E9EE"/>
+
+    <!-- grounded callout: anchored dot on the cited element, right-angle leader, kept -->
+    <circle cx="166" cy="182" r="4" fill="#176578"/>
+    <path d="M 166 182 H 240 V 112 H 256" fill="none" stroke="#176578" stroke-width="2"/>
+    <rect x="256" y="88" width="104" height="48" rx="6"
+          fill="#FFFFFF" stroke="#176578" stroke-width="2"/>
+    <rect x="266" y="100" width="66" height="7" rx="3.5" fill="#176578"/>
+    <rect x="266" y="113" width="84" height="5" rx="2.5" fill="#176578" opacity="0.35"/>
+    <rect x="266" y="123" width="62" height="5" rx="2.5" fill="#176578" opacity="0.35"/>
+
+    <!-- ungrounded callout: dashed leader dangles past the page to an empty anchor,
+         box fading at 45%, struck through -->
+    <g opacity="0.45">
+      <path d="M 256 198 H 240 V 252 H 230" fill="none"
+            stroke="#8B949E" stroke-width="2" stroke-dasharray="4 4"/>
+      <circle cx="224" cy="252" r="4" fill="none" stroke="#8B949E" stroke-width="2"/>
+      <rect x="256" y="176" width="104" height="44" rx="6"
+            fill="#FFFFFF" stroke="#8B949E" stroke-width="2"/>
+      <rect x="266" y="188" width="58" height="7" rx="3.5" fill="#8B949E"/>
+      <rect x="266" y="201" width="80" height="5" rx="2.5" fill="#C6CCD2"/>
+    </g>
+    <line x1="250" y1="172" x2="366" y2="226" stroke="#57606A" stroke-width="2.5"/>
+  </g>
+
+  <!-- type -->
+  <text x="428" y="142"
         font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif"
-        font-size="68" font-weight="600" letter-spacing="-1" fill="#1B1F24">verdict</text>
-  <!-- accent rule: the single accent element -->
-  <rect x="564" y="152" width="72" height="3" rx="1.5" fill="#176578"/>
-  <!-- tagline -->
-  <text x="600" y="198" text-anchor="middle"
+        font-size="76" font-weight="600" letter-spacing="-1.5" fill="#1B1F24">verdict</text>
+  <rect x="430" y="164" width="96" height="4" rx="2" fill="#176578"/>
+  <text x="428" y="210"
         font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif"
-        font-size="21" font-weight="400" letter-spacing="0.2" fill="#57606A">the critique engine for rendered UI</text>
+        font-size="22" font-weight="400" letter-spacing="0.2" fill="#57606A">the critique engine for rendered UI</text>
 </svg>
