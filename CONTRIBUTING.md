@@ -1,7 +1,7 @@
 # Contributing
 
 Contributions are welcome. Small ones especially: a typo, a dead link, a failing case you can
-reproduce. The [roadmap in README.md](README.md#status-and-roadmap) is the list of gaps most worth
+reproduce. The [roadmap](docs/roadmap.md) is the list of gaps most worth
 picking up, each written so you can tell what you would be signing up for before you start.
 
 If you are planning something larger (a new package, a changed wire contract, a new capture stage),
@@ -87,13 +87,14 @@ locally with `docker build`.
   critique as fixture text, and gives the numbered list to the measured facts instead. A reader who
   sees a grade must be able to conclude a model produced it. The `quickstart` job in
   `.github/workflows/ci.yml` fails the build if a canned run prints one.
-- **The README image is generated, never drawn.** `docs/report.png` is typeset from `docs/report.txt`,
-  which is captured stdout. If you change what the CLI prints, regenerate both and update the
-  README's console blocks in the same pull request:
+- **The README hero is captured, never drawn.** `docs/assets/hero.png` is a screenshot of the real
+  demo report (`docs/assets/hero-transcript.txt`, captured stdout) dropped into the shared terminal
+  frame. If you change what the CLI prints, regenerate the transcript and the image in the same pull
+  request; the exact steps are in [docs/development.md](docs/development.md#regenerating-the-readme-hero):
 
   ```sh
-  { echo '$ node packages/cli/dist/main.js'; node packages/cli/dist/main.js; } > docs/report.txt
-  node scripts/render-report-image.mjs docs/report.txt docs/report.png
+  { echo '$ node packages/cli/dist/main.js'; node packages/cli/dist/main.js; } > docs/assets/hero-transcript.txt
+  # then render docs/assets/terminal-frame.html with the transcript and screenshot the .frame element
   ```
 - **No em dashes in prose,** and no AI attribution in commits or documentation.
 
