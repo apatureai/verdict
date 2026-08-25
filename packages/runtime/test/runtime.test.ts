@@ -108,7 +108,11 @@ const calibratedModelFactory: ModelClientFactory = () => ({
             confidence: 0.95,
             route: "/",
             viewport: "desktop",
-            elementRef: null,
+            // Grounded on a captured geometry selector (see captureClient): this
+            // finding drives the grade, so the calibrated-blocking downgrade below
+            // is what is under test. A null elementRef would be routed to the
+            // ungrounded bucket and held out of the grade (W1-03).
+            elementRef: "#spacing",
             title: "Spacing blocker",
             description: "The spacing violates the approved scale.",
             suggestion: "Use the approved spacing token.",
@@ -168,7 +172,9 @@ function reviewRequest() {
 function captureClient(): CaptureClient {
   const capture: Capture = {
     images: [{ route: "/", viewport: VIEWPORT, objectKey: "jobs/test/capture/home.png", width: 1280, height: 720 }],
-    geometry: [],
+    geometry: [
+      { route: "/", viewport: VIEWPORT, selector: "#spacing", role: null, rect: { x: 0, y: 0, width: 100, height: 40 } },
+    ],
     pageHealth: { consoleErrors: 0, failedRequests: 0, unstable: false },
     captureVersion: "capture-http@1",
   };

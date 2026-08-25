@@ -92,7 +92,7 @@ export async function critique(
   const tail = runValidationTail({
     findings: output?.findings ?? [],
     modelGrade: output?.grade ?? "ship",
-    capturedRoutes: images.map((i) => i.route),
+    capturedShots: images.map((i) => ({ route: i.route, viewport: i.viewport })),
     geometrySelectors: deps.geometrySelectors,
     captureUnstable: options.captureUnstable === true,
     calibration: deps.calibration,
@@ -113,6 +113,7 @@ export async function critique(
     modelFindingsSeen: output?.findings.length ?? 0,
     survivingFindings: tail.findings.length,
     hallucinationDrops: tail.hallucinationDrops,
+    ungroundedFindings: tail.ungroundedFindings,
   });
 
   return {

@@ -7,7 +7,7 @@ import {
 } from "./calibration-binding.js";
 import { applyConfidenceCeiling } from "./confidence-ceiling.js";
 import { reconcileGrade } from "./grade.js";
-import { hallucinationGate } from "./hallucination-gate.js";
+import { hallucinationGate, type CapturedShot } from "./hallucination-gate.js";
 import { postFilter } from "./post-filter.js";
 
 /**
@@ -24,14 +24,22 @@ import { postFilter } from "./post-filter.js";
  * enforcement → grade reconciliation → the advisory blocked-floor. Calibration is
  * applied only when its binding matches the runtime identity; otherwise the result
  * stays advisory (raw scores, no ranking). Pure and deterministic.
+ *
+ * The gate now returns TWO buckets (W1-03): element-grounded findings, which flow
+ * through the whole tail and drive the grade, and `ungrounded` findings (a real
+ * shot but a null `elementRef`), which are calibrated and trust-budgeted the same
+ * way but are held OUT of grade reconciliation and blocking, then appended AFTER
+ * every grounded finding so ranking can never place an ungrounded finding above a
+ * grounded one. Both buckets are published in `findings`; the split is disclosed
+ * to the reader through the narrative and each ungrounded finding's null element.
  */
 export interface ValidationTailInput {
   /** Raw findings from the model pass(es), pre-validation. */
   findings: Finding[];
   /** The model's holistic grade, floored to what surviving findings support (#106). */
   modelGrade: Grade;
-  /** Routes actually captured; findings on uncaptured routes are dropped (#32). */
-  capturedRoutes: Iterable<string>;
+  /** The `(route, viewport)` shots actually captured; findings off these are dropped (#32). */
+  capturedShots: Iterable<CapturedShot>;
   /** Valid geometry selectors for the element_ref drop (#32); omit to skip that check. */
   geometrySelectors?: Iterable<string>;
   /** Whether the capture was visually unstable, which caps confidence (#70). */
@@ -43,17 +51,24 @@ export interface ValidationTailInput {
 }
 
 export interface ValidationTailResult {
+  /** Grounded findings first, then ungrounded (see `ungroundedFindings`), never interleaved. */
   findings: Finding[];
   grade: Grade;
   blockingEnabled: boolean;
   hallucinationDrops: number;
+  /**
+   * How many of `findings` are ungrounded (null `elementRef`): held out of the
+   * grade, ranked last, and disclosed by the narrative. The grounded findings are
+   * `findings.slice(0, findings.length - ungroundedFindings)`.
+   */
+  ungroundedFindings: number;
   /** The calibration binding IFF it matched the runtime identity (else undefined). */
   calibration: CalibrationRuntimeBinding | undefined;
 }
 
 export function runValidationTail(input: ValidationTailInput): ValidationTailResult {
   const gated = hallucinationGate(input.findings, {
-    capturedRoutes: input.capturedRoutes,
+    capturedShots: input.capturedShots,
     geometrySelectors: input.geometrySelectors,
   });
 
@@ -62,21 +77,42 @@ export function runValidationTail(input: ValidationTailInput): ValidationTailRes
       ? input.calibration
       : undefined;
 
-  const calibrated = calibration ? applyCalibrationBinding(gated.findings, calibration) : gated.findings;
-  const capped =
-    input.captureUnstable && calibration
-      ? applyConfidenceCeiling(calibrated, calibration.thresholds.unstableCaptureMaxConfidence)
-      : calibrated;
-  const filtered = postFilter(capped, {
-    ...(calibration
-      ? { minConfidence: calibration.thresholds.postFilterMinConfidence, useConfidence: true }
-      : {}),
-  });
-  const findings = calibration ? enforceBlockingThreshold(filtered, calibration) : filtered;
+  // Calibrate + cap + trust-budget each bucket the same way. Only the grounded
+  // bucket goes on to blocking enforcement and the grade; the ungrounded bucket is
+  // published for the reader but never drives the verdict.
+  const prepare = (findings: Finding[]): Finding[] => {
+    const calibrated = calibration ? applyCalibrationBinding(findings, calibration) : findings;
+    const capped =
+      input.captureUnstable && calibration
+        ? applyConfidenceCeiling(calibrated, calibration.thresholds.unstableCaptureMaxConfidence)
+        : calibrated;
+    return postFilter(capped, {
+      ...(calibration
+        ? { minConfidence: calibration.thresholds.postFilterMinConfidence, useConfidence: true }
+        : {}),
+    });
+  };
 
-  const reconciledGrade = reconcileGrade(input.modelGrade, findings);
+  const groundedFiltered = prepare(gated.findings);
+  const grounded = calibration ? enforceBlockingThreshold(groundedFiltered, calibration) : groundedFiltered;
+  const ungrounded = prepare(gated.ungrounded);
+
+  // Grade is reconciled against the GROUNDED findings only: an ungrounded blocker
+  // must not block a PR on an issue the model could not point at.
+  const reconciledGrade = reconcileGrade(input.modelGrade, grounded);
   const blockingEnabled = calibration?.promotionMode === "blocking";
   const grade = !blockingEnabled && reconciledGrade === "blocked" ? "needs_work" : reconciledGrade;
 
-  return { findings, grade, blockingEnabled, hallucinationDrops: gated.hallucinationDrops, calibration };
+  // Grounded first, ungrounded last: the array order IS the ranking, so no
+  // ungrounded finding can ever sit above a grounded one.
+  const findings = [...grounded, ...ungrounded];
+
+  return {
+    findings,
+    grade,
+    blockingEnabled,
+    hallucinationDrops: gated.hallucinationDrops,
+    ungroundedFindings: ungrounded.length,
+    calibration,
+  };
 }

@@ -1,3 +1,6 @@
+import { readdirSync, readFileSync, statSync } from "node:fs";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import {
   hasDisplayableConfidence,
@@ -127,4 +130,80 @@ describe("wire contract (cross-repo anchor with Gate)", () => {
     expect(s).not.toContain("claude");
     expect(s).not.toContain("anthropic");
   });
+});
+
+/**
+ * W1-03 grounding invariant. A published finding is a claim about a `(route,
+ * viewport)` shot; coverage is the run's own statement of which routes and
+ * viewports it reviewed. The two must never contradict each other — a finding
+ * claiming a viewport coverage says was not reviewed (the mobile-only run that
+ * still emitted "desktop" findings) is exactly the hole the grounding gate now
+ * closes. This pins the invariant across EVERY JSON fixture in the repo that
+ * carries both findings and coverage, so no fixture — golden, example, or one
+ * added later — can encode a finding outside its own coverage.
+ */
+describe("W1-03: every finding sits inside its result's own coverage", () => {
+  const repoRoot = fileURLToPath(new URL("../../..", import.meta.url));
+
+  const jsonFilesUnder = (dir: string): string[] => {
+    const out: string[] = [];
+    let entries: string[];
+    try {
+      entries = readdirSync(dir);
+    } catch {
+      return out;
+    }
+    for (const entry of entries) {
+      if (entry === "node_modules" || entry === "dist" || entry === ".git") continue;
+      const full = join(dir, entry);
+      if (statSync(full).isDirectory()) out.push(...jsonFilesUnder(full));
+      else if (entry.endsWith(".json")) out.push(full);
+    }
+    return out;
+  };
+
+  type CoveredResult = {
+    findings: Array<{ route?: unknown; viewport?: unknown }>;
+    coverage: { routesReviewed: string[]; viewportsReviewed: string[] };
+  };
+
+  const hasCoverageAndFindings = (value: unknown): value is CoveredResult => {
+    if (typeof value !== "object" || value === null) return false;
+    const v = value as Record<string, unknown>;
+    const coverage = v.coverage as Record<string, unknown> | undefined;
+    return (
+      Array.isArray(v.findings) &&
+      typeof coverage === "object" &&
+      coverage !== null &&
+      Array.isArray(coverage.routesReviewed) &&
+      Array.isArray(coverage.viewportsReviewed)
+    );
+  };
+
+  const fixtures = jsonFilesUnder(join(repoRoot, "packages"))
+    .flatMap((path) => {
+      let parsed: unknown;
+      try {
+        parsed = JSON.parse(readFileSync(path, "utf8"));
+      } catch {
+        return [];
+      }
+      return hasCoverageAndFindings(parsed) ? [{ path, result: parsed }] : [];
+    });
+
+  it("finds at least one wire-result fixture carrying coverage (so the invariant is actually exercised)", () => {
+    expect(fixtures.length).toBeGreaterThan(0);
+  });
+
+  it.each(fixtures.map((f) => [f.path.slice(repoRoot.length + 1), f.result] as const))(
+    "%s: ∀f  f.route ∈ routesReviewed ∧ f.viewport ∈ viewportsReviewed",
+    (_name, result) => {
+      const routes = new Set(result.coverage.routesReviewed);
+      const viewports = new Set(result.coverage.viewportsReviewed);
+      for (const finding of result.findings) {
+        expect(routes.has(finding.route as string)).toBe(true);
+        expect(viewports.has(finding.viewport as string)).toBe(true);
+      }
+    },
+  );
 });

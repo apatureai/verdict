@@ -22,7 +22,8 @@
 
 Give it a URL and one command measures the rendered page with a real headless Chromium — WCAG
 contrast, overflow, touch-target sizes — with no API key; add a vision model and it critiques the
-screenshots too, then deletes every finding it cannot point at. The measure half needs nothing but
+screenshots too, then deletes every finding it cannot point at and holds the ones it can only point
+at loosely — real, but not tied to an element — out of the grade. The measure half needs nothing but
 Node and a browser; the critique half is any OpenAI-compatible endpoint that accepts images. Around
 that call the repository ships the parts usually skipped: calibration so numeric confidence is earned
 rather than verbalized, agreement metrics against human raters, a release-gate CLI, and a Rust crate

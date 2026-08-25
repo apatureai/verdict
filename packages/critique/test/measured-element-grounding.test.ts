@@ -122,7 +122,7 @@ describe("findings about measured elements survive the grounding gate (#32)", ()
     expect(selectors).toContain("#plan-blurb");
 
     const result = hallucinationGate([finding()], {
-      capturedRoutes: [ROUTE],
+      capturedShots: [{ route: ROUTE, viewport: VIEWPORT }],
       geometrySelectors: selectors,
     });
     expect(result.findings.map((f) => f.elementRef)).toEqual(["#plan-blurb"]);
@@ -135,7 +135,7 @@ describe("findings about measured elements survive the grounding gate (#32)", ()
 
     const result = hallucinationGate(
       [finding(), finding({ elementRef: "#pricing-table" })],
-      { capturedRoutes: [ROUTE], geometrySelectors: selectors },
+      { capturedShots: [{ route: ROUTE, viewport: VIEWPORT }], geometrySelectors: selectors },
     );
     // The measured element survives; the invented one does not.
     expect(result.findings.map((f) => f.elementRef)).toEqual(["#plan-blurb"]);
@@ -145,7 +145,7 @@ describe("findings about measured elements survive the grounding gate (#32)", ()
   it("still deletes a finding citing an uncaptured route, measured element or not", () => {
     const { selectors } = capturePage(PAGE);
     const result = hallucinationGate([finding({ route: "/checkout" })], {
-      capturedRoutes: [ROUTE],
+      capturedShots: [{ route: ROUTE, viewport: VIEWPORT }],
       geometrySelectors: selectors,
     });
     expect(result.findings).toHaveLength(0);
@@ -183,7 +183,7 @@ describe("findings about measured elements survive the grounding gate (#32)", ()
     expect(selectors).not.toContain("#footnote");
 
     const result = hallucinationGate([finding({ elementRef: "#footnote" })], {
-      capturedRoutes: [ROUTE],
+      capturedShots: [{ route: ROUTE, viewport: VIEWPORT }],
       geometrySelectors: selectors,
     });
     expect(result.findings).toHaveLength(0);

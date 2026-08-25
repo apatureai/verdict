@@ -7,6 +7,7 @@ import type {
 import { ENGINE_VERSION, PROMPT_VERSION, RUBRIC_VERSION } from "./critique.js";
 import type { DeepPassRouteResult } from "./deep-pass.js";
 import { worstGrade } from "./grade.js";
+import type { CapturedShot } from "./hallucination-gate.js";
 import { reconcileNarrative } from "./narrative.js";
 import { buildResultMetadata } from "./version-stamp.js";
 import { runValidationTail } from "./validation-tail.js";
@@ -15,7 +16,7 @@ import { runValidationTail } from "./validation-tail.js";
  * Assemble per-route deep-pass outputs (#29) into ONE final `Critique`. The deep
  * pass runs once per route and returns a `CritiqueOutput | null` per route; but
  * the validation tail must run ONCE, GLOBALLY over the merged findings:
- *   - hallucination gate (#32) against ALL captured routes + geometry,
+ *   - hallucination gate (#32) against the reviewed `(route, viewport)` shots + geometry,
  *   - confidence ceiling (#70) when the capture was unstable,
  *   - post-filter (#33): confidence floor + dedupe across viewports + the
  *     global cap (1 blocker + 6), which is meaningless per-route,
@@ -28,8 +29,8 @@ import { runValidationTail } from "./validation-tail.js";
  * no findings and is recorded in `notReviewed`.
  */
 export interface AssembleCritiqueDeps {
-  /** Every captured route; the hallucination gate drops findings on uncaptured routes (#32). */
-  capturedRoutes: string[];
+  /** Every reviewed `(route, viewport)` shot; the hallucination gate drops findings off these (#32). */
+  capturedShots: CapturedShot[];
   /** Valid elementRef selectors from the geometry map (#18) for the element_ref drop (#32). */
   geometrySelectors?: Iterable<string>;
   /** Confidence ceiling when the capture was visually unstable (#15/#70). */
@@ -62,7 +63,7 @@ export function assembleCritique(routes: DeepPassRouteResult[], deps: AssembleCr
   const tail = runValidationTail({
     findings: merged,
     modelGrade: worstGrade(valid.map((r) => r.output.grade)),
-    capturedRoutes: deps.capturedRoutes,
+    capturedShots: deps.capturedShots,
     geometrySelectors: deps.geometrySelectors,
     captureUnstable: deps.captureUnstable === true,
     calibration: deps.calibration,
@@ -84,6 +85,7 @@ export function assembleCritique(routes: DeepPassRouteResult[], deps: AssembleCr
     modelFindingsSeen: merged.length,
     survivingFindings: findings.length,
     hallucinationDrops: tail.hallucinationDrops,
+    ungroundedFindings: tail.ungroundedFindings,
   });
 
   const notReviewed = dedupeStrings([

@@ -274,17 +274,20 @@ describe("what the deployable composition publishes", () => {
     expect(expires).toBeLessThanOrEqual(Date.now() + 120_000);
   });
 
-  it("leaves a finding with no captured shot pointing at nothing rather than at the wrong shot", async () => {
+  it("drops a finding that claims a viewport the run never captured (W1-03), rather than publishing it with a null shot", async () => {
     // The capture covers desktop only; the model reports the finding on mobile.
-    // There is no annotated screenshot of that, and the neighbouring desktop
-    // shot is a picture of something else.
+    // That finding points at a `(route, viewport)` shot that does not exist, so
+    // the grounding gate must delete it and count the drop — never publish a
+    // model-backed finding with `screenshotId: null` (which would also contradict
+    // the run's own coverage). A neighbouring desktop shot is a picture of
+    // something else, so pointing there would be worse still.
     const { payload } = await serveJob({
       capture: capturedHome(),
       modelFactory: judgingModelFactory("mobile"),
     });
     const result = payload.result as EngineReviewResult;
-    expect(result.findings).toHaveLength(1);
-    expect(result.findings[0]?.screenshotId).toBeNull();
+    expect(result.findings).toHaveLength(0);
+    expect(result.hallucinationDrops).toBe(1);
     expect(result.artifacts.annotatedScreenshots).toEqual([]);
   });
 

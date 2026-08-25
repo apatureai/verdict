@@ -59,6 +59,14 @@ export interface NarrativeReconciliationInput {
    * budget did not trust enough to publish.
    */
   hallucinationDrops: number;
+  /**
+   * How many of the SURVIVING findings are ungrounded (W1-03): a real shot but no
+   * element to point at, so they are ranked last and held out of the grade. They
+   * are not deleted and so are not part of `modelFindingsSeen - survivingFindings`;
+   * this count is disclosed on its own so a reader is told the grade was formed
+   * without them. Defaults to 0.
+   */
+  ungroundedFindings?: number;
 }
 
 export interface ReconciledNarrative {
@@ -90,6 +98,24 @@ function deletionClause(hallucinationDrops: number, filtered: number): string {
   return parts.join(", ");
 }
 
+/** "1 finding could not be tied to a specific element, so it is listed last…". */
+function ungroundedDisclosure(count: number): string {
+  const noun = count === 1 ? "finding" : "findings";
+  const pronoun = count === 1 ? "it is" : "they are";
+  return (
+    `${count} ${noun} in this result could not be tied to a specific element; ` +
+    `${pronoun} listed last and excluded from the grade.`
+  );
+}
+
+/** Append the ungrounded disclosure to a reconciled narrative's `overall` when there is one. */
+function withUngroundedDisclosure(narrative: ReconciledNarrative, ungrounded: number): ReconciledNarrative {
+  if (ungrounded <= 0) return narrative;
+  const disclosure = ungroundedDisclosure(ungrounded);
+  const overall = narrative.overall.trim().length === 0 ? disclosure : `${narrative.overall} ${disclosure}`;
+  return { ...narrative, overall };
+}
+
 /**
  * Settle `overall` against what survived validation. See the module comment for
  * why each case is what it is.
@@ -98,7 +124,11 @@ export function reconcileNarrative(input: NarrativeReconciliationInput): Reconci
   const seen = Math.max(0, input.modelFindingsSeen);
   const surviving = Math.max(0, input.survivingFindings);
   const deleted = Math.max(0, seen - surviving);
-  if (seen === 0 || deleted === 0) return { overall: input.overall };
+  const ungrounded = Math.max(0, input.ungroundedFindings ?? 0);
+
+  if (seen === 0 || deleted === 0) {
+    return withUngroundedDisclosure({ overall: input.overall }, ungrounded);
+  }
 
   const drops = Math.max(0, Math.min(input.hallucinationDrops, deleted));
   const clause = deletionClause(drops, deleted - drops);
@@ -123,5 +153,8 @@ export function reconcileNarrative(input: NarrativeReconciliationInput): Reconci
     `Caveat: ${deleted} of the ${seen} finding(s) the model reported were deleted before ` +
     `publication (${clause}). The summary that follows was written before that, so part of it ` +
     `may describe findings that are not in this result.`;
-  return { overall: narrative.length === 0 ? caveat : `${caveat} ${input.overall}` };
+  return withUngroundedDisclosure(
+    { overall: narrative.length === 0 ? caveat : `${caveat} ${input.overall}` },
+    ungrounded,
+  );
 }
