@@ -97,19 +97,26 @@ function clampConfidence(value: number): number {
  *      parenthesised group preceded by WHITESPACE — is stripped. The whitespace is
  *      load-bearing: it distinguishes the role suffix ` (link)` from a structural
  *      pseudo-class like `:nth-of-type(1)`, whose paren is NOT preceded by a space
- *      and is part of the selector.
+ *      and is part of the selector. The parenthesised text must ALSO be a plausible
+ *      ROLE TOKEN — a single word (`button`, `link`, `navigation`), not a phrase
+ *      (G3b). An UNCONDITIONAL strip of any space-preceded trailing parenthesis let
+ *      `#upgrade (which is really the nav bar)` normalise to `#upgrade` and be
+ *      admitted as if the model had cited the real element; a role is never a
+ *      multi-word phrase, so restricting the strip to a single `[A-Za-z][\w-]*`
+ *      token keeps the real-artefact repair while refusing the smuggle.
  *   2. A COMMA-JOINED multi-selector citation. The model emitted
  *      `a:nth-of-type(1) (link), a:nth-of-type(2) (link)` for one finding. CSS
  *      selectors in the geometry map are single-element paths and never contain a
  *      comma, so a comma is always the model joining two refs; the citation is
  *      SPLIT into its parts, and the caller reports each part as its own finding
- *      (or drops the parts that do not resolve). Splitting rather than rejecting
- *      preserves an honest, correctly-grounded finding.
+ *      (or drops the parts that do not resolve — each unresolved part counting as a
+ *      hallucination, G3a). Splitting rather than rejecting preserves an honest,
+ *      correctly-grounded finding.
  */
 export function normalizeCitation(ref: string): string[] {
   const parts = ref.includes(",") ? ref.split(",") : [ref];
   return parts
-    .map((p) => p.trim().replace(/\s+\([^)]*\)\s*$/, "").trim())
+    .map((p) => p.trim().replace(/\s+\([A-Za-z][\w-]*\)\s*$/, "").trim())
     .filter((p) => p.length > 0);
 }
 
@@ -120,6 +127,44 @@ export function normalizeCitation(ref: string): string[] {
  */
 function shotKey(route: string, viewport: Viewport): string {
   return JSON.stringify([route, viewport]);
+}
+
+/** The outcome of resolving one normalised citation part against the geometry map. */
+type SelectorResolution =
+  | { ok: true; selector: string }
+  | { ok: false; reason: "no_match" | "ambiguous_suffix" };
+
+/**
+ * Resolve one normalised citation part to a citable selector, matched EXACTLY or by
+ * an UNAMBIGUOUS suffix (G3), never by fuzzy similarity:
+ *
+ *   1. an exact map key wins outright;
+ *   2. otherwise, a UNIQUE key ending in `> <part>` (the selector combinator the
+ *      geometry map renders) is accepted — the model wrote `h1` where the map key
+ *      is `body > main > h1`, a correct, unambiguous reference the old exact-only
+ *      match deleted;
+ *   3. if TWO OR MORE keys share that suffix (`a` when both `nav > a` and
+ *      `footer > a` exist), the reference is genuinely ambiguous and is REJECTED
+ *      with `ambiguous_suffix` — the gate is not loosened, an ambiguous or
+ *      fabricated ref still dies.
+ *
+ * A fabricated ref that matches nothing exactly and has no suffix match returns
+ * `no_match`, exactly as before.
+ */
+function resolveSelector(part: string, selectors: Set<string>): SelectorResolution {
+  if (selectors.has(part)) return { ok: true, selector: part };
+  const suffix = ` > ${part}`;
+  let match: string | null = null;
+  let count = 0;
+  for (const key of selectors) {
+    if (key.endsWith(suffix)) {
+      match = key;
+      count += 1;
+      if (count > 1) break;
+    }
+  }
+  if (count === 1 && match !== null) return { ok: true, selector: match };
+  return { ok: false, reason: count > 1 ? "ambiguous_suffix" : "no_match" };
 }
 
 export function hallucinationGate(
@@ -155,16 +200,25 @@ export function hallucinationGate(
     }
     // (3) the element half: the cited selector(s) must exist in the geometry map.
     // A known-artefact citation (trailing role, or a comma-joined pair) is
-    // normalised to the selector(s) it means and each is matched EXACTLY. A
-    // multi-selector citation SPLITS into one finding per resolved selector, each
-    // pinned to its normalised selector so downstream (duplicate-fact gate, wire)
-    // sees a real selector, never `#upgrade (button)`.
-    const matched = normalizeCitation(finding.elementRef).filter((s) => selectors.has(s));
-    if (matched.length === 0) {
-      hallucinationDrops++;
-      continue;
+    // normalised to the selector(s) it means and each is resolved EXACTLY or by an
+    // UNAMBIGUOUS suffix. A multi-selector citation SPLITS into one finding per
+    // resolved selector, each pinned to its normalised selector so downstream
+    // (duplicate-fact gate, wire) sees a real selector, never `#upgrade (button)`.
+    //
+    // EVERY normalised part that does NOT resolve is counted as a hallucination
+    // drop (G3a): the historic filter published a comma pair's real half while its
+    // fabricated half (`#upgrade, #ghost`) vanished WITHOUT incrementing the
+    // counter, under-reporting the very number the product's credibility rests on.
+    // A single-ref finding that fails still counts exactly once, unchanged.
+    const parts = normalizeCitation(finding.elementRef);
+    const resolved = new Set<string>();
+    for (const part of parts) {
+      const r = resolveSelector(part, selectors);
+      if (r.ok) resolved.add(r.selector);
+      else hallucinationDrops++;
     }
-    for (const selector of matched) kept.push({ ...clamped, elementRef: selector });
+    if (resolved.size === 0) continue;
+    for (const selector of resolved) kept.push({ ...clamped, elementRef: selector });
   }
 
   return { findings: kept, ungrounded, hallucinationDrops };

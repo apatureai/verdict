@@ -100,4 +100,45 @@ describe("postFilter (#33)", () => {
     expect(withheld.total).toBeGreaterThan(0);
     expect(withheld.byDimension.find((d) => d.dimension === "spacing")?.count).toBeGreaterThan(0);
   });
+
+  it("does NOT collide two null-elementRef findings on DIFFERENT subjects in one dimension (G1)", () => {
+    // The live-run silent deletion: two honest ungrounded typography findings on
+    // DIFFERENT subjects (Georgia nav links; the SF Mono ref-line, independently
+    // verified TRUE) both carried `elementRef: null` and dimension `typography`.
+    // The old key `${dimension}|${elementRef ?? ""}` collapsed both to `typography|`
+    // and SILENTLY deleted one, before withheld findings were even computed, so
+    // nothing disclosed it. Distinct subjects must never collide.
+    const georgia = finding({
+      dimension: "typography",
+      elementRef: null,
+      title: "Forbidden font family in header links",
+      description: "Header navigation links use Georgia (serif), which is forbidden.",
+    });
+    const sfMono = finding({
+      dimension: "typography",
+      elementRef: null,
+      title: "Forbidden font family in webhook endpoint ID",
+      description: "The webhook endpoint ID uses SF Mono (monospace), which is forbidden.",
+    });
+    const { findings: kept, withheld, mergedDuplicates } = postFilter([georgia, sfMono]);
+    // Both survive: neither is silently deleted.
+    expect(kept).toHaveLength(2);
+    expect(new Set(kept.map((f) => f.title))).toEqual(
+      new Set(["Forbidden font family in header links", "Forbidden font family in webhook endpoint ID"]),
+    );
+    expect(withheld.total).toBe(0);
+    expect(mergedDuplicates).toBe(0);
+  });
+
+  it("still collapses the SAME null-ref issue seen across viewports, and COUNTS the merge (G1 conservation)", () => {
+    // Genuine cross-viewport duplicate: identical subject, null ref, two viewports.
+    // This is a legitimate merge (one issue), and it is counted, not silent.
+    const mobile = finding({ dimension: "typography", elementRef: null, viewport: "mobile", title: "Serif in header", description: "Georgia in the header." });
+    const desktop = finding({ dimension: "typography", elementRef: null, viewport: "desktop", title: "Serif in header", description: "Georgia in the header." });
+    const { findings: kept, withheld, mergedDuplicates } = postFilter([mobile, desktop]);
+    expect(kept).toHaveLength(1);
+    // Conservation: every finding that entered is published, disclosed, or a counted merge.
+    expect(kept.length + withheld.total + mergedDuplicates).toBe(2);
+    expect(mergedDuplicates).toBe(1);
+  });
 });

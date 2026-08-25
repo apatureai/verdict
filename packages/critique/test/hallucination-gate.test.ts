@@ -136,9 +136,59 @@ describe("hallucinationGate (#32)", () => {
       expect(r.hallucinationDrops).toBe(1);
     });
 
-    it("keeps only the parts of a multi-cite that resolve; the rest are dropped", () => {
+    it("keeps only the parts of a multi-cite that resolve, and COUNTS the fabricated half (G3a)", () => {
+      // `#upgrade` resolves and is published; `#ghost` is fabricated. The published
+      // half must not mask the fabricated one: the drop counter — the number the
+      // product's credibility rests on — has to increment for `#ghost`.
       const r = gate("#upgrade (button), #ghost (link)");
       expect(r.findings.map((f) => f.elementRef)).toEqual(["#upgrade"]);
+      expect(r.hallucinationDrops).toBe(1);
+    });
+  });
+
+  // G3 — the citation normaliser is one artefact behind the model. This run the
+  // model wrote `h1` where the map key is `body > main > h1`: a correct, unambiguous
+  // reference the exact-only match deleted. Resolve an UNAMBIGUOUS suffix; reject an
+  // ambiguous one with a specific reason; keep the gate un-loosened for fabrications.
+  describe("G3 — unambiguous suffix resolution + honest drop counting", () => {
+    it("resolves an unambiguous suffix: `h1` → the sole `... > h1` map key", () => {
+      const r = hallucinationGate([finding({ elementRef: "h1" })], {
+        capturedShots: [shot("/pricing", "desktop")],
+        geometrySelectors: ["body > main > h1", "body > header", "#upgrade"],
+      });
+      expect(r.findings.map((f) => f.elementRef)).toEqual(["body > main > h1"]);
+      expect(r.hallucinationDrops).toBe(0);
+    });
+
+    it("REJECTS an ambiguous suffix: `a` when both `nav > a` and `footer > a` exist", () => {
+      const r = hallucinationGate([finding({ elementRef: "a" })], {
+        capturedShots: [shot("/pricing", "desktop")],
+        geometrySelectors: ["body > header > nav > a", "body > footer > a"],
+      });
+      expect(r.findings).toEqual([]);
+      expect(r.hallucinationDrops).toBe(1);
+    });
+
+    it("a fabricated ref still dies even with suffix matching on (no fuzzy match)", () => {
+      const r = hallucinationGate([finding({ elementRef: "h7" })], {
+        capturedShots: [shot("/pricing", "desktop")],
+        geometrySelectors: ["body > main > h1", "#upgrade"],
+      });
+      expect(r.findings).toEqual([]);
+      expect(r.hallucinationDrops).toBe(1);
+    });
+
+    it("does NOT strip a multi-word parenthetical phrase as if it were a role (G3b)", () => {
+      // A role is a single token. An UNCONDITIONAL trailing-paren strip let
+      // `#upgrade (which is really the nav bar)` normalise to `#upgrade` and be
+      // admitted as if the model had cited the real element. The phrase is not a
+      // role token, so it is NOT stripped, matches nothing, and is dropped + counted.
+      const r = hallucinationGate([finding({ elementRef: "#upgrade (which is really the nav bar)" })], {
+        capturedShots: [shot("/pricing", "desktop")],
+        geometrySelectors: ["#upgrade", "body > header > nav"],
+      });
+      expect(r.findings).toEqual([]);
+      expect(r.hallucinationDrops).toBe(1);
     });
   });
 
