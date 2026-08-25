@@ -17,7 +17,8 @@
 
 </div>
 
-<img src="docs/assets/hero.png" alt="Terminal transcript of the verdict demo: target and capture summary, 13 measured contrast/overflow/touch-target facts over 5 elements, the grounding gate parsing 5 replayed findings and dropping 2, then a review with no grade because no model saw the page." width="760">
+<img src="docs/assets/demo.svg" alt="Terminal transcript of the verdict demo: target and capture summary, 13 measured contrast/overflow/touch-target facts over 5 elements, the grounding gate parsing 5 replayed findings and dropping 2, then a review with no grade because no model saw the page." width="760">
+<p align="center"><sub><a href="docs/assets/hero.png">static version</a></sub></p>
 
 Give it a URL and one command measures the rendered page with a real headless Chromium — WCAG
 contrast, overflow, touch-target sizes — with no API key; add a vision model and it critiques the
