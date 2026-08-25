@@ -15,6 +15,41 @@ release is tagged, move these under its version heading and bump `version` in
 every `package.json` to match (the `release.yml` workflow refuses to publish a
 tag that does not match `package.json`).
 
+### Fixed
+
+- **The post-filter no longer silently deletes distinct ungrounded findings.**
+  Every finding with `elementRef: null` in one dimension collided on the dedupe
+  key `dimension|`, so two honest, differently-subjected findings collapsed to one
+  and the loser was dropped *before* withheld findings were computed — undisclosed.
+  Null-ref findings now key on their subject, and the filter reports
+  `mergedDuplicates` so any cross-viewport merge is counted, never silent.
+- **A mislabelled dimension can no longer destroy a novel finding.** The
+  duplicate-of-measurement gate applied a dimension's prior claim class even when
+  the finding's text carried no marker for it, so a token-mismatch the model
+  mislabelled `color_contrast` was matched against a same-element contrast
+  measurement and hard-dropped. The prior now fires only when a lexical marker of
+  its class is present; the page-overflow demotion stays dimension-keyed for eval
+  parity.
+- **Citation grounding resolves an unambiguous suffix and counts every drop.** A
+  correct reference like `h1` (map key `body > main > h1`) is now accepted when
+  exactly one selector matches; two or more are rejected. A comma-cite's fabricated
+  half is counted as a hallucination instead of vanishing while its real half
+  publishes, and the trailing-role strip is restricted to a single role token so a
+  multi-word parenthetical can no longer smuggle a real element ref past the gate.
+
+### Changed
+
+- **The invariant prompt prefix is now cacheable.** The frozen system prompt, repo
+  context, trusted design-system rules, build facts, and repo memory are assembled
+  strictly first with no per-call interpolation, so a prefix-caching backend reuses
+  the prefill across a run's shots instead of re-running it every call. Per-shot
+  geometry and the untrusted page text stay in the user turn.
+- **Screenshots are downscaled to the per-call pixel budget before upload.** The
+  local path base64-inlined a full-resolution PNG for both passes; a dependency-free
+  PNG resampler now fits each tile to its tier (triage ~1.0MP, deep ~3.1MP), and
+  triage carries its own budget rather than the deep one. The captured file is
+  untouched, so annotations still render at full resolution.
+
 ## [0.1.4] — 2026-08-24
 
 **First npm-published release**: `@apatureai/verdict-types`,
