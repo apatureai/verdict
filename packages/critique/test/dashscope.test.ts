@@ -96,12 +96,54 @@ describe("DashScopeModelClient (#27)", () => {
       responseFormat: "json_schema",
       jsonSchema: { type: "object", required: ["grade"] },
     });
-    // Unlike json_object, json_schema is NOT gated on !thinking.
-    expect(seen?.enable_thinking).toBe(true);
+    // Unlike json_object, json_schema is NOT gated on !thinking, so it is set.
     expect(seen?.response_format).toEqual({
       type: "json_schema",
       json_schema: { name: "critique", schema: { type: "object", required: ["grade"] }, strict: true },
     });
+    // But `enable_thinking` is a DashScope-only extra: the self-host (vLLM)
+    // capability profile must NOT send it. Sending it to an endpoint that ignores
+    // it is the exact bug that discarded a full pass in the field.
+    expect(seen?.enable_thinking).toBeUndefined();
+  });
+
+  it("sends the DashScope-only extras (enable_thinking/max_pixels) only to dashscope", async () => {
+    const capture = async (backend: "dashscope" | "self-host" | "ollama") => {
+      let seen: ChatCreateParams | undefined;
+      const create = async (params: ChatCreateParams) => {
+        seen = params;
+        return fakeStream([{ choices: [{ delta: { content: "{}" }, finish_reason: "stop" }] }]);
+      };
+      const client = new DashScopeModelClient(create, {}, backend);
+      await client.complete({ ...deepRequest, thinking: true, maxPixels: 1_000_000, responseFormat: "text" });
+      return seen;
+    };
+
+    const dash = await capture("dashscope");
+    expect(dash?.enable_thinking).toBe(true);
+    expect(dash?.max_pixels).toBe(1_000_000);
+
+    // `enable_thinking` is DashScope-only and goes nowhere else.
+    const selfHost = await capture("self-host");
+    expect(selfHost?.enable_thinking).toBeUndefined();
+    // vLLM self-host DOES accept the Qwen `max_pixels` extra.
+    expect(selfHost?.max_pixels).toBe(1_000_000);
+
+    // ollama accepts neither DashScope-only extra.
+    const ollama = await capture("ollama");
+    expect(ollama?.enable_thinking).toBeUndefined();
+    expect(ollama?.max_pixels).toBeUndefined();
+  });
+
+  it("accepts reasoning from either delta field (reasoning_content or reasoning)", async () => {
+    const create = async () =>
+      fakeStream([
+        { choices: [{ delta: { reasoning: "off-dashscope reasoning" } }] },
+        { choices: [{ delta: { content: "{}" }, finish_reason: "stop" }] },
+      ]);
+    const client = new DashScopeModelClient(create, {}, "ollama");
+    const res = await client.complete({ ...deepRequest, thinking: true, responseFormat: "text" });
+    expect(res.thinkingText).toBe("off-dashscope reasoning");
   });
 
   it("threads the AbortSignal into the stream call", async () => {

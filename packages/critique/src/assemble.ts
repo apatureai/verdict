@@ -53,6 +53,12 @@ export function assembleCritique(routes: DeepPassRouteResult[], deps: AssembleCr
 
   const merged: Finding[] = valid.flatMap((r) => r.output.findings as Finding[]);
 
+  // Findings recovered via salvage (step-1 output published after coercion failed).
+  // The explicit provenance marker so a recovered pass is never silent (#29/#31).
+  const salvagedFindings = valid
+    .filter((r) => r.salvaged === true)
+    .reduce((sum, r) => sum + r.output.findings.length, 0);
+
   const engineVersion = deps.engineVersion ?? ENGINE_VERSION;
   const promptVersion = deps.promptVersion ?? PROMPT_VERSION;
 
@@ -109,6 +115,7 @@ export function assembleCritique(routes: DeepPassRouteResult[], deps: AssembleCr
       // narrative reconciliation above is given, so the prose and the wire
       // verdict cannot disagree about whether this run deleted everything.
       modelFindingsSeen: merged.length,
+      ...(salvagedFindings > 0 ? { salvagedFindings } : {}),
     },
     metadata: buildResultMetadata({
       engineVersion,

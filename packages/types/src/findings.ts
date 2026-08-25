@@ -156,6 +156,18 @@ export interface ValidationMetadata {
    * `gradeUnavailableReason`, not the raw count.
    */
   modelFindingsSeen: number;
+  /**
+   * How many findings entered the tail via SALVAGE — recovered from the deep
+   * pass's step-1 output after its structured coercion (and the one bounded
+   * repair) failed, rather than discarded (#29/#31).
+   *
+   * Additive + optional. Absent (or `0`) means every published finding came from
+   * a clean structured coercion; a non-zero value is the explicit, machine-
+   * readable provenance marker that some findings were recovered and carry a
+   * conservative, non-fabricated confidence. It is a count of what ENTERED the
+   * tail from salvage, on the same footing as `modelFindingsSeen`.
+   */
+  salvagedFindings?: number;
 }
 
 /**
