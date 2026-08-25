@@ -147,7 +147,7 @@ missing makes the review less grounded, not broken. Without a live endpoint the 
 and no findings — every canned finding cites an element your page does not have and the gate drops
 all of them — but the measurements, screenshots and geometry map are genuinely about your page. A
 full offline transcript against a two-element page is in
-[`docs/demo-walkthrough.md`](docs/demo-walkthrough.md).
+[`docs/demo-walkthrough.md`](docs/demo-walkthrough.md#reviewing-your-own-site-offline).
 
 ### Using it as a library
 

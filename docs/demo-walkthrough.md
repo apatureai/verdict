@@ -219,3 +219,49 @@ critique with no network call, useful for exercising the pipeline's shape in you
   grounding rules, and the instruction-hierarchy defense. The demo repo ships a `.designreview.yml`
   brand block and a `package.json` with Radix, so the brand dimension is scored and the
   component-library addenda appear, both derived from the repository rather than hardcoded.
+
+### Reviewing your own site, offline
+
+Point it at anything you can reach and give it the directory holding that project's design system:
+
+```sh
+node packages/cli/dist/main.js \
+  --url http://127.0.0.1:3000 \
+  --routes /,/pricing \
+  --context-dir ./my-app \
+  --out ./out
+```
+
+`--context-dir` is read for `tokens.json` (W3C or Style Dictionary shape), `.designreview.yml` (the
+`brand:` block) and `package.json` (component-library detection). All three are optional; each one
+missing makes the review less grounded, not broken.
+
+Without a live endpoint this run prints no grade and no findings, because every canned finding cites
+an element your page does not have and the gate drops all of them. Against a two-element page of my
+own, with no `MODEL_API_KEY` set:
+
+```console
+Measured facts  (computed from the captured DOM, no model involved)
+  2 measurement(s) (contrast 1, touch_target 1) over 2 distinct element(s)
+
+   1. [contrast] / #note (mobile)
+      text contrast 2.52:1 is below WCAG AA 4.5:1
+   2. [touch_target] / #close (mobile)
+      touch target 20x20px is below the 24x24px minimum in WCAG 2.2 SC 2.5.8 Target Size (Minimum), level AA
+
+Grounding gate
+  3 replayed finding(s) parsed, 3 dropped for citing a route or element that was never captured
+
+Review
+  grade       n/a (canned client, no model saw this page)
+  findings    n/a (no model ran; see the measured facts above)
+  confidence  n/a (no model ran)
+  blocking    advisory only
+
+  The canned client produced no critique text. Nothing above judged this page;
+  the measured facts are this run's only real output.
+```
+
+Those two measurements are genuinely about your page, and so are the screenshots,
+`out/deterministic-facts.txt`, `out/geometry.json`, and `out/system-prompt.txt` built from your
+`--context-dir`. Nothing else in that run is. For an actual critique, configure a model.
