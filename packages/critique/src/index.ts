@@ -9,6 +9,14 @@ export type {
   ModelCallOptions,
 } from "./model.js";
 export { DashScopeModelClient, createOpenAICompatibleCreate } from "./dashscope.js";
+export {
+  endpointProfile,
+  backendUsesGuidedDecoding,
+  CONSERVATIVE_PROFILE,
+} from "./endpoint-profile.js";
+export type { EndpointProfile } from "./endpoint-profile.js";
+export { salvageCritique, extractJsonValues, SALVAGE_CONFIDENCE } from "./salvage.js";
+export type { SalvageContext, SalvageResult } from "./salvage.js";
 export type {
   ChatChunk,
   ChatCreateParams,
@@ -94,6 +102,7 @@ export {
   renderGeometry,
   MAX_BUILD_FACTS,
   MAX_GEOMETRY_ENTRIES,
+  REPAIR_MAX_TOKENS,
 } from "./deep-pass.js";
 export type { DeepPassRoute, DeepPassDeps, DeepPassRouteResult } from "./deep-pass.js";
 export { assembleCritique } from "./assemble.js";

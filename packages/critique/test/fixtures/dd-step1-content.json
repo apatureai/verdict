@@ -1,0 +1,65 @@
+{
+  "findings": [
+    {
+      "title": "Header navigation links have insufficient contrast",
+      "description": "The 'Docs' link (element 'body > header > nav > a:nth-of-type(1)') has text contrast 2.10:1, below WCAG AA 4.5:1. This element is visible in the desktop screenshot as the first navigation link.",
+      "element_ref": "body > header > nav > a:nth-of-type(1)"
+    },
+    {
+      "title": "Header navigation links have insufficient contrast",
+      "description": "The 'Status' link (element 'body > header > nav > a:nth-of-type(2)') has text contrast 2.10:1, below WCAG AA 4.5:1. This element is visible in the desktop screenshot as the second navigation link.",
+      "element_ref": "body > header > nav > a:nth-of-type(2)"
+    },
+    {
+      "title": "Bell icon has insufficient contrast",
+      "description": "The bell icon (element '#bell') has text contrast 2.10:1, below WCAG AA 4.5:1. This element is visible in the desktop screenshot as the notification icon in the header.",
+      "element_ref": "#bell"
+    },
+    {
+      "title": "Gear icon has insufficient contrast",
+      "description": "The gear icon (element '#gear') has text contrast 2.10:1, below WCAG AA 4.5:1. This element is visible in the desktop screenshot as the settings icon in the header.",
+      "element_ref": "#gear"
+    },
+    {
+      "title": "First paragraph has insufficient contrast",
+      "description": "The 'Manage your plan and invoices.' text (element 'body > main > p:nth-of-type(1)') has text contrast 2.38:1, below WCAG AA 4.5:1. This element is visible in the desktop screenshot as the introductory paragraph.",
+      "element_ref": "body > main > p:nth-of-type(1)"
+    },
+    {
+      "title": "Section paragraph has insufficient contrast",
+      "description": "The paragraph under the 'Billing' heading (element 'body > main > section:nth-of-type(1) > p') has text contrast 2.10:1, below WCAG AA 4.5:1. This element is visible in the desktop screenshot as the descriptive text in section 1.",
+      "element_ref": "body > main > section:nth-of-type(1) > p"
+    },
+    {
+      "title": "Upgrade button has insufficient contrast",
+      "description": "The 'Upgrade' button (element '#upgrade') has text contrast 2.39:1, below WCAG AA 4.5:1. This element is visible in the desktop screenshot as the primary action button.",
+      "element_ref": "#upgrade"
+    },
+    {
+      "title": "Section link has insufficient contrast",
+      "description": "The 'Upgrade' link in section 1 (element 'body > main > section:nth-of-type(1) > a') has text contrast 1.90:1, below WCAG AA 4.5:1. This element is visible in the desktop screenshot as the link within section 1.",
+      "element_ref": "body > main > section:nth-of-type(1) > a"
+    },
+    {
+      "title": "Section paragraph has insufficient contrast",
+      "description": "The first paragraph in section 3 (element 'body > main > section:nth-of-type(3) > p:nth-of-type(1)') has text contrast 2.10:1, below WCAG AA 4.5:1. This element is visible in the desktop screenshot as the 'Payment method' heading.",
+      "element_ref": "body > main > section:nth-of-type(3) > p:nth-of-type(1)"
+    },
+    {
+      "title": "Section paragraph has insufficient contrast",
+      "description": "The description text under 'Payment method' (element 'body > main > section:nth-of-type(3) > p:nth-of-type(2)') has text contrast 2.38:1, below WCAG AA 4.5:1. This element is visible in the desktop screenshot as the detailed payment description.",
+      "element_ref": "body > main > section:nth-of-type(3) > p:nth-of-type(2)"
+    },
+    {
+      "title": "Second paragraph has insufficient contrast",
+      "description": "The secondary paragraph (element 'body > main > p:nth-of-type(2)') has text contrast 1.90:1, below WCAG AA 4.5:1. This element is visible in the desktop screenshot as the additional explanatory text.",
+      "element_ref": "body > main > p:nth-of-type(2)"
+    },
+    {
+      "title": "Mobile content overflow in payment section",
+      "description": "The description text under 'Payment method' (element 'body > main > section:nth-of-type(3) > p:nth-of-type(2)') has content width 497px exceeding container width 336px, causing horizontal overflow in mobile viewports. This element is visible in the desktop screenshot but suffers overflow issues in mobile.",
+      "element_ref": "body > main > section:nth-of-type(3) > p:nth-of-type(2)"
+    }
+  ]
+}
+

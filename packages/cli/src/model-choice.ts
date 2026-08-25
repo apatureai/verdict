@@ -87,22 +87,48 @@ export async function resolveLocalModel(
   };
 }
 
+/** Backends a local front door accepts in `MODEL_BACKEND` (unknown ⇒ ignored). */
+const KNOWN_BACKENDS = ["dashscope", "self-host", "openai", "vllm", "ollama", "openrouter"] as const;
+type KnownBackend = (typeof KNOWN_BACKENDS)[number];
+
+/** Parse `MODEL_BACKEND`, or undefined when unset/blank/unrecognized. */
+export function backendFromEnv(env: NodeJS.ProcessEnv = process.env): KnownBackend | undefined {
+  const raw = (env.MODEL_BACKEND ?? "").trim();
+  return (KNOWN_BACKENDS as readonly string[]).includes(raw) ? (raw as KnownBackend) : undefined;
+}
+
 /**
- * Per-pass model ids from the environment, matching the names the deployable
- * runtime has always read.
+ * Per-pass model config from the environment, matching the names the deployable
+ * runtime has always read: `TRIAGE_MODEL`, `DEEP_MODEL`, and `MODEL_BACKEND`.
  *
  * `MODEL_BASE_URL` lets a caller point at any OpenAI-compatible endpoint, but
  * until this existed the request still named the built-in Qwen ids, so the
  * documented quickstart only worked against an endpoint that happened to serve
- * `qwen3-vl-flash` and `qwen3-vl-plus`. Returns undefined when neither is set,
- * so the defaults stay exactly as they were.
+ * `qwen3-vl-flash` and `qwen3-vl-plus`.
+ *
+ * `MODEL_BACKEND` is read HERE too, not only by `packages/runtime`. It sets the
+ * per-pass `backend`, which is what selects the endpoint capability profile (so
+ * DashScope-only knobs never reach ollama/vLLM) AND, downstream, the deep-pass
+ * path (single guided call vs the two-step). Before this, `pnpm review` and the
+ * local server always ran as `dashscope` regardless of the endpoint they were
+ * pointed at. Returns undefined only when none of the three is set, so the
+ * defaults stay exactly as they were.
  */
 export function passModelsFromEnv(env: NodeJS.ProcessEnv = process.env): PassModelOverrides | undefined {
   const triage = (env.TRIAGE_MODEL ?? "").trim();
   const deep = (env.DEEP_MODEL ?? "").trim();
-  if (triage.length === 0 && deep.length === 0) return undefined;
+  const backend = backendFromEnv(env);
+  if (triage.length === 0 && deep.length === 0 && backend === undefined) return undefined;
+  const triageOverride = {
+    ...(triage.length > 0 ? { model: triage } : {}),
+    ...(backend ? { backend } : {}),
+  };
+  const deepOverride = {
+    ...(deep.length > 0 ? { model: deep } : {}),
+    ...(backend ? { backend } : {}),
+  };
   return {
-    ...(triage.length > 0 ? { triage: { model: triage } } : {}),
-    ...(deep.length > 0 ? { deep: { model: deep } } : {}),
+    ...(Object.keys(triageOverride).length > 0 ? { triage: triageOverride } : {}),
+    ...(Object.keys(deepOverride).length > 0 ? { deep: deepOverride } : {}),
   };
 }

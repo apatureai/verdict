@@ -19,6 +19,7 @@ import {
 } from "@apatureai/verdict-context";
 import {
   assembleCritique,
+  backendUsesGuidedDecoding,
   buildSystemPrompt,
   resolvePassModel,
   runDeepPass,
@@ -458,7 +459,13 @@ export async function runReview(input: ReviewInput, deps: ReviewDeps): Promise<E
       contextBlock: contextBlock.serialized,
       maxPixels,
       concurrency: input.concurrency ?? 3,
-      ...(input.guidedDecoding !== undefined ? { guidedDecoding: input.guidedDecoding } : {}),
+      // The deep-pass path (single guided call vs the DashScope two-step) follows
+      // the resolved deep backend's capability profile unless the caller forces
+      // it. This is what makes MODEL_BACKEND control the path on EVERY surface:
+      // the backend is resolved here, on the one code path all surfaces share, so
+      // a self-host/vLLM/ollama endpoint gets single-call guided decoding without
+      // each front door (CLI, local server, worker) having to wire it.
+      guidedDecoding: input.guidedDecoding ?? backendUsesGuidedDecoding(deepConfig.backend),
       ...(input.previewBuildFacts ? { buildFacts: input.previewBuildFacts } : {}),
       ...(deps.signal ? { signal: deps.signal } : {}),
     },

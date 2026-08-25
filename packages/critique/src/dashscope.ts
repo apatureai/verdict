@@ -1,3 +1,4 @@
+import { endpointProfile } from "./endpoint-profile.js";
 import type {
   ModelBackend,
   ModelCallOptions,
@@ -24,7 +25,6 @@ import type {
 /** One streamed chunk in the OpenAI chat-completions shape. */
 export interface ChatChunk {
   choices: Array<{
-    // DashScope streams the reasoning block as `reasoning_content`; ollama /
     // qwen3-vl and several OpenAI-compatible self-host servers stream it as
     // `reasoning` (W1-05). Accept either so the deep pass never silently loses
     // the whole chain-of-thought against a self-hosted endpoint.
@@ -51,6 +51,8 @@ export interface ChatCreateParams {
   enable_thinking?: boolean;
   /** Per-tile Qwen3-VL image-token budget (#69); forwarded via extra_body. */
   max_pixels?: number;
+  /** Hard output-token cap; set only on the bounded repair re-ask. */
+  max_tokens?: number;
 }
 
 /** OpenAI-compatible streaming create (chat.completions.create with stream:true). */
@@ -117,6 +119,11 @@ export class DashScopeModelClient implements ModelClient {
     // json_object on the non-thinking coercion call. json_schema (self-host vLLM
     // guided decoding, #76) CAN combine with thinking, so it is not gated on it.
     const responseFormat = this.resolveResponseFormat(request);
+    // The endpoint capability profile gates the DashScope-only extras. Sending
+    // `enable_thinking` to an endpoint that ignores it (ollama) is the exact bug
+    // that let a "non-thinking" coercion keep reasoning and never emit JSON, so a
+    // non-DashScope endpoint never receives it.
+    const profile = endpointProfile(this.backend);
     const stream = await this.create(
       {
         model: request.model,
@@ -124,8 +131,9 @@ export class DashScopeModelClient implements ModelClient {
         stream: true,
         stream_options: { include_usage: true },
         temperature: request.thinking ? this.thinkingTemperature : undefined,
-        enable_thinking: request.thinking,
-        max_pixels: request.maxPixels,
+        ...(profile.sendEnableThinking ? { enable_thinking: request.thinking } : {}),
+        ...(profile.sendMaxPixels && request.maxPixels !== undefined ? { max_pixels: request.maxPixels } : {}),
+        ...(request.maxTokens !== undefined ? { max_tokens: request.maxTokens } : {}),
         response_format: responseFormat,
       },
       { signal: options?.signal },

@@ -1,5 +1,21 @@
 import type { SecretStore } from "@apatureai/verdict-secrets";
-import type { PassModelOverrides } from "@apatureai/verdict-critique";
+import type { ModelBackend, PassModelOverrides } from "@apatureai/verdict-critique";
+
+/** Backends the deployable runtime accepts in `MODEL_BACKEND`. */
+const RUNTIME_BACKENDS = ["dashscope", "self-host", "openai", "vllm", "ollama", "openrouter"] as const;
+
+/**
+ * Resolve `MODEL_BACKEND` to the per-pass backend, defaulting to `dashscope`.
+ * The backend selects the endpoint capability profile (so DashScope-only knobs
+ * never reach a non-DashScope endpoint) and, downstream, the deep-pass path.
+ */
+function resolveModelBackend(raw: string | undefined): ModelBackend {
+  if (raw === undefined) return "dashscope";
+  if (!(RUNTIME_BACKENDS as readonly string[]).includes(raw)) {
+    throw new Error(`MODEL_BACKEND must be one of: ${RUNTIME_BACKENDS.join(", ")}`);
+  }
+  return raw as ModelBackend;
+}
 
 export interface RuntimeConfig {
   port: number;
@@ -70,9 +86,7 @@ export async function loadRuntimeConfig(
   if (genomeParts !== 0 && genomeParts !== 3) {
     throw new Error("GENOME_ENDPOINT, GENOME_API_TOKEN, and EMBEDDING_MODEL must be configured together");
   }
-  if (env.MODEL_BACKEND !== undefined && env.MODEL_BACKEND !== "dashscope" && env.MODEL_BACKEND !== "self-host") {
-    throw new Error("MODEL_BACKEND must be dashscope or self-host");
-  }
+  const backend = resolveModelBackend(env.MODEL_BACKEND);
   return {
     port: positiveInt(env, "PORT", 8080),
     databaseUrl,
@@ -82,12 +96,12 @@ export async function loadRuntimeConfig(
     passModels: {
       triage: {
         model: env.TRIAGE_MODEL ?? "qwen3-vl-flash",
-        backend: env.MODEL_BACKEND === "self-host" ? "self-host" : "dashscope",
+        backend,
         thinking: false,
       },
       deep: {
         model: env.DEEP_MODEL ?? "qwen3-vl-plus",
-        backend: env.MODEL_BACKEND === "self-host" ? "self-host" : "dashscope",
+        backend,
         thinking: true,
       },
     },
