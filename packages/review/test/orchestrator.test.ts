@@ -99,7 +99,7 @@ const TEST_CALIBRATION: CalibrationRuntimeBinding = {
   },
   identity: {
     model: "qwen3-vl-plus",
-    promptVersion: "system-prompt@v4",
+    promptVersion: "system-prompt@v5",
     engineVersion: "0.1.0",
     captureVersion: "stub-capture@1",
     rubricVersion: "design-rubric@1",
@@ -1089,5 +1089,77 @@ describe("runReview reports the grounding gate's drop count", () => {
 
     expect(observed).toBe(1);
     expect(result.hallucinationDrops).toBe(observed);
+  });
+});
+
+describe("runReview delivers the geometry map the gate validates against (#W1-02)", () => {
+  /** The `element_ref` selectors each route's deep-pass prompt actually carried. */
+  function geometryByRouteFrom(calls: ModelRequest[]): Map<string, Set<string>> {
+    const byRoute = new Map<string, Set<string>>();
+    for (const call of calls) {
+      if (!call.thinking) continue; // only the deep-pass thinking step carries the map
+      const user = call.messages.find((m) => m.role === "user")?.content ?? "";
+      const route = /Review route (\S+?)\./.exec(user)?.[1];
+      if (!route || !user.includes("DOM geometry")) continue;
+      const selectors = new Set<string>();
+      for (const line of user.split("\n")) {
+        const m = /^- (.+?) \([^)]*\) box /.exec(line);
+        if (m?.[1]) selectors.add(m[1]);
+      }
+      byRoute.set(route, selectors);
+    }
+    return byRoute;
+  }
+
+  it("INVARIANT: geometry_in_prompt ⊇ gate_accept_set — every selector the gate accepts was shown to the model", async () => {
+    const routes = ["/pricing", "/home"];
+    // A mix of a landmark-shaped id and inferred/measured selectors — exactly the
+    // kind the model could name from pixels and the gate would delete if it had
+    // never been shown them.
+    const selectors = ["#cta", ".hero p.sub", "body > main > section:nth-of-type(3) > p:nth-of-type(2)"];
+    const { factory, calls } = scriptedModel((route) =>
+      critiqueFor(route, "minor", "needs_work", { elementRef: ".hero p.sub" }),
+    );
+
+    const capture = stubCapture(routes, selectors);
+    // The gate's accept set is the selector set of the SAME capture geometry the
+    // orchestrator threads into both the gate and the prompt.
+    const captured = await capture("https://x", baseInput(routes).captureContext);
+    const gateAccepts = new Set(captured.geometry.map((g) => g.selector));
+
+    await runReview(baseInput(routes), { captureInSandbox: capture, modelFactory: factory });
+
+    const byRoute = geometryByRouteFrom(calls);
+    // Per route: the block carries every selector the gate would accept for it.
+    for (const route of routes) {
+      const block = byRoute.get(route);
+      expect(block).toBeDefined();
+      for (const selector of selectors) expect(block?.has(selector)).toBe(true);
+    }
+    // Whole review: the union of what the model was shown ⊇ the gate's accept set.
+    const shown = new Set<string>();
+    for (const set of byRoute.values()) for (const s of set) shown.add(s);
+    for (const selector of gateAccepts) expect(shown.has(selector)).toBe(true);
+  });
+
+  it("a finding citing a real inferred geometry selector now SURVIVES the gate", async () => {
+    // The regression this pins: before the fix the model only ever saw the
+    // selectors in the deterministic-fact lines, so a genuine inferred selector
+    // like `.hero p.sub` read as hallucination to the gate and was deleted. It is
+    // now in the delivered map, so a finding grounded on it is kept.
+    const routes = ["/pricing"];
+    const { factory } = scriptedModel(() =>
+      critiqueFor("/pricing", "major", "needs_work", { elementRef: ".hero p.sub" }),
+    );
+
+    const result = await runReview(baseInput(routes), {
+      captureInSandbox: stubCapture(routes, ["#cta", ".hero p.sub"]),
+      modelFactory: factory,
+    });
+
+    expect(result.hallucinationDrops).toBe(0);
+    // The wire finding exposes the selector as `element` (same vocabulary as the
+    // geometry map's `element_ref`).
+    expect(result.findings.map((f) => f.element)).toContain(".hero p.sub");
   });
 });

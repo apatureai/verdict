@@ -50,7 +50,7 @@ const RESULT: EngineReviewResult = {
   metadata: {
     engineVersion: "0.1.0",
     model: "canned",
-    promptVersion: "system-prompt@v4",
+    promptVersion: "system-prompt@v5",
     captureVersion: "chromium-playwright@1",
     uiDnaVersion: null,
   },

@@ -1,12 +1,14 @@
-import type { PreviewBuildFact } from "@apatureai/verdict-types";
+import type { GeometryRect, PreviewBuildFact } from "@apatureai/verdict-types";
 import { describe, expect, it } from "vitest";
 import {
   MAX_BUILD_FACTS,
+  MAX_GEOMETRY_ENTRIES,
   critiqueRouteSingleCall,
   critiqueRouteTwoStep,
   mapWithConcurrency,
   renderBuildFacts,
   renderGenomeRules,
+  renderGeometry,
   runDeepPass,
   type DeepPassDeps,
   type DeepPassRoute,
@@ -14,6 +16,24 @@ import {
   type ModelRequest,
   type ModelResponse,
 } from "../src/index.js";
+
+/** Extract the `element_ref` selectors the model was shown in a rendered geometry block. */
+function selectorsInBlock(block: string): Set<string> {
+  const out = new Set<string>();
+  for (const line of block.split("\n")) {
+    const m = /^- (.+?) \([^)]*\) box /.exec(line);
+    if (m?.[1]) out.add(m[1]);
+  }
+  return out;
+}
+
+const geom = (route: string, viewport: "mobile" | "desktop", selector: string, role: string | null = null): GeometryRect => ({
+  route,
+  viewport,
+  selector,
+  role,
+  rect: { x: 12, y: 34, width: 56, height: 78 },
+});
 
 /** Records calls; returns prose for the Thinking step and JSON for the coercion step. */
 class TwoStepMock implements ModelClient {
@@ -156,6 +176,91 @@ describe("UI-DNA genome grounding (#104)", () => {
     await critiqueRouteTwoStep(deps(mock), route("/x"));
     const userMsg = mock.calls[0]?.messages.find((m) => m.role === "user");
     expect(userMsg?.content).not.toContain("Design-system rules (UI-DNA");
+  });
+});
+
+describe("DOM geometry grounding (#W1-02)", () => {
+  it("renders nothing when there is no geometry (prompt byte-identical)", () => {
+    expect(renderGeometry(undefined)).toBe("");
+    expect(renderGeometry([])).toBe("");
+  });
+
+  it("renders a labeled block grouped by viewport with selector, role, and rect", () => {
+    const out = renderGeometry([
+      geom("/", "desktop", "body > div > h1", "heading"),
+      geom("/", "mobile", "#cta", "button"),
+    ]);
+    expect(out).toContain("DOM geometry (cite element_ref EXACTLY as written");
+    expect(out).toContain("[desktop]");
+    expect(out).toContain("[mobile]");
+    expect(out).toContain("- body > div > h1 (heading) box 12,34 56x78");
+    expect(out).toContain("- #cta (button) box 12,34 56x78");
+  });
+
+  it("labels a null role as generic so every entry names a role", () => {
+    expect(renderGeometry([geom("/", "desktop", "#x", null)])).toContain("- #x (generic) box ");
+  });
+
+  it("INVARIANT: every selector is present — rendered ⊇ the gate's accept set", () => {
+    // The gate (#32) accepts exactly the geometry selectors; the block must carry
+    // every one of them or the prompt would ask for a selector the gate rejects.
+    const geometry = [
+      geom("/", "desktop", "body > header > nav", "navigation"),
+      geom("/", "desktop", "body > main > p:nth-of-type(1)", "generic"),
+      geom("/", "mobile", "#upgrade", "button"),
+      geom("/", "mobile", "body > main > section:nth-of-type(3) > p:nth-of-type(2)", "generic"),
+    ];
+    const gateAccepts = new Set(geometry.map((g) => g.selector));
+    const rendered = selectorsInBlock(renderGeometry(geometry));
+    for (const selector of gateAccepts) expect(rendered.has(selector)).toBe(true);
+    expect(rendered.size).toBe(gateAccepts.size);
+  });
+
+  it("caps a pathological map at MAX_GEOMETRY_ENTRIES, keeping input order", () => {
+    const many: GeometryRect[] = Array.from({ length: MAX_GEOMETRY_ENTRIES + 25 }, (_, i) =>
+      geom("/", "desktop", `#e${i}`, "generic"),
+    );
+    const rendered = selectorsInBlock(renderGeometry(many));
+    expect(rendered.size).toBe(MAX_GEOMETRY_ENTRIES);
+    expect(rendered.has("#e0")).toBe(true);
+    expect(rendered.has(`#e${MAX_GEOMETRY_ENTRIES - 1}`)).toBe(true);
+    expect(rendered.has(`#e${MAX_GEOMETRY_ENTRIES}`)).toBe(false);
+  });
+
+  it("threads the route's geometry into its deep-pass prompt, ahead of the facts", async () => {
+    const mock = new TwoStepMock();
+    const r: DeepPassRoute = {
+      route: "/",
+      images: [{ objectKey: "jobs/1/s/root.png", route: "/", viewport: "mobile" }],
+      facts: ["[contrast] #upgrade (mobile): 2.39:1 below AA"],
+      geometry: [geom("/", "mobile", "#upgrade", "button")],
+    };
+    await critiqueRouteTwoStep(deps(mock), r);
+    const userMsg = mock.calls.find((c) => c.thinking)?.messages.find((m) => m.role === "user");
+    const content = userMsg?.content ?? "";
+    expect(content).toContain("DOM geometry (cite element_ref EXACTLY as written");
+    expect(content).toContain("- #upgrade (button) box ");
+    // Geometry (the map) precedes the deterministic facts (measurements on it).
+    expect(content.indexOf("DOM geometry")).toBeLessThan(content.indexOf("Deterministic facts"));
+  });
+
+  it("leaves the prompt without a geometry block when none is supplied", async () => {
+    const mock = new TwoStepMock();
+    await critiqueRouteTwoStep(deps(mock), route("/x"));
+    const userMsg = mock.calls[0]?.messages.find((m) => m.role === "user");
+    expect(userMsg?.content).not.toContain("DOM geometry");
+  });
+
+  it("carries geometry on the single-call guided-decoding path too", async () => {
+    const mock = new GuidedMock();
+    const r: DeepPassRoute = {
+      route: "/",
+      images: [{ objectKey: "jobs/1/s/root.png", route: "/", viewport: "desktop" }],
+      geometry: [geom("/", "desktop", "#hero", "heading")],
+    };
+    await critiqueRouteSingleCall(deps(mock), r);
+    const userMsg = mock.calls[0]?.messages.find((m) => m.role === "user");
+    expect(userMsg?.content).toContain("- #hero (heading) box ");
   });
 });
 

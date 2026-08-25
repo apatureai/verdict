@@ -1,4 +1,4 @@
-import type { PreviewBuildFact } from "@apatureai/verdict-types";
+import type { GeometryRect, PreviewBuildFact, Viewport } from "@apatureai/verdict-types";
 import { cachePrefix } from "./cache.js";
 import type { ModelClient, ModelImage, ModelMessage } from "./model.js";
 import { wrapUntrustedPageContent } from "./prompt.js";
@@ -25,6 +25,16 @@ export interface DeepPassRoute {
   images: ModelImage[];
   /** Deterministic facts (contrast/overflow/touch-target, #19) rendered for the prompt. */
   facts?: string[];
+  /**
+   * The route's DOM geometry map (#18): the {selector, role, rect} entries the
+   * model is told to cite as `element_ref` and that the hallucination gate (#32)
+   * validates every finding against. Serialized into the prompt by
+   * `renderGeometry` so the model's `element_ref` vocabulary is EXACTLY the set
+   * the gate accepts, closing the gap where the prompt demanded selectors "from
+   * the provided DOM geometry" the request never carried. Absent ⇒ no geometry
+   * block (prompt byte-identical to the no-geometry case).
+   */
+  geometry?: GeometryRect[];
   /** Per-repo memory digest suffix (#41), optional. */
   feedbackDigest?: string;
   /**
@@ -98,6 +108,81 @@ export function renderGenomeRules(rules: string[] | undefined): string {
   return `\nDesign-system rules (UI-DNA; trusted):\n${rules.map((r) => `- ${r}`).join("\n")}`;
 }
 
+/**
+ * Cap on geometry entries rendered into one route's prompt, a guard against a
+ * pathological page. The curated map is landmarks + measured elements only
+ * (`serializeGeometry` in `@apatureai/verdict-capture`), which is bounded in
+ * practice (tens of entries per viewport), so this ceiling is not reached on any
+ * real capture; it exists so an adversarial or degenerate DOM cannot bloat the
+ * request. See `renderGeometry` for the truncation rule when it is reached.
+ */
+export const MAX_GEOMETRY_ENTRIES = 600;
+
+/** Round a rect coordinate to a whole pixel; the gate keys on the selector, not the rect. */
+function px(n: number): number {
+  return Math.round(n);
+}
+
+/**
+ * Render the route's DOM geometry map (#18) as a labeled block of TRUSTED
+ * grounding: the `element_ref` selectors the model may cite, each with its ARIA
+ * role and pixel rect, grouped by captured segment (viewport).
+ *
+ * This is the block whose absence was the bug: the system prompt instructs the
+ * model to cite "the element_ref from the provided DOM geometry" and the
+ * hallucination gate (#32) does an exact match against the same geometry map,
+ * yet the request never carried the map — so the model's only selector
+ * vocabulary was whatever appeared in the deterministic-fact lines, and any real
+ * inferred selector it named was deleted by the gate. Serializing the map here
+ * gives the model the exact selector set the gate accepts.
+ *
+ * SELECTION RULE (deterministic, lossless over selectors):
+ *   - Every entry's selector is emitted. The gate accepts exactly these
+ *     selectors, so dropping one would reintroduce the bug (the prompt would ask
+ *     for a selector the gate rejects). The invariant the tests pin is therefore
+ *     `selectors(renderGeometry(g)) ⊇ selectors(g)` — the rendered block is a
+ *     superset of the gate-acceptable set for the route.
+ *   - Entries are grouped by viewport in first-seen order and, within a viewport,
+ *     kept in capture order (capture emits landmarks first, then measured
+ *     elements), both deterministic given a deterministic capture.
+ *   - The only bound is `MAX_GEOMETRY_ENTRIES`: if a map exceeds it, the input
+ *     order is kept and the tail is dropped — documented degradation for a
+ *     pathological page, never the default path.
+ *
+ * Returns "" for an empty/absent map, keeping the prompt byte-identical to the
+ * no-geometry case.
+ */
+export function renderGeometry(geometry: GeometryRect[] | undefined): string {
+  if (!geometry || geometry.length === 0) return "";
+  const entries = geometry.length > MAX_GEOMETRY_ENTRIES ? geometry.slice(0, MAX_GEOMETRY_ENTRIES) : geometry;
+
+  const order: Viewport[] = [];
+  const byViewport = new Map<Viewport, GeometryRect[]>();
+  for (const g of entries) {
+    let bucket = byViewport.get(g.viewport);
+    if (!bucket) {
+      bucket = [];
+      byViewport.set(g.viewport, bucket);
+      order.push(g.viewport);
+    }
+    bucket.push(g);
+  }
+
+  const lines: string[] = [];
+  for (const viewport of order) {
+    lines.push(`[${viewport}]`);
+    for (const g of byViewport.get(viewport) ?? []) {
+      const role = g.role ?? "generic";
+      const { x, y, width, height } = g.rect;
+      lines.push(`- ${g.selector} (${role}) box ${px(x)},${px(y)} ${px(width)}x${px(height)}`);
+    }
+  }
+  return (
+    "\nDOM geometry (cite element_ref EXACTLY as written; segment = the [viewport] it appears under):\n" +
+    lines.join("\n")
+  );
+}
+
 export interface DeepPassRouteResult {
   route: string;
   /** Validated output, or null if the coercion failed (no partial emitted). */
@@ -105,6 +190,7 @@ export interface DeepPassRouteResult {
 }
 
 function thinkingMessages(deps: DeepPassDeps, route: DeepPassRoute): ModelMessage[] {
+  const geometry = renderGeometry(route.geometry);
   const factLines = route.facts && route.facts.length > 0 ? `\nDeterministic facts:\n${route.facts.join("\n")}` : "";
   const buildFacts = renderBuildFacts(deps.buildFacts);
   const genomeRules = renderGenomeRules(route.genomeRules);
@@ -117,7 +203,7 @@ function thinkingMessages(deps: DeepPassDeps, route: DeepPassRoute): ModelMessag
     { role: "system", content: cachePrefix(deps.systemPrompt, deps.contextBlock) },
     {
       role: "user",
-      content: `Review route ${route.route}. Cite segment labels + element_ref.${factLines}${genomeRules}${buildFacts}${digest}${pageText}`,
+      content: `Review route ${route.route}. Cite segment labels + element_ref.${geometry}${factLines}${genomeRules}${buildFacts}${digest}${pageText}`,
       images: route.images,
     },
   ];
