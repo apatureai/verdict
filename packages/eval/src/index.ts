@@ -39,6 +39,7 @@ export {
   blockerRecall,
   nitPrecision,
   netNewFindingRate,
+  netNewFindingCount,
   GRADE_SCALE,
   quadraticWeightedKappa,
   bootstrapKappaCI,

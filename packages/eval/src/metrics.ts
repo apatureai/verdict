@@ -91,22 +91,16 @@ const DIMENSION_TO_CLAIM: Partial<Record<Dimension, string>> = {
   accessibility: "target_size",
 };
 
-/**
- * The NORTH STAR (judge-unlock §4.4): the share of published findings that made a
- * claim no deterministic check had already REPORTED. A finding is a restatement
- * when its dimension maps to a claim class the checker already reported on the
- * same element+route; everything else is net-new. Pure, no model, no GPU — so
- * the number is trackable in CI.
- *
- * `duplicateFactDrops === 0` is deliberately NOT a pass condition anywhere: a
- * model that never restates and a model that stopped restating because the prompt
- * worked look identical there. The gate is on the NUMERATOR.
- */
-export function netNewFindingRate(published: LabeledFinding[], ledger: NetNewLedger): number {
-  if (published.length === 0) return 1; // vacuously net-new
+/** The page-level claim class keyed to the reserved `document` selector (judge-unlock §4.1). */
+const PAGE_OVERFLOW_CLASS = "page_overflow";
+
+/** Absolute net-new count: published findings that made a claim no reported measurement covers. */
+export function netNewFindingCount(published: LabeledFinding[], ledger: NetNewLedger): number {
   const reported = new Map<string, Set<string>>();
+  const pageOverflowRoutes = new Set<string>();
   for (const e of ledger.entries) {
     if (!e.reported) continue;
+    if (e.claimClass === PAGE_OVERFLOW_CLASS) pageOverflowRoutes.add(e.route);
     const key = `${e.route}\n${e.selector}`;
     let set = reported.get(key);
     if (!set) {
@@ -119,10 +113,50 @@ export function netNewFindingRate(published: LabeledFinding[], ledger: NetNewLed
   for (const f of published) {
     const cls = DIMENSION_TO_CLAIM[f.dimension];
     const classes = reported.get(`${f.route}\n${f.elementRef ?? ""}`);
-    const restates = cls !== undefined && classes !== undefined && classes.has(cls);
-    if (!restates) netNew += 1;
+    const restatesElement = cls !== undefined && classes !== undefined && classes.has(cls);
+    // Page-overflow paraphrase leak (C4). `page_overflow` is keyed to the reserved
+    // `document` selector, so a reworded page-overflow claim pinned to the WIDEST
+    // ELEMENT (elementRef != "document") slipped past the element-keyed check and
+    // was miscounted as net-new. A page-overflow measurement is PAGE-LEVEL: any
+    // overflow-dimension finding on that route restates it, UNLESS the finding's own
+    // element carries its OWN distinct element_overflow measurement (handled above,
+    // which is a genuinely different, per-element fact).
+    const restatesPage =
+      cls === "element_overflow" && pageOverflowRoutes.has(f.route) && !restatesElement;
+    if (!(restatesElement || restatesPage)) netNew += 1;
   }
-  return netNew / published.length;
+  return netNew;
+}
+
+/**
+ * The NORTH STAR (judge-unlock §4.4): the share of published findings that made a
+ * claim no deterministic check had already REPORTED. A finding is a restatement
+ * when its dimension maps to a claim class the checker already reported on the
+ * same element+route (or, for page-level overflow, anywhere on the route);
+ * everything else is net-new. Pure, no model, no GPU — so the number is trackable
+ * in CI.
+ *
+ * The empty case is NOT vacuously 1 (C4). The old `if (published.length === 0)
+ * return 1` let a judge that publishes NOTHING — the precise failure this metric
+ * exists to catch — score a perfect 1.0 and pass the release gate. Zero published
+ * findings is scored by the `measuredFactsCount`: a genuinely CLEAN page (the
+ * checker measured nothing, so there was nothing for judgment to be net-new
+ * against) is a vacuous pass (1); an EMPTY JUDGE (the checker measured facts on a
+ * non-trivial page and the judge still added nothing) scores 0 and fails the gate.
+ * The absolute net-new COUNT (`netNewFindingCount`) is the gate's second, rate-
+ * independent guard (`netNewFindingsMin`).
+ *
+ * `duplicateFactDrops === 0` is deliberately NOT a pass condition anywhere: a
+ * model that never restates and a model that stopped restating because the prompt
+ * worked look identical there. The gate is on the NUMERATOR.
+ */
+export function netNewFindingRate(
+  published: LabeledFinding[],
+  ledger: NetNewLedger,
+  measuredFactsCount: number = ledger.entries.length,
+): number {
+  if (published.length === 0) return measuredFactsCount === 0 ? 1 : 0;
+  return netNewFindingCount(published, ledger) / published.length;
 }
 
 export const GRADE_SCALE: Grade[] = ["ship", "ship_with_nits", "needs_work", "blocked"];

@@ -56,6 +56,22 @@ describe("qualityGate (#48)", () => {
     expect(r.passed).toBe(true);
   });
 
+  it("C4: fails on the ABSOLUTE net-new count even when the rate would read as a pass", () => {
+    // The exact failure: a judge that published NOTHING. A rate of 1 (or an
+    // omitted rate) must not rescue it — the absolute count bar catches it.
+    const r = qualityGate({ ...passing, netNewFindingRate: 1, netNewFindings: 0 });
+    expect(r.passed).toBe(false);
+    expect(r.failedBars.some((b) => b.includes("net-new finding count"))).toBe(true);
+    expect(r.metrics.netNewFindings).toBe(0);
+  });
+
+  it("C4: passes the absolute bar with at least one net-new finding, and skips it when absent", () => {
+    expect(qualityGate({ ...passing, netNewFindings: 1 }).passed).toBe(true);
+    // Absent -> skipped, reported as null, never a silent failure.
+    expect(qualityGate(passing).metrics.netNewFindings).toBeNull();
+    expect(qualityGate(passing).failedBars.some((b) => b.includes("net-new finding count"))).toBe(false);
+  });
+
   it("fails when a golden-set bar is missed (and records the failing sign-off)", () => {
     const r = qualityGate({ ...passing, blockerRecall: 0.5, kappa: 0.4, signoffBy: undefined });
     expect(r.passed).toBe(false);

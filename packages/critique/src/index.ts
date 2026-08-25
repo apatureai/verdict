@@ -119,6 +119,8 @@ export {
   renderBuildFacts,
   renderGenomeRules,
   renderGeometry,
+  citableSelectors,
+  substantiveText,
   renderStyleCensus,
   renderReportedFactsBlock,
   renderDeclinedFactsBlock,
@@ -129,7 +131,17 @@ export {
   MAX_GEOMETRY_CHARS_PER_REQUEST,
   REPAIR_MAX_TOKENS,
 } from "./deep-pass.js";
-export type { DeepPassRoute, DeepPassDeps, DeepPassRouteResult } from "./deep-pass.js";
+export type { DeepPassRoute, DeepPassDeps, DeepPassRouteResult, GeometryBudget, GeometryPlan } from "./deep-pass.js";
+export {
+  ContextBudgetError,
+  DEFAULT_COMPLETION_RESERVE_TOKENS,
+  GEOMETRY_DEGRADE_TIERS,
+  estimateImageTokens,
+  estimateTextTokens,
+  resolveGeometryBudget,
+  resolveGeometryBudgetDecision,
+} from "./context-preflight.js";
+export type { ResolveGeometryBudgetInput, GeometryBudgetDecision } from "./context-preflight.js";
 export { assembleCritique } from "./assemble.js";
 export type { AssembleCritiqueDeps } from "./assemble.js";
 // canon#64 consumer side: suppress blocking when grounded on a revoked version.
