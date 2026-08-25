@@ -10,6 +10,8 @@ import {
   renderGenomeRules,
   renderGeometry,
   runDeepPass,
+  invariantPromptPrefix,
+  cacheablePrefixTokens,
   type DeepPassDeps,
   type DeepPassRoute,
   type ModelClient,
@@ -132,24 +134,24 @@ describe("previewBuildFacts grounding (#98)", () => {
     expect(renderBuildFacts(many).split("\n").filter((l) => l.startsWith("- ")).length).toBe(MAX_BUILD_FACTS);
   });
 
-  it("threads the build facts into every route's deep-pass prompt", async () => {
+  it("threads the build facts into the INVARIANT prefix of every route's deep-pass prompt (G4)", async () => {
     const mock = new TwoStepMock();
     await runDeepPass({ ...deps(mock), buildFacts: facts }, ["/a", "/b"].map(route));
-    // The thinking step (step 1) of each route carries the build-facts block.
+    // The thinking step (step 1) of each route carries the build-facts block, now in
+    // the cacheable system prefix rather than after the per-shot geometry.
     const thinkingCalls = mock.calls.filter((c) => c.thinking);
     expect(thinkingCalls).toHaveLength(2);
     for (const call of thinkingCalls) {
-      const userMsg = call.messages.find((m) => m.role === "user");
-      expect(userMsg?.content).toContain("Build/runtime signals");
-      expect(userMsg?.content).toContain("[hydration]");
+      const sysMsg = call.messages.find((m) => m.role === "system");
+      expect(sysMsg?.content).toContain("Build/runtime signals");
+      expect(sysMsg?.content).toContain("[hydration]");
     }
   });
 
   it("leaves the prompt without a build block when no facts are supplied", async () => {
     const mock = new TwoStepMock();
     await critiqueRouteTwoStep(deps(mock), route("/x"));
-    const userMsg = mock.calls[0]?.messages.find((m) => m.role === "user");
-    expect(userMsg?.content).not.toContain("Build/runtime signals");
+    for (const m of mock.calls[0]?.messages ?? []) expect(m.content).not.toContain("Build/runtime signals");
   });
 });
 
@@ -162,20 +164,83 @@ describe("UI-DNA genome grounding (#104)", () => {
     expect(out).toContain("- Buttons use the accent token");
   });
 
-  it("injects the route's retrieved genome rules into its deep-pass prompt", async () => {
+  it("injects the route's retrieved genome rules into the INVARIANT prefix (system turn), not the volatile user turn (G4)", async () => {
     const mock = new TwoStepMock();
     const r: DeepPassRoute = { ...route("/pricing"), genomeRules: ["Buttons use the accent color token"] };
     await critiqueRouteTwoStep(deps(mock), r);
-    const userMsg = mock.calls.find((c) => c.thinking)?.messages.find((m) => m.role === "user");
-    expect(userMsg?.content).toContain("Design-system rules (UI-DNA; trusted):");
-    expect(userMsg?.content).toContain("accent color token");
+    const call = mock.calls.find((c) => c.thinking);
+    const sysMsg = call?.messages.find((m) => m.role === "system");
+    const userMsg = call?.messages.find((m) => m.role === "user");
+    // The design-system block is now part of the cacheable prefix, so it rides the
+    // system turn and no longer sits after the per-shot geometry in the user turn.
+    expect(sysMsg?.content).toContain("Design-system rules (UI-DNA; trusted):");
+    expect(sysMsg?.content).toContain("accent color token");
+    expect(userMsg?.content).not.toContain("Design-system rules (UI-DNA");
   });
 
   it("leaves the prompt without a genome block when no rules are supplied", async () => {
     const mock = new TwoStepMock();
     await critiqueRouteTwoStep(deps(mock), route("/x"));
-    const userMsg = mock.calls[0]?.messages.find((m) => m.role === "user");
-    expect(userMsg?.content).not.toContain("Design-system rules (UI-DNA");
+    const call = mock.calls[0];
+    for (const m of call?.messages ?? []) expect(m.content).not.toContain("Design-system rules (UI-DNA");
+  });
+});
+
+describe("prefix caching (G4)", () => {
+  const invariantDeps: DeepPassDeps = {
+    ...deps(new TwoStepMock()),
+    systemPrompt: "FROZEN RUBRIC",
+    contextBlock: '{"tokens":{"accent":"#1f5eff"}}',
+    buildFacts: [{ kind: "hydration", message: "hydrated cleanly" } as PreviewBuildFact],
+  };
+  // Two shots that differ ONLY in per-shot content (geometry, images, feedback-free),
+  // but carry the SAME run-invariant grounding (system prompt, repo context, genome
+  // rules, build facts). This is the multi-shot case the cache is meant to reuse.
+  const shotA: DeepPassRoute = {
+    route: "/",
+    images: [{ objectKey: "a.png", route: "/", viewport: "mobile" }],
+    genomeRules: ["Primary action uses the accent token #1f5eff"],
+    geometry: [geom("/", "mobile", "#upgrade", "button")],
+  };
+  const shotB: DeepPassRoute = {
+    route: "/",
+    images: [{ objectKey: "b.png", route: "/", viewport: "desktop" }],
+    genomeRules: ["Primary action uses the accent token #1f5eff"],
+    geometry: [geom("/", "desktop", "body > main > h1", "heading"), geom("/", "desktop", "#gear", "button")],
+  };
+
+  it("emits a BYTE-IDENTICAL invariant prefix across shots that differ only in per-shot content", () => {
+    const a = invariantPromptPrefix(invariantDeps, shotA);
+    const b = invariantPromptPrefix(invariantDeps, shotB);
+    expect(a).toBe(b);
+    // The prefix carries the invariant grounding…
+    expect(a).toContain("FROZEN RUBRIC");
+    expect(a).toContain("REPO CONTEXT:");
+    expect(a).toContain("Design-system rules (UI-DNA; trusted):");
+    expect(a).toContain("Build/runtime signals");
+    // …and NONE of the per-shot volatile content (which would break the cache).
+    expect(a).not.toContain("#upgrade");
+    expect(a).not.toContain("body > main > h1");
+    expect(a).not.toContain("Review route");
+  });
+
+  it("places the invariant prefix STRICTLY FIRST: the system turn is the prefix, the user turn holds the volatile geometry", async () => {
+    const mock = new TwoStepMock();
+    await critiqueRouteTwoStep({ ...invariantDeps, client: mock }, shotB);
+    const call = mock.calls.find((c) => c.thinking);
+    const sysMsg = call?.messages.find((m) => m.role === "system");
+    const userMsg = call?.messages.find((m) => m.role === "user");
+    expect(sysMsg?.content).toBe(invariantPromptPrefix(invariantDeps, shotB));
+    // Per-shot geometry lives in the user turn, strictly AFTER the cached prefix.
+    expect(userMsg?.content).toContain("body > main > h1");
+    expect(userMsg?.content).toContain("Review route /.");
+    expect(userMsg?.content).not.toContain("FROZEN RUBRIC");
+  });
+
+  it("measures a positive cacheable-prefix token count (the per-repeated-call saving)", () => {
+    const prefix = invariantPromptPrefix(invariantDeps, shotA);
+    expect(cacheablePrefixTokens(prefix)).toBe(Math.ceil(prefix.length / 4));
+    expect(cacheablePrefixTokens(prefix)).toBeGreaterThan(0);
   });
 });
 

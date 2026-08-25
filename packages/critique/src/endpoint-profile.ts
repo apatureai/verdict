@@ -42,6 +42,17 @@ export interface EndpointProfile {
   /** Reasoning delta field this endpoint is expected to stream (both are read). */
   reasoningDeltaField: "reasoning_content" | "reasoning";
   /**
+   * Whether the endpoint reuses an IMPLICIT prompt-prefix cache across calls
+   * (DashScope context cache, vLLM/SGLang automatic prefix caching, ollama's
+   * prompt cache) — G4/#34. These backends need no per-call cache_control knob: the
+   * cacheable unit is the byte-identical PREFIX, and the "hint" is emitting it
+   * strictly first with no interpolation (which `invariantPromptPrefix` guarantees).
+   * A cache HIT is observed back on `ModelUsage.cachedTokens`. A backend whose
+   * caching is unknown (a proxy) is marked false so we never REPORT a saving the
+   * endpoint may not deliver; correctness is identical either way.
+   */
+  implicitPromptCache: boolean;
+  /**
    * The endpoint's typical advertised context window in tokens (C2). This is what
    * the deep-pass context-window preflight estimates the prompt + reserved
    * completion against, so the geometry map is degraded deterministically (or the
@@ -63,6 +74,7 @@ export const CONSERVATIVE_PROFILE: EndpointProfile = {
   sendMaxPixels: false,
   structuredOutput: "json_object",
   reasoningDeltaField: "reasoning",
+  implicitPromptCache: false,
   contextWindowTokens: QWEN3VL_32K,
 };
 
@@ -75,6 +87,7 @@ const PROFILES: Record<Exclude<ModelBackend, "mock">, EndpointProfile> = {
     sendMaxPixels: true,
     structuredOutput: "json_object",
     reasoningDeltaField: "reasoning_content",
+    implicitPromptCache: true,
     contextWindowTokens: QWEN3VL_32K,
   },
   // vLLM / SGLang self-host: guided decoding (xgrammar/outlines) does Thinking +
@@ -84,6 +97,7 @@ const PROFILES: Record<Exclude<ModelBackend, "mock">, EndpointProfile> = {
     sendMaxPixels: true,
     structuredOutput: "json_schema",
     reasoningDeltaField: "reasoning",
+    implicitPromptCache: true,
     contextWindowTokens: QWEN3VL_32K,
   },
   // Historical alias for a vLLM/SGLang guided-decoding endpoint.
@@ -92,6 +106,7 @@ const PROFILES: Record<Exclude<ModelBackend, "mock">, EndpointProfile> = {
     sendMaxPixels: true,
     structuredOutput: "json_schema",
     reasoningDeltaField: "reasoning",
+    implicitPromptCache: true,
     contextWindowTokens: QWEN3VL_32K,
   },
   // OpenAI: Structured Outputs (json_schema) in one call; no DashScope extras.
@@ -100,6 +115,7 @@ const PROFILES: Record<Exclude<ModelBackend, "mock">, EndpointProfile> = {
     sendMaxPixels: false,
     structuredOutput: "json_schema",
     reasoningDeltaField: "reasoning",
+    implicitPromptCache: true,
     contextWindowTokens: 128_000,
   },
   // Ollama OpenAI-compatible mode: supports a json_schema `response_format` for
@@ -113,6 +129,7 @@ const PROFILES: Record<Exclude<ModelBackend, "mock">, EndpointProfile> = {
     sendMaxPixels: false,
     structuredOutput: "json_schema",
     reasoningDeltaField: "reasoning",
+    implicitPromptCache: true,
     contextWindowTokens: QWEN3VL_32K,
   },
   // OpenRouter proxies many models with uneven structured-output support, so it
@@ -122,6 +139,7 @@ const PROFILES: Record<Exclude<ModelBackend, "mock">, EndpointProfile> = {
     sendMaxPixels: false,
     structuredOutput: "json_object",
     reasoningDeltaField: "reasoning",
+    implicitPromptCache: false,
     contextWindowTokens: QWEN3VL_32K,
   },
 };
