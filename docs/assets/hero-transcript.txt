@@ -1,0 +1,66 @@
+judgment-engine — reviewing http://127.0.0.1:62266 (bundled demo site)
+  CANNED replay client — authored responses, not a live model (packages/cli/fixtures/canned-critique.json)
+  launching Chromium…
+  capturing 2 route(s) × 3 viewport(s)…
+  running triage + deep pass…
+
+Target
+  url         http://127.0.0.1:62266  (bundled demo site)
+  routes      /, /pricing
+  viewports   mobile, tablet, desktop
+  model       CANNED replay client — authored responses, not a live model (packages/cli/fixtures/canned-critique.json)
+  capture     chromium-playwright@1
+
+Capture
+  6 screenshot(s) written to out/screenshots
+  66 DOM element(s) recorded in the geometry map
+  page health: clean
+
+Measured facts  (computed from the captured DOM, no model involved)
+  13 measurement(s) (contrast 6, overflow 3, touch_target 4) over 5 distinct element(s)
+
+   1. [contrast] / #hero-subtitle (mobile, tablet, desktop)
+      text contrast 3.23:1 is below WCAG AA 4.5:1
+   2. [overflow] / #promo-code (mobile, tablet, desktop)
+      content width 345px exceeds container 140px and is clipped (overflow-x: hidden, text-overflow: clip, white-space: nowrap); not gated because the element is animated, so the content may scroll into view on its own and the affordance is the motion rather than anything in its computed style
+   3. [touch_target] / #icon-close (mobile, tablet)
+      touch target 20x20px is below the 24x24px minimum in WCAG 2.2 SC 2.5.8 Target Size (Minimum), level AA
+   4. [contrast] /pricing #pricing-fineprint (mobile, tablet, desktop)
+      text contrast 2.61:1 is below WCAG AA 4.5:1
+   5. [touch_target] /pricing #plan-scale-cta (mobile, tablet)
+      advisory: touch target 30x30px meets the 24x24px minimum in WCAG 2.2 SC 2.5.8 Target Size (Minimum), level AA, and is below the 44x44px minimum in WCAG 2.2 SC 2.5.5 Target Size (Enhanced), level AAA
+  every measurement: out/deterministic-facts.txt
+
+Design-system grounding
+  none (no_genome_file)
+  [verdict] no design-system rule grounded this review (no_genome_file): no UI-DNA snapshot was found at packages/cli/fixtures/demo-site/ui-dna.json. No approved design-system rule was retrieved for any route. The critique was still grounded on what this repository does state about its design (9 design token(s), a brand block, 2 detected component librar(ies)) and on the measured facts, so it is a weaker review, not an empty one.
+
+Grounding gate
+  5 replayed finding(s) parsed, 2 dropped for citing a route or element that was never captured
+
+Review
+  grade       n/a (canned client, no model saw this page)
+  findings    n/a (no model ran; see the measured facts above)
+  confidence  n/a (no model ran)
+  blocking    advisory only
+
+  FIXTURE TEXT: replayed from the canned client, not a judgment about this page.
+  It was authored before this page was captured; it survived the grounding gate
+  only because this page happens to contain the elements it names.
+
+    - [major/accessibility] Dismiss control is a 20x20 touch target
+      / mobile → #icon-close
+    - [major/accessibility] Scale plan action is a 30x30 arrow glyph
+      /pricing mobile → #plan-scale-cta
+    - [minor/visual_hierarchy] Headline and primary action carry similar weight
+      / desktop → #hero-title
+
+Wrote
+  out/review.json
+  out/system-prompt.txt
+  out/geometry.json
+  out/deterministic-facts.txt
+  note: review.json carries the fixture's own grade field. It is not a grade for this page.
+        its provenance block says the same in band: model_backed is false.
+
+Done in 7.9s.
