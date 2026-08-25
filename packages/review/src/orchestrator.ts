@@ -221,6 +221,18 @@ function geometrySelectors(geometry: GeometryRect[]): Set<string> {
   return new Set(geometry.map((g) => g.selector));
 }
 
+/**
+ * The geometry entries captured for one route (#18), rendered into that route's
+ * deep prompt as the citable `element_ref` map. Passing the SAME `capture.geometry`
+ * that builds the hallucination gate's accept set (below) is what keeps the
+ * prompt and the gate in lockstep: every selector the gate will accept for this
+ * route is a selector the model was shown, so it cites real selectors instead of
+ * pixel-inferred ones the gate then deletes (#W1-02).
+ */
+function geometryForRoute(route: string, geometry: GeometryRect[]): GeometryRect[] {
+  return geometry.filter((g) => g.route === route);
+}
+
 /** All captured route ids; the hallucination gate (#32) drops findings off these. */
 function capturedRoutes(images: CaptureImage[]): string[] {
   return [...new Set(images.map((i) => i.route))];
@@ -426,9 +438,11 @@ export async function runReview(input: ReviewInput, deps: ReviewDeps): Promise<E
     const images = modelImagesFor(r.route, capture.images);
     const cfg = byRoute.get(r.route);
     const genomeRules = genomeRulesByRoute.get(r.route) ?? [];
+    const geometry = geometryForRoute(r.route, capture.geometry);
     deepRoutes.push({
       route: r.route,
       images,
+      ...(geometry.length > 0 ? { geometry } : {}),
       ...(cfg?.facts && cfg.facts.length > 0 ? { facts: cfg.facts } : {}),
       ...(genomeRules.length > 0 ? { genomeRules } : {}),
       ...(cfg?.pageText ? { pageText: cfg.pageText } : {}),

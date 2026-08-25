@@ -6,7 +6,7 @@ import type { Dimension } from "@apatureai/verdict-types";
  * is part of the version stamp (#68) and the eval-gated promotion (#71), so a
  * prompt change can't ship without a version bump and an eval pass.
  */
-export const SYSTEM_PROMPT_VERSION = "v4";
+export const SYSTEM_PROMPT_VERSION = "v5";
 
 /** Delimiter tag that fences untrusted page text inside the prompt (#53). */
 export const UNTRUSTED_CONTENT_TAG = "untrusted_page_content";
@@ -78,13 +78,20 @@ const DIMENSION_RUBRIC: Record<Dimension, string> = {
  * measured element (`serializeGeometry` in `@apatureai/verdict-capture`), so the two rules
  * are consistent, and the prompt says so rather than leaving the model to
  * discover it.
+ *
+ * v5 (#W1-02): the map is now actually delivered. The task input carries a "DOM
+ * geometry" block (`renderGeometry`) listing every citable selector, so the
+ * rules below name that block explicitly and the instruction is TRUE — before
+ * v5 they told the model to cite "the provided DOM geometry" the request never
+ * carried, which left its only selector vocabulary the deterministic-fact lines
+ * and made the gate delete any real inferred selector it named.
  */
 const ANTI_HALLUCINATION = [
   "GROUNDING RULES (mandatory):",
   "- Each finding has a concise `title` (a short summary, <= ~80 chars) and a `description` (the full grounded explanation). The title is a headline, not a truncation of the description.",
-  "- Every finding MUST name something visible in a specific captured image segment; cite the segment and the element_ref from the provided DOM geometry. If you cannot ground it, do not report it.",
-  "- Only report issues on routes that were captured and elements present in the geometry map. Never invent a route or element.",
-  "- Every element named in a deterministic check fact IS present in the geometry map, so reporting a measured contrast, overflow or touch-target fact never conflicts with the rule above. Cite its element_ref exactly as the fact spells it.",
+  "- Every finding MUST name something visible in a specific captured image segment; cite the segment and, as its `element_ref`, a selector copied EXACTLY from the DOM geometry block in the task input. If the element is not in that block, do not report it.",
+  "- Only report issues on routes that were captured and elements listed in the DOM geometry block. Never invent a route, a selector, or an element.",
+  "- Every element named in a deterministic check fact is also listed in the DOM geometry block, so reporting a measured contrast, overflow or touch-target fact never conflicts with the rule above. Cite its element_ref exactly as the block spells it.",
   "- Do NOT report hover, focus, active, or animation states — they are not captured.",
   "- When uncertain, LOWER the confidence (0..1); never inflate or invent to fill the rubric.",
   "- Prefer issues introduced or affected by this PR's diff.",

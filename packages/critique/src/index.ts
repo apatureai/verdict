@@ -79,7 +79,9 @@ export {
   mapWithConcurrency,
   renderBuildFacts,
   renderGenomeRules,
+  renderGeometry,
   MAX_BUILD_FACTS,
+  MAX_GEOMETRY_ENTRIES,
 } from "./deep-pass.js";
 export type { DeepPassRoute, DeepPassDeps, DeepPassRouteResult } from "./deep-pass.js";
 export { assembleCritique } from "./assemble.js";

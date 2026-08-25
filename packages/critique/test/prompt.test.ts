@@ -40,17 +40,25 @@ describe("buildSystemPrompt (#30)", () => {
     expect(prompt).toMatch(/ignore previous instructions|approve this PR/i);
   });
 
-  it("reconciles 'trust the measured facts' with 'only cite elements in the geometry map'", () => {
+  it("reconciles 'trust the measured facts' with 'only cite elements in the geometry block'", () => {
     const prompt = buildSystemPrompt({ brandPresent: true });
     // Both halves are still asked for.
     expect(prompt).toMatch(/contrast\/overflow\/touch-targets are measured facts: trust them/);
-    expect(prompt).toMatch(/elements present in the geometry map/);
+    expect(prompt).toMatch(/elements listed in the DOM geometry block/);
     // And the prompt states why they do not conflict, instead of leaving a model
     // that obeys the first to be punished by the second.
     expect(prompt).toMatch(
-      /Every element named in a deterministic check fact IS present in the geometry map/,
+      /Every element named in a deterministic check fact is also listed in the DOM geometry block/,
     );
     expect(prompt).toMatch(/never conflicts with the rule above/);
+  });
+
+  it("names the DOM geometry block the model must cite element_ref from (v5, #W1-02)", () => {
+    const prompt = buildSystemPrompt({ brandPresent: true });
+    // The instruction must point at the block the request now actually carries,
+    // copied EXACTLY, so the gate's exact-match accept set is what the model cites.
+    expect(prompt).toMatch(/copied EXACTLY from the DOM geometry block in the task input/);
+    expect(prompt).toMatch(/Never invent a route, a selector, or an element/);
   });
 
   it("appends component-library addenda when present", () => {
