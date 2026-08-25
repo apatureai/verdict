@@ -75,4 +75,36 @@ describe("resolveModelRuntime", () => {
     expect(sent.response_format).toEqual({ type: "json_object" });
     expect(sent.messages[0].content[1].image_url.url).toBe("data:image/png;base64,AAA");
   });
+
+  it("threads MODEL_MAX_ATTEMPTS into the live client so a 503 is retried (W1-05)", async () => {
+    let calls = 0;
+    const okStream = () =>
+      new Response(
+        new ReadableStream<Uint8Array>({
+          start(controller) {
+            controller.enqueue(
+              new TextEncoder().encode('data: {"choices":[{"delta":{"content":"ok"},"finish_reason":"stop"}]}\n\ndata: [DONE]\n\n'),
+            );
+            controller.close();
+          },
+        }),
+        { status: 200 },
+      );
+    const fetchImpl = vi.fn(async () => {
+      calls += 1;
+      return calls === 1 ? new Response("overloaded", { status: 503 }) : okStream();
+    });
+    const runtime = resolveModelRuntime(
+      { MODEL_API_KEY: "k", MODEL_BASE_URL: "https://model.example/v1", MODEL_MAX_ATTEMPTS: "2" },
+      { fetchImpl: fetchImpl as unknown as typeof fetch, log: () => {} },
+    );
+    const client = runtime.factory({ model: "m", backend: "self-host", thinking: false });
+    const response = await client.complete({
+      model: "m",
+      thinking: false,
+      messages: [{ role: "user", content: "go" }],
+    });
+    expect(response.text).toBe("ok");
+    expect(fetchImpl).toHaveBeenCalledTimes(2);
+  });
 });

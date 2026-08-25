@@ -28,8 +28,20 @@ export {
   decodeSseStream,
   parseSseData,
   toHttpChatBody,
+  isRetryableStatus,
+  parseRetryAfter,
+  backoffDelayMs,
+  estimateQwenImageTokens,
+  pngDimensionsFromDataUrl,
+  ModelTimeoutError,
 } from "./http-model.js";
-export type { HttpModelEndpoint } from "./http-model.js";
+export type {
+  HttpModelEndpoint,
+  HttpTimeoutConfig,
+  HttpRetryConfig,
+  HttpModelLog,
+  DecodeSseOptions,
+} from "./http-model.js";
 export { resolveModelRuntime, ModelConfigError } from "./model-runtime.js";
 export type { ModelEnv, ModelRuntime, ModelRuntimeMode, ModelRuntimeOptions } from "./model-runtime.js";
 export {

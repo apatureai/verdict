@@ -24,7 +24,11 @@ import type {
 /** One streamed chunk in the OpenAI chat-completions shape. */
 export interface ChatChunk {
   choices: Array<{
-    delta: { content?: string | null; reasoning_content?: string | null };
+    // DashScope streams the reasoning block as `reasoning_content`; ollama /
+    // qwen3-vl and several OpenAI-compatible self-host servers stream it as
+    // `reasoning` (W1-05). Accept either so the deep pass never silently loses
+    // the whole chain-of-thought against a self-hosted endpoint.
+    delta: { content?: string | null; reasoning_content?: string | null; reasoning?: string | null };
     finish_reason?: string | null;
   }>;
   usage?: {
@@ -133,7 +137,8 @@ export class DashScopeModelClient implements ModelClient {
     let usage: ChatChunk["usage"];
     for await (const chunk of stream) {
       const choice = chunk.choices[0];
-      if (choice?.delta.reasoning_content) thinking += choice.delta.reasoning_content;
+      const reasoningDelta = choice?.delta.reasoning_content ?? choice?.delta.reasoning;
+      if (reasoningDelta) thinking += reasoningDelta;
       if (choice?.delta.content) content += choice.delta.content;
       if (choice?.finish_reason) finishReason = choice.finish_reason;
       if (chunk.usage) usage = chunk.usage;
