@@ -45,7 +45,7 @@ const calibration: CalibrationRuntimeBinding = {
 };
 
 const baseDeps = {
-  capturedRoutes: ["/pricing", "/home"],
+  capturedShots: [{ route: "/pricing", viewport: "desktop" }, { route: "/home", viewport: "desktop" }],
   geometrySelectors: ["#cta", ".grid", "#hero"],
   model: "qwen3-vl-plus",
   captureVersion: "stub@0",

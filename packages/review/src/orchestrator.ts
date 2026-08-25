@@ -478,10 +478,28 @@ export async function runReview(input: ReviewInput, deps: ReviewDeps): Promise<E
       )
     : [];
 
+  // The routes this run actually formed a judgment about: a route whose deep pass
+  // returned a valid critique, or a route triage looked at and cleared. This is
+  // EXACTLY what coverage reports below, and it is the set the grounding gate
+  // validates findings against, so the two cannot drift: a finding can only
+  // survive on a `(route, viewport)` shot this run reviewed, which is the same set
+  // coverage publishes. That is what keeps every published finding inside its own
+  // coverage claim (∀f: f.route ∈ routesReviewed ∧ f.viewport ∈ viewportsReviewed).
+  const deepJudged = new Set(
+    deepResults.filter((r) => r.output !== null).map((r) => r.route),
+  );
+  const reviewedRoutes = capturedRoutes(capture.images).filter(
+    (route) => deepJudged.has(route) || (!triageNamedNothing && !suspect.has(route)),
+  );
+  const reviewedRouteSet = new Set(reviewedRoutes);
+  const reviewedShots = capture.images
+    .filter((i) => reviewedRouteSet.has(i.route))
+    .map((i) => ({ route: i.route, viewport: i.viewport }));
+
   // 5. Assemble (#106): the global validation tail (gate #32 / ceiling #70 /
   //    post-filter #33 / reconcileGrade / stamp #68) over ALL merged findings.
   const critique = assembleCritique(deepResults, {
-    capturedRoutes: capturedRoutes(capture.images),
+    capturedShots: reviewedShots,
     geometrySelectors: selectors,
     // #160: the capture contributes only the instability fact; the validated
     // promoted report owns the numeric ceiling and post-filter threshold.
@@ -506,16 +524,13 @@ export async function runReview(input: ReviewInput, deps: ReviewDeps): Promise<E
   // one. Everything else is unreviewed, which covers a deep pass whose output
   // failed coercion (`output: null`) and a triage that named nothing at all. When
   // every route lands there the reviewed set is empty, which is how a run that
-  // judged nothing is told apart from a clean page that graded `ship`.
-  const deepJudged = new Set(
-    deepResults.filter((r) => r.output !== null).map((r) => r.route),
-  );
+  // judged nothing is told apart from a clean page that graded `ship`. Computed
+  // above as `reviewedRoutes` because the grounding gate is validated against the
+  // same set; coverage and the gate must report the identical reviewed set.
   const coverage = buildCoverage({
     requestedRoutes: requestedRoutesOf(input),
     requestedViewports: input.captureContext.viewports,
-    reviewedRoutes: capturedRoutes(capture.images).filter(
-      (route) => deepJudged.has(route) || (!triageNamedNothing && !suspect.has(route)),
-    ),
+    reviewedRoutes,
     images: capture.images,
   });
 
@@ -581,7 +596,7 @@ function emptyFindingsResult(
 ): EngineReviewResult {
   const deepConfig = resolvePassModel("deep", deps.passModels);
   const critique = assembleCritique([], {
-    capturedRoutes: [],
+    capturedShots: [],
     notReviewed: [...(input.notReviewed ?? []), ...(options.extraNotReviewed ?? [])],
     model: deepConfig.model,
     captureVersion,

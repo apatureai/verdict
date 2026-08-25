@@ -1,6 +1,7 @@
 import type { CalibrationRuntimeBinding, Finding } from "@apatureai/verdict-types";
 import { describe, expect, it } from "vitest";
 import { runValidationTail } from "../src/validation-tail.js";
+import type { CapturedShot } from "../src/hallucination-gate.js";
 import type { CalibrationRuntimeIdentity } from "../src/calibration-binding.js";
 
 const finding = (over: Partial<Finding> = {}): Finding => ({
@@ -9,13 +10,17 @@ const finding = (over: Partial<Finding> = {}): Finding => ({
   confidence: 0.8,
   route: "/",
   viewport: "desktop",
-  elementRef: null,
+  // Non-null by default: grounded findings drive the grade. Tests that want the
+  // ungrounded (null-elementRef) path set it explicitly.
+  elementRef: "#el",
   title: "x",
   description: "x",
   suggestion: null,
   introducedByThisPr: true,
   ...over,
 });
+
+const shot = (route: string, viewport: Finding["viewport"] = "desktop"): CapturedShot => ({ route, viewport });
 
 const identity: CalibrationRuntimeIdentity = {
   model: "qwen3-vl-plus",
@@ -43,22 +48,60 @@ describe("runValidationTail — the shared gate/calibrate/filter/reconcile seque
     const out = runValidationTail({
       findings: [finding({ route: "/" }), finding({ route: "/ghost", severity: "blocker" })],
       modelGrade: "blocked", // model over-graded on a finding that will be dropped
-      capturedRoutes: ["/"],
+      capturedShots: [shot("/")],
       captureUnstable: false,
       identity,
     });
     expect(out.hallucinationDrops).toBe(1); // the /ghost blocker is dropped
     expect(out.findings).toHaveLength(1);
+    expect(out.ungroundedFindings).toBe(0);
     expect(out.grade).toBe("needs_work"); // floored: the surviving minor supports needs_work, not blocked
     expect(out.blockingEnabled).toBe(false);
     expect(out.calibration).toBeUndefined();
+  });
+
+  it("holds an ungrounded (null-elementRef) blocker out of the grade and ranks it last", () => {
+    const out = runValidationTail({
+      findings: [
+        finding({ severity: "nit", elementRef: "#real" }),
+        finding({ severity: "blocker", elementRef: null }),
+      ],
+      modelGrade: "blocked",
+      capturedShots: [shot("/")],
+      captureUnstable: false,
+      identity,
+    });
+    // Both are published, but the ungrounded blocker cannot block: grade is floored
+    // to the single grounded nit.
+    expect(out.findings).toHaveLength(2);
+    expect(out.ungroundedFindings).toBe(1);
+    expect(out.grade).toBe("ship_with_nits");
+    // Ranking: the grounded nit sits ahead of the ungrounded blocker.
+    expect(out.findings[0]?.elementRef).toBe("#real");
+    expect(out.findings[1]?.elementRef).toBeNull();
+    expect(out.findings[1]?.severity).toBe("blocker");
+    // An ungrounded observation is not a hallucination.
+    expect(out.hallucinationDrops).toBe(0);
+  });
+
+  it("grades ship when every surviving finding is ungrounded", () => {
+    const out = runValidationTail({
+      findings: [finding({ severity: "major", elementRef: null })],
+      modelGrade: "needs_work",
+      capturedShots: [shot("/")],
+      captureUnstable: false,
+      identity,
+    });
+    expect(out.findings).toHaveLength(1);
+    expect(out.ungroundedFindings).toBe(1);
+    expect(out.grade).toBe("ship");
   });
 
   it("applies calibration only when the binding matches the runtime identity", () => {
     const matched = runValidationTail({
       findings: [finding()],
       modelGrade: "ship_with_nits",
-      capturedRoutes: ["/"],
+      capturedShots: [shot("/")],
       captureUnstable: false,
       calibration,
       identity,
@@ -69,7 +112,7 @@ describe("runValidationTail — the shared gate/calibrate/filter/reconcile seque
     const mismatched = runValidationTail({
       findings: [finding()],
       modelGrade: "ship_with_nits",
-      capturedRoutes: ["/"],
+      capturedShots: [shot("/")],
       captureUnstable: false,
       calibration,
       identity: { ...identity, model: "retired-model" },
@@ -83,7 +126,7 @@ describe("runValidationTail — the shared gate/calibrate/filter/reconcile seque
       // 0.7 clears the postFilter floor (0.55) but is below blockingMinConfidence (0.9)
       findings: [finding({ severity: "blocker", confidence: 0.7, elementRef: "#a" })],
       modelGrade: "blocked",
-      capturedRoutes: ["/"],
+      capturedShots: [shot("/")],
       captureUnstable: false,
       calibration,
       identity,
