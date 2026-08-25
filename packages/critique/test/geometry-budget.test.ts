@@ -20,7 +20,7 @@ const geom = (i: number): GeometryRect => ({
 function selectorsIn(block: string): Set<string> {
   const out = new Set<string>();
   for (const line of block.split("\n")) {
-    const m = /^- (#e\d+) \(/.exec(line);
+    const m = /^- (#e\d+) box /.exec(line);
     if (m) out.add(m[1] as string);
   }
   return out;

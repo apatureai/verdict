@@ -88,6 +88,60 @@ describe("hallucinationGate (#32)", () => {
     expect(result.hallucinationDrops).toBe(0);
   });
 
+  // F1 — the citation-suffix class that deleted all 11 field findings. The
+  // geometry block rendered `- #upgrade (button) box …` and told the model to cite
+  // element_ref "EXACTLY as written", so it cited the role too. The gate normalises
+  // that KNOWN artefact and matches the selector exactly — never fuzzily.
+  describe("F1 — normalises known citation artefacts, then matches EXACTLY", () => {
+    const geo = ["#upgrade", "body > header", "body > main > section:nth-of-type(1) > a", "body > header > nav > a:nth-of-type(1)", "body > header > nav > a:nth-of-type(2)"];
+    const gate = (ref: string | null) =>
+      hallucinationGate([finding({ elementRef: ref })], {
+        capturedShots: [shot("/pricing", "desktop")],
+        geometrySelectors: geo,
+      });
+
+    it("strips a trailing parenthesised role: `#upgrade (button)` → `#upgrade`", () => {
+      const r = gate("#upgrade (button)");
+      expect(r.findings.map((f) => f.elementRef)).toEqual(["#upgrade"]);
+      expect(r.hallucinationDrops).toBe(0);
+    });
+
+    it("strips a `(generic)` role suffix on a descendant selector", () => {
+      const r = gate("body > header (generic)");
+      expect(r.findings.map((f) => f.elementRef)).toEqual(["body > header"]);
+      expect(r.hallucinationDrops).toBe(0);
+    });
+
+    it("does NOT mistake a `:nth-of-type(1)` pseudo-class for a role suffix", () => {
+      // The paren here has no preceding space, so it is part of the selector.
+      const r = gate("body > main > section:nth-of-type(1) > a (link)");
+      expect(r.findings.map((f) => f.elementRef)).toEqual(["body > main > section:nth-of-type(1) > a"]);
+      expect(r.hallucinationDrops).toBe(0);
+    });
+
+    it("splits a comma-joined multi-selector citation into one finding per resolved selector", () => {
+      const r = gate(
+        "body > header > nav > a:nth-of-type(1) (link), body > header > nav > a:nth-of-type(2) (link)",
+      );
+      expect(r.findings.map((f) => f.elementRef)).toEqual([
+        "body > header > nav > a:nth-of-type(1)",
+        "body > header > nav > a:nth-of-type(2)",
+      ]);
+      expect(r.hallucinationDrops).toBe(0);
+    });
+
+    it("still DROPS a normalised citation that resolves to no real selector (no fuzzy match)", () => {
+      const r = gate("#imaginary (button)");
+      expect(r.findings).toEqual([]);
+      expect(r.hallucinationDrops).toBe(1);
+    });
+
+    it("keeps only the parts of a multi-cite that resolve; the rest are dropped", () => {
+      const r = gate("#upgrade (button), #ghost (link)");
+      expect(r.findings.map((f) => f.elementRef)).toEqual(["#upgrade"]);
+    });
+  });
+
   it("clamps out-of-range / non-finite confidence into [0,1]", () => {
     const result = hallucinationGate(
       [

@@ -7,7 +7,7 @@ import { FileScreenshotSink } from "./file-sink.js";
 import { loadRepoGenome } from "./genome-source.js";
 import { lexicalEmbedder, LEXICAL_EMBEDDER_ID } from "./lexical-embedder.js";
 import { runLocalReview, writeReviewArtifacts } from "./local-review.js";
-import { fixturesDir, passModelsFromEnv, resolveLocalModel } from "./model-choice.js";
+import { contextWindowFromEnv, fixturesDir, passModelsFromEnv, resolveLocalModel } from "./model-choice.js";
 import { CLI_ENGINE_NAME, localJudgmentProvenance, stampJudgmentProvenance } from "./provenance.js";
 import { loadRepoContext } from "./repo-context.js";
 import { displayPath, renderSummary, type RunSummary } from "./report.js";
@@ -105,6 +105,10 @@ export async function runCli(options: CliOptions, io: RunIo): Promise<number> {
         context: loaded.context,
         genome,
         verifyStability: options.verifyStability,
+        // C2: run the context-window preflight on a live run, resolving the deep
+        // endpoint's window from its profile. A canned/mock client sends no prompt
+        // to a real endpoint, so it needs no preflight.
+        ...(model.kind === "live" ? { contextWindow: contextWindowFromEnv(io.env) } : {}),
       },
       {
         browser,

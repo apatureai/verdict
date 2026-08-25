@@ -14,9 +14,11 @@ import {
   writeReviewArtifacts,
   LEXICAL_EMBEDDER_ID,
   type LocalGenome,
+  type LocalReviewRequest,
   type ModelChoice,
   type ResolvedLocalModel,
   passModelsFromEnv,
+  contextWindowFromEnv,
 } from "@apatureai/verdict-cli";
 import type { ContextBlockInput } from "@apatureai/verdict-context";
 import { pgliteExecutor, runMigrations } from "@apatureai/verdict-db";
@@ -170,12 +172,18 @@ export async function createLocalEngine(options: LocalEngineOptions): Promise<Lo
   });
 
   const processor = async (job: JobRecord): Promise<EngineReviewResult> => {
-    const request = toLocalReviewRequest(job, {
-      ...(repoContext ? { repoContext } : {}),
-      ...(repoGenome ? { genome: repoGenome } : {}),
-      ...(options.verifyStability !== undefined ? { verifyStability: options.verifyStability } : {}),
-      keyPrefix: jobScreenshotPrefix(job.id),
-    });
+    const request: LocalReviewRequest = {
+      ...toLocalReviewRequest(job, {
+        ...(repoContext ? { repoContext } : {}),
+        ...(repoGenome ? { genome: repoGenome } : {}),
+        ...(options.verifyStability !== undefined ? { verifyStability: options.verifyStability } : {}),
+        keyPrefix: jobScreenshotPrefix(job.id),
+      }),
+      // C2: run the context-window preflight on a live run (same resolution as the
+      // CLI), so a served job degrades the map deterministically instead of the
+      // endpoint silently context-shifting it. Offline clients need no preflight.
+      ...(model.kind === "live" ? { contextWindow: contextWindowFromEnv(process.env) } : {}),
+    };
     const signal = coordinator.register(job.id);
     const outcome = await runLocalReview(request, {
       browser: await ensureBrowser(),

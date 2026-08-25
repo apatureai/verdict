@@ -1103,7 +1103,7 @@ describe("runReview delivers the geometry map the gate validates against (#W1-02
       if (!route || !user.includes("DOM geometry")) continue;
       const selectors = new Set<string>();
       for (const line of user.split("\n")) {
-        const m = /^- (.+?) \([^)]*\) box /.exec(line);
+        const m = /^- (.+?) box /.exec(line);
         if (m?.[1]) selectors.add(m[1]);
       }
       byRoute.set(route, selectors);

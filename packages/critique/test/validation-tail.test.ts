@@ -121,6 +121,45 @@ describe("runValidationTail — the shared gate/calibrate/filter/reconcile seque
     expect(mismatched.blockingEnabled).toBe(false);
   });
 
+  it("F3 — DISCLOSES the trust-budget truncation instead of dropping a whole class silently", () => {
+    // The field failure: five off-8px-scale spacing minors plus findings in other
+    // dimensions. The cap keeps 1 blocker + 6 others; whatever it withholds is
+    // surfaced on `withheldFindings`, per dimension, rather than dropped in silence.
+    const dims: Finding["dimension"][] = ["brand", "consistency", "typography", "responsiveness"];
+    const findings: Finding[] = [
+      ...Array.from({ length: 5 }, (_, i) =>
+        finding({ dimension: "spacing", severity: "minor", elementRef: `#s${i}` }),
+      ),
+      ...dims.map((dimension, i) => finding({ dimension, severity: "major", elementRef: `#d${i}` })),
+    ];
+    const out = runValidationTail({
+      findings,
+      modelGrade: "needs_work",
+      capturedShots: [shot("/")],
+      captureUnstable: false,
+      identity,
+    });
+    // Something was withheld and it is disclosed, per dimension.
+    expect(out.withheldFindings.total).toBeGreaterThan(0);
+    expect(out.withheldFindings.total).toBe(9 - out.findings.length);
+    // Spacing was withheld (its five minors could not all fit) but it was NOT
+    // crowded out entirely — a spacing finding is still among the survivors.
+    expect(out.withheldFindings.byDimension.some((d) => d.dimension === "spacing")).toBe(true);
+    expect(out.findings.some((f) => f.dimension === "spacing")).toBe(true);
+  });
+
+  it("F3 — withheldFindings is empty when everything fits the cap", () => {
+    const out = runValidationTail({
+      findings: [finding({ elementRef: "#a" }), finding({ dimension: "brand", elementRef: "#b" })],
+      modelGrade: "needs_work",
+      capturedShots: [shot("/")],
+      captureUnstable: false,
+      identity,
+    });
+    expect(out.withheldFindings.total).toBe(0);
+    expect(out.withheldFindings.byDimension).toEqual([]);
+  });
+
   it("under blocking calibration, a sub-threshold blocker cannot block (downgraded)", () => {
     const out = runValidationTail({
       // 0.7 clears the postFilter floor (0.55) but is below blockingMinConfidence (0.9)

@@ -21,7 +21,7 @@ import {
 function selectorsInBlock(block: string): Set<string> {
   const out = new Set<string>();
   for (const line of block.split("\n")) {
-    const m = /^- (.+?) \([^)]*\) box /.exec(line);
+    const m = /^- (.+?) box /.exec(line);
     if (m?.[1]) out.add(m[1]);
   }
   return out;
@@ -190,15 +190,15 @@ describe("DOM geometry grounding (#W1-02)", () => {
       geom("/", "desktop", "body > div > h1", "heading"),
       geom("/", "mobile", "#cta", "button"),
     ]);
-    expect(out).toContain("DOM geometry (cite element_ref EXACTLY as written");
+    expect(out).toContain("DOM geometry. Each element line is");
     expect(out).toContain("[desktop]");
     expect(out).toContain("[mobile]");
-    expect(out).toContain("- body > div > h1 (heading) box 12,34 56x78");
-    expect(out).toContain("- #cta (button) box 12,34 56x78");
+    expect(out).toContain("- body > div > h1 box 12,34 56x78 role=heading");
+    expect(out).toContain("- #cta box 12,34 56x78 role=button");
   });
 
   it("labels a null role as generic so every entry names a role", () => {
-    expect(renderGeometry([geom("/", "desktop", "#x", null)])).toContain("- #x (generic) box ");
+    expect(renderGeometry([geom("/", "desktop", "#x", null)])).toContain("- #x box 12,34 56x78 role=generic");
   });
 
   it("INVARIANT: every selector is present — rendered ⊇ the gate's accept set", () => {
@@ -238,8 +238,9 @@ describe("DOM geometry grounding (#W1-02)", () => {
     await critiqueRouteTwoStep(deps(mock), r);
     const userMsg = mock.calls.find((c) => c.thinking)?.messages.find((m) => m.role === "user");
     const content = userMsg?.content ?? "";
-    expect(content).toContain("DOM geometry (cite element_ref EXACTLY as written");
-    expect(content).toContain("- #upgrade (button) box ");
+    expect(content).toContain("DOM geometry. Each element line is");
+    expect(content).toContain("- #upgrade box ");
+    expect(content).toContain("role=button");
     // Geometry (the map) precedes the ALREADY-REPORTED measurements on it (v6).
     expect(content.indexOf("DOM geometry")).toBeLessThan(content.indexOf("ALREADY REPORTED"));
   });
@@ -260,7 +261,7 @@ describe("DOM geometry grounding (#W1-02)", () => {
     };
     await critiqueRouteSingleCall(deps(mock), r);
     const userMsg = mock.calls[0]?.messages.find((m) => m.role === "user");
-    expect(userMsg?.content).toContain("- #hero (heading) box ");
+    expect(userMsg?.content).toContain("- #hero box ");
   });
 });
 

@@ -9,6 +9,8 @@ export type {
   GroundingAuthorityUnknownReason,
   GroundingAuthorityProvenance,
   ValidationMetadata,
+  WithheldFindings,
+  WithheldDimension,
   Critique,
   ConfidenceSource,
   ConfidenceCalibrationReference,

@@ -114,7 +114,53 @@ describe("netNewFindingRate (judge-unlock north star, §4.4)", () => {
     expect(netNewFindingRate(published, ledger)).toBe(0.5);
   });
 
-  it("is vacuously 1 when nothing was published", () => {
-    expect(netNewFindingRate([], ledger)).toBe(1);
+  // C4: zero published findings must NOT score a vacuous 1.0 — that let an EMPTY
+  // JUDGE (today's precise failure) pass the release gate.
+  it("scores 0 for an EMPTY JUDGE: nothing published on a page the checker measured", () => {
+    // The ledger has measured facts (a non-trivial page), so publishing nothing is
+    // a failure, not a clean bill of health.
+    expect(netNewFindingRate([], ledger)).toBe(0);
+  });
+
+  it("scores 1 for a genuinely CLEAN page: nothing published, nothing measured", () => {
+    expect(netNewFindingRate([], { entries: [] })).toBe(1);
+  });
+
+  it("uses an explicit measured-facts count to distinguish clean from empty", () => {
+    // Even with an empty ledger view, an explicit measured-facts count > 0 means the
+    // page was non-trivial: an empty judge there scores 0.
+    expect(netNewFindingRate([], { entries: [] }, 5)).toBe(0);
+    expect(netNewFindingRate([], { entries: [] }, 0)).toBe(1);
+  });
+
+  it("does NOT count a reworded page-overflow claim pinned to the widest element as net-new (C4 leak)", () => {
+    // `page_overflow` is keyed to the reserved `document` selector; a paraphrase
+    // attached to the widest ELEMENT (a different selector) must still be caught.
+    const pageLedger: NetNewLedger = {
+      entries: [{ claimClass: "page_overflow", route: "/", selector: "document", reported: true }],
+    };
+    const paraphrase: LabeledFinding[] = [
+      { dimension: "responsiveness", severity: "major", route: "/", elementRef: "body > div.container" },
+    ];
+    expect(netNewFindingRate(paraphrase, pageLedger)).toBe(0);
+  });
+
+  it("still counts a DISTINCT element-overflow finding on a page-overflow route as net-new", () => {
+    // A per-element overflow with its OWN measurement is a different, genuine fact.
+    const mixed: NetNewLedger = {
+      entries: [
+        { claimClass: "page_overflow", route: "/", selector: "document", reported: true },
+        { claimClass: "element_overflow", route: "/", selector: "#wide", reported: true },
+      ],
+    };
+    // A responsiveness finding on an element with NO overflow measurement, on a page
+    // that overflows, is a restatement of the page overflow (not net-new)…
+    expect(
+      netNewFindingRate([{ dimension: "responsiveness", severity: "major", route: "/", elementRef: "#other" }], mixed),
+    ).toBe(0);
+    // …but a spacing finding on the same route is genuinely net-new.
+    expect(
+      netNewFindingRate([{ dimension: "spacing", severity: "minor", route: "/", elementRef: "#other" }], mixed),
+    ).toBe(1);
   });
 });

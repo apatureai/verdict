@@ -21,6 +21,7 @@ import {
   assembleCritique,
   backendUsesGuidedDecoding,
   buildSystemPrompt,
+  citableSelectors,
   resolvePassModel,
   runDeepPass,
   runTriage,
@@ -32,7 +33,7 @@ import {
   type TriageRoute,
   type WireProjectionOptions,
 } from "@apatureai/verdict-critique";
-import type { ModelImage, FactLedger } from "@apatureai/verdict-critique";
+import type { ModelImage, FactLedger, GeometryBudget } from "@apatureai/verdict-critique";
 import type { Critique, EngineReviewResult, PreviewBuildFact } from "@apatureai/verdict-types";
 
 /**
@@ -201,6 +202,19 @@ export interface ReviewInput {
   /** Max concurrent deep-pass routes (#29, default 3). */
   concurrency?: number;
   /**
+   * The deep-pass endpoint's advertised context window in tokens (C2). When set,
+   * every route runs the context-window preflight: the deep prompt's geometry map
+   * is degraded deterministically (or the run fails loudly) rather than letting the
+   * endpoint silently context-shift and evict part of the map mid-generation. The
+   * grounding gate's accept set is then derived at whatever budget the preflight
+   * chose, so a degraded prompt is never stricter than the gate. Absent ⇒ no
+   * preflight (the prompt is byte-identical), for callers whose window comfortably
+   * fits the prompt or who have not configured it.
+   */
+  contextWindow?: number;
+  /** Tokens reserved for the (large, Thinking) completion in the preflight; default per endpoint. */
+  completionReserveTokens?: number;
+  /**
    * The deterministic fact ledger (judge-unlock §4.1), built ONCE by the caller
    * from the same deterministic + declined findings that produced the route
    * facts. Threaded to `assembleCritique` to run the duplicate-of-measurement
@@ -231,9 +245,33 @@ export function reviewSystemPrompt(context: ContextBlockInput): string {
   });
 }
 
-/** Valid elementRef selectors from the geometry map (#18), for the #32 element_ref drop. */
-function geometrySelectors(geometry: GeometryRect[]): Set<string> {
-  return new Set(geometry.map((g) => g.selector));
+/**
+ * The grounding gate's `element_ref` accept set (#18/#32). Derived from
+ * `citableSelectors` — the SAME per-route plan the deep prompt renders — not from
+ * the raw `capture.geometry`. A budget-omitted selector (one no route's prompt
+ * could show) is therefore NOT accepted, so the prompt is never silently stricter
+ * than the gate (C3). Grouped by route so each route's citable set matches exactly
+ * what that route's prompt rendered (each deep route renders `geometryForRoute`).
+ */
+function citableAcceptSet(geometry: GeometryRect[], budgetByRoute?: Map<string, GeometryBudget>): Set<string> {
+  const byRoute = new Map<string, GeometryRect[]>();
+  for (const g of geometry) {
+    let bucket = byRoute.get(g.route);
+    if (!bucket) {
+      bucket = [];
+      byRoute.set(g.route, bucket);
+    }
+    bucket.push(g);
+  }
+  const out = new Set<string>();
+  for (const [route, group] of byRoute) {
+    // Each route's citable set is computed at the SAME budget the preflight (C2)
+    // rendered that route's prompt at, so the gate never accepts a selector the
+    // degraded prompt could not show.
+    const budget = budgetByRoute?.get(route);
+    for (const selector of citableSelectors(group, budget)) out.add(selector);
+  }
+  return out;
 }
 
 /**
@@ -340,7 +378,6 @@ export async function runReview(input: ReviewInput, deps: ReviewDeps): Promise<E
   // 2. Capture (#11, injected). Chromium in `@apatureai/verdict-capture` is the live
   //    implementation; tests inject a stub so this composes without a browser.
   const capture = await deps.captureInSandbox(input.url, input.captureContext);
-  const selectors = geometrySelectors(capture.geometry);
 
   // A capture that produced no images can't ground any finding, so short out to a
   // clean "nothing reviewed" result rather than running the model on nothing.
@@ -482,10 +519,20 @@ export async function runReview(input: ReviewInput, deps: ReviewDeps): Promise<E
       // each front door (CLI, local server, worker) having to wire it.
       guidedDecoding: input.guidedDecoding ?? backendUsesGuidedDecoding(deepConfig.backend),
       ...(input.previewBuildFacts ? { buildFacts: input.previewBuildFacts } : {}),
+      // C2: the context-window preflight runs per route when a window is configured.
+      ...(input.contextWindow !== undefined ? { contextWindow: input.contextWindow } : {}),
+      ...(input.completionReserveTokens !== undefined ? { completionReserveTokens: input.completionReserveTokens } : {}),
       ...(deps.signal ? { signal: deps.signal } : {}),
     },
     deepRoutes,
   );
+
+  // The grounding gate's accept set, derived AFTER the deep pass at the SAME
+  // geometry budget the preflight (C2) rendered each route at — so a degraded
+  // prompt is never stricter than the gate (C3 invariant, preserved under C2).
+  const budgetByRoute = new Map<string, GeometryBudget>();
+  for (const r of deepResults) if (r.geometryBudget) budgetByRoute.set(r.route, r.geometryBudget);
+  const selectors = citableAcceptSet(capture.geometry, budgetByRoute);
 
   // Routes triage suspected but that had no captured image are recorded as
   // not-reviewed so the wire result is honest about coverage.

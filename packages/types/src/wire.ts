@@ -4,6 +4,7 @@ import type {
   ConfidenceCalibrationReference,
   ConfidenceUnavailableReason,
   ResultMetadata,
+  WithheldFindings,
 } from "./findings.js";
 import type { JudgmentProvenance } from "./provenance.js";
 
@@ -330,6 +331,15 @@ export interface EngineReviewResult {
    * judgment the checker could not make.
    */
   netNewFindings?: number;
+  /**
+   * What the trust-budget cap WITHHELD (F3): findings that cleared every grounding
+   * and dedupe gate but did not fit the `1 blocker + N others` cap. Additive +
+   * optional on schema v1. Disclosed rather than dropped in silence, so a consumer
+   * is told how many findings — and in which dimensions — this result is not
+   * showing (the field failure silently deleted five off-8px-scale spacing nits).
+   * Absent means the cap withheld nothing, byte-identical to before.
+   */
+  withheldFindings?: WithheldFindings;
   /**
    * The model's own prose, verbatim, on a result where it is not a description
    * of the page. Additive + optional on schema v1, like `coverage` and

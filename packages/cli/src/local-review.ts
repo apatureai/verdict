@@ -100,6 +100,16 @@ export interface LocalReviewRequest {
   screenshotRetentionSeconds?: number;
   /** Object-key prefix for screenshots (default `screenshots`). */
   keyPrefix?: string;
+  /**
+   * The deep-pass endpoint's advertised context window in tokens (C2). When set,
+   * every deep route runs the context-window preflight: the geometry map is
+   * degraded deterministically (or the run fails loudly) rather than the endpoint
+   * silently context-shifting part of it out mid-generation. The front doors
+   * resolve it from the deep backend's endpoint profile (`resolveContextWindowTokens`),
+   * so the preflight actually runs on a real run instead of being dead code. Absent
+   * ⇒ no preflight (prompt byte-identical), for a caller that has not configured it.
+   */
+  contextWindow?: number;
 }
 
 export interface LocalReviewDeps {
@@ -320,6 +330,10 @@ export async function runLocalReview(
       ...(request.previewBuildFacts ? { previewBuildFacts: request.previewBuildFacts } : {}),
       ...(request.notReviewed ? { notReviewed: request.notReviewed } : {}),
       ...(request.requestedRoutes ? { requestedRoutes: request.requestedRoutes } : {}),
+      // C2 preflight: the deep-pass context window, resolved by the caller from the
+      // deep backend's endpoint profile. Without this the preflight never ran on a
+      // real run (`resolveRouteGeometryBudget` returned undefined every time).
+      ...(request.contextWindow !== undefined ? { contextWindow: request.contextWindow } : {}),
       wireOptions: {
         screenshotRetentionSeconds: request.screenshotRetentionSeconds ?? 0,
         screenshotIdFor: (finding) =>

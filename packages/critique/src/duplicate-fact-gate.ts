@@ -132,6 +132,22 @@ function reportedEntriesFor(finding: Finding, ledger: FactLedger): LedgerEntry[]
 }
 
 /**
+ * Routes carrying a REPORTED `page_overflow` measurement. `page_overflow` is a
+ * PAGE-LEVEL fact keyed to the reserved `document` selector (fact-ledger §4.1), so
+ * `reportedEntriesFor` — which matches on `selector === elementRef` — can never see
+ * it. This is the reserved-selector case the shipped gate missed (F4): a reworded
+ * page-overflow claim pinned to the widest ELEMENT (elementRef != "document")
+ * slipped past every check and was miscounted as net-new.
+ */
+function reportedPageOverflowRoutes(ledger: FactLedger): Set<string> {
+  const out = new Set<string>();
+  for (const e of ledger.entries) {
+    if (e.reported && e.claimClass === "page_overflow") out.add(e.route);
+  }
+  return out;
+}
+
+/**
  * Classify one finding's novelty against the ledger (judge-unlock §4.2):
  *   - class matches a reported measurement on the same element → DROP (duplicate);
  *   - no class, but shares a measured literal on the same element → DEMOTE
@@ -145,6 +161,26 @@ export function classifyNovelty(finding: Finding, ledger: FactLedger): Novelty {
   const cls = classifyClaim(finding);
   if (cls !== null && entries.some((e) => e.claimClass === cls)) {
     return "duplicate_of_measurement";
+  }
+  // Page-overflow restatement (F4), the reserved-selector case. A `page_overflow`
+  // measurement is keyed to `document`, so the element-keyed check above never
+  // fires for it. An overflow-class finding on a route with a REPORTED
+  // page_overflow — UNLESS its OWN element carries a distinct element_overflow
+  // measurement (a genuinely per-element fact, handled above) — restates that
+  // page-level measurement whichever element it pins. This is exactly the rule
+  // `packages/eval/src/metrics.ts` applies, so the shipped `netNewFindings` and the
+  // CI `netNewFindingCount` no longer disagree (the shipped review scored a
+  // reworded page-overflow 1 while the metric scored 0). A finding whose PRIMARY
+  // claim IS the page overflow (page_overflow class) adds nothing over the
+  // measurement and is DROPPED; an element-pinned overflow finding (element_overflow
+  // class) may carry design judgment, so it is DEMOTED — the smaller error. Both are
+  // excluded from net-new, which is all the metric parity requires.
+  if (
+    (cls === "page_overflow" || cls === "element_overflow") &&
+    reportedPageOverflowRoutes(ledger).has(finding.route) &&
+    !entries.some((e) => e.claimClass === "element_overflow")
+  ) {
+    return cls === "page_overflow" ? "duplicate_of_measurement" : "restates_measurement";
   }
   if (cls === null && sharesMeasurementLiteral(finding, ledger)) {
     return "restates_measurement";

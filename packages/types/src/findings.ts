@@ -134,6 +134,29 @@ export interface GroundingAuthorityProvenance {
   reason?: GroundingAuthorityUnknownReason;
 }
 
+/** How many findings the trust-budget cap withheld, in one rubric dimension. */
+export interface WithheldDimension {
+  dimension: Dimension;
+  count: number;
+}
+
+/**
+ * What the trust-budget post-filter (#33) WITHHELD: findings that cleared every
+ * grounding/dedupe gate but did not fit the `1 blocker + N others` cap.
+ *
+ * Silently dropping them contradicts the product's honesty thesis (a review that
+ * hides how much it is not telling you is not honest), so the cap now DISCLOSES
+ * the truncation instead: how many findings it withheld, and in which dimensions,
+ * so a reader is told a whole class (e.g. five off-8px-scale spacing nits) was
+ * held back rather than never found. Absent/`total: 0` ⇒ nothing was withheld.
+ */
+export interface WithheldFindings {
+  /** Total findings removed by the cap alone (not by any grounding or dedupe gate). */
+  total: number;
+  /** Per-dimension counts, dimensions with a non-zero count only, dimension-sorted. */
+  byDimension: WithheldDimension[];
+}
+
 /** Validation metadata surfaced with the result (TRD §8). */
 export interface ValidationMetadata {
   /** Findings dropped for unknown route/element_ref (hallucination metric, #32). */
@@ -187,6 +210,12 @@ export interface ValidationMetadata {
    * invisibly useless.
    */
   netNewFindings?: number;
+  /**
+   * What the trust-budget cap WITHHELD (#33), disclosed rather than dropped in
+   * silence. Absent (or `total: 0`) means the cap withheld nothing, so a result
+   * that shows every finding it found stays byte-identical to before.
+   */
+  withheldFindings?: WithheldFindings;
 }
 
 /**
