@@ -370,6 +370,12 @@ export function toEngineReviewResult(critique: Critique, options: WireProjection
     ...(critique.validation.netNewFindings !== undefined
       ? { netNewFindings: critique.validation.netNewFindings }
       : {}),
+    // What the trust-budget cap withheld (F3), projected verbatim only when it
+    // held something back. Never a finding, never touches the grade; it tells a
+    // consumer how many findings — and in which dimensions — are not shown.
+    ...(critique.validation.withheldFindings && critique.validation.withheldFindings.total > 0
+      ? { withheldFindings: critique.validation.withheldFindings }
+      : {}),
     // The model's prose, on a result where it is not a description of the page:
     // either every finding it was written about was deleted, or nothing was
     // reviewed at all. `overall` above carries the engine's statement in both

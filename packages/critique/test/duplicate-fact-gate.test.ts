@@ -115,6 +115,75 @@ describe("duplicateFactGate (judge-unlock §4.2)", () => {
     expect(result.findings).toHaveLength(1);
   });
 
+  // F4 — the reserved-selector case. A page_overflow measurement is keyed to the
+  // reserved "document" selector, so the element-keyed check never sees it, and a
+  // reworded page-overflow claim pinned to the widest ELEMENT slipped past the gate
+  // and was miscounted as net-new (the shipped review scored 1, the CI metric 0).
+  describe("F4 — page-overflow restatement (reserved `document` selector)", () => {
+    const pageOverflowLedger = buildFactLedger([
+      {
+        kind: "page_overflow",
+        route: "/",
+        viewport: "mobile",
+        selector: "document",
+        detail:
+          "document scroll width 927px exceeds the 390px viewport by 537px; widest escaping element: body > main > section:nth-of-type(2) > table (900px wide, right edge 927px)",
+      },
+    ] satisfies DeterministicFinding[]);
+
+    it("DROPS a finding whose primary claim IS the page overflow, on the table it pins", () => {
+      // The paraphrase attack, verbatim: a reworded page-overflow claim pinned to
+      // the table, which carries no distinct element_overflow of its own.
+      const paraphrase = finding({
+        dimension: "responsiveness",
+        viewport: "mobile",
+        elementRef: "body > main > section:nth-of-type(2) > table",
+        title: "The page scrolls sideways on a phone",
+        description:
+          "At this viewport the document is wider than the viewport and the whole page scrolls horizontally.",
+      });
+      const result = duplicateFactGate([paraphrase], pageOverflowLedger);
+      // Excluded from net-new: neither kept as novel nor left uncounted.
+      expect(result.findings).toHaveLength(0);
+      expect(result.duplicateFactDrops + result.restatements.length).toBe(1);
+    });
+
+    it("DEMOTES an element-pinned overflow finding that adds judgment but restates the page fact", () => {
+      const structural = finding({
+        dimension: "responsiveness",
+        viewport: "mobile",
+        elementRef: "body > main > section:nth-of-type(2) > table",
+        title: "Seven-column table cannot be a table at 390px",
+        description:
+          "The invoices table is laid out at a fixed 900px inside a 364px card; at this viewport the columns should stack into a card per invoice.",
+      });
+      const result = duplicateFactGate([structural], pageOverflowLedger);
+      expect(result.findings).toHaveLength(0); // not net-new
+      expect(result.restatements).toHaveLength(1); // kept, demoted
+    });
+
+    it("keeps a finding on the table's OWN distinct element_overflow as net-new", () => {
+      // The same route also reported a per-element overflow on THIS element — a
+      // genuinely different, element-level fact, so an element_overflow finding on
+      // it is not merely restating the page overflow.
+      const ledgerWithElementOverflow = buildFactLedger([
+        { kind: "page_overflow", route: "/", viewport: "mobile", selector: "document", detail: "document scroll width 927px exceeds the 390px viewport" },
+        { kind: "overflow", route: "/", viewport: "mobile", selector: "#chart", detail: "content width 800px exceeds container 360px (horizontal overflow)" },
+      ] satisfies DeterministicFinding[]);
+      const dupOnChart = finding({
+        dimension: "responsiveness",
+        viewport: "mobile",
+        elementRef: "#chart",
+        title: "Chart overflows its card",
+        description: "content width 800px exceeds container 360px, overflowing horizontally",
+      });
+      // Its own element_overflow is reported, so the existing exact-class branch
+      // drops it as a duplicate of THAT measurement (not the page rule).
+      const result = duplicateFactGate([dupOnChart], ledgerWithElementOverflow);
+      expect(result.duplicateFactDrops).toBe(1);
+    });
+  });
+
   it("classifies claims by class, not wording", () => {
     // A paraphrase with no measurement literal still classifies as contrast.
     expect(

@@ -50,10 +50,12 @@ export function estimateImageTokens(imageCount: number, maxPixels: number): numb
 }
 
 /**
- * The documented geometry-shrink tiers, in chars-per-viewport, from the module
- * default down. The preflight walks these in order and picks the first whose
- * rendered prompt fits; the per-request cap keeps its 3x ratio to the per-viewport
- * cap (the module default is 18000/6000).
+ * The documented geometry-shrink tiers, in chars-per-viewport, from below the
+ * module default down. The preflight walks these in order and picks the first
+ * whose rendered prompt fits; the per-request cap keeps its 3x ratio to the
+ * per-viewport cap (the module default is 30000/10000, F2). The full budget is the
+ * module default (tried first as `undefined`), so these are the degrade steps
+ * beneath it.
  */
 export const GEOMETRY_DEGRADE_TIERS: readonly number[] = [6_000, 4_000, 2_500, 1_500];
 

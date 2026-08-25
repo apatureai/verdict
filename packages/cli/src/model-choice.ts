@@ -6,6 +6,7 @@ import {
   cannedModelFactory,
   defaultModelFactory,
   parseCannedScript,
+  resolveContextWindowTokens,
   resolveModelRuntime,
   type ImageUrlResolver,
   type ModelClientFactory,
@@ -95,6 +96,23 @@ type KnownBackend = (typeof KNOWN_BACKENDS)[number];
 export function backendFromEnv(env: NodeJS.ProcessEnv = process.env): KnownBackend | undefined {
   const raw = (env.MODEL_BACKEND ?? "").trim();
   return (KNOWN_BACKENDS as readonly string[]).includes(raw) ? (raw as KnownBackend) : undefined;
+}
+
+/**
+ * The deep-pass context window for this run's endpoint (C2), resolved in ONE place
+ * for every local front door. It reads the SAME `MODEL_BACKEND` the deep pass
+ * resolves its backend from (default `dashscope`, the registry default) and that
+ * backend's endpoint profile, with a `MODEL_CONTEXT_WINDOW` override. Wiring this
+ * into the review request is what makes the context-window preflight actually run
+ * on a real live run — before this it was dead code, because nothing ever passed a
+ * window and `resolveRouteGeometryBudget` returned undefined every time.
+ *
+ * The front doors pass it only for a LIVE client: a canned/mock client sends no
+ * prompt to a real endpoint that could context-shift, so a preflight there would
+ * only risk failing an offline run loud for no benefit.
+ */
+export function contextWindowFromEnv(env: NodeJS.ProcessEnv = process.env): number {
+  return resolveContextWindowTokens(backendFromEnv(env) ?? "dashscope", env);
 }
 
 /**

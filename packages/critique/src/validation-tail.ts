@@ -1,4 +1,10 @@
-import type { CalibrationRuntimeBinding, Finding, Grade } from "@apatureai/verdict-types";
+import type {
+  CalibrationRuntimeBinding,
+  Dimension,
+  Finding,
+  Grade,
+  WithheldFindings,
+} from "@apatureai/verdict-types";
 import {
   applyCalibrationBinding,
   calibrationBindingMatches,
@@ -87,8 +93,29 @@ export interface ValidationTailResult {
    * published. THE NORTH-STAR NUMERATOR (judge-unlock §4.4).
    */
   netNewFindings: number;
+  /**
+   * What the trust-budget cap withheld across every bucket (F3): disclosed on the
+   * result rather than dropped in silence. `total: 0` when nothing was withheld.
+   */
+  withheldFindings: WithheldFindings;
   /** The calibration binding IFF it matched the runtime identity (else undefined). */
   calibration: CalibrationRuntimeBinding | undefined;
+}
+
+/** Merge per-bucket withheld summaries into one, re-summing per dimension. */
+function mergeWithheld(parts: WithheldFindings[]): WithheldFindings {
+  const byDim = new Map<Dimension, number>();
+  let total = 0;
+  for (const part of parts) {
+    total += part.total;
+    for (const { dimension, count } of part.byDimension) {
+      byDim.set(dimension, (byDim.get(dimension) ?? 0) + count);
+    }
+  }
+  const byDimension = [...byDim.entries()]
+    .map(([dimension, count]) => ({ dimension, count }))
+    .sort((a, b) => a.dimension.localeCompare(b.dimension));
+  return { total, byDimension };
 }
 
 export function runValidationTail(input: ValidationTailInput): ValidationTailResult {
@@ -105,7 +132,7 @@ export function runValidationTail(input: ValidationTailInput): ValidationTailRes
   // Calibrate + cap + trust-budget each bucket the same way. Only the grounded
   // bucket goes on to blocking enforcement and the grade; the ungrounded bucket is
   // published for the reader but never drives the verdict.
-  const prepare = (findings: Finding[]): Finding[] => {
+  const prepare = (findings: Finding[]): { findings: Finding[]; withheld: WithheldFindings } => {
     const calibrated = calibration ? applyCalibrationBinding(findings, calibration) : findings;
     const capped =
       input.captureUnstable && calibration
@@ -128,14 +155,25 @@ export function runValidationTail(input: ValidationTailInput): ValidationTailRes
     ? duplicateFactGate(gated.findings, input.factLedger)
     : { findings: gated.findings, restatements: [] as Finding[], duplicateFactDrops: 0 };
 
-  const groundedFiltered = prepare(dup.findings);
-  const grounded = calibration ? enforceBlockingThreshold(groundedFiltered, calibration) : groundedFiltered;
-  const ungrounded = prepare(gated.ungrounded);
+  const groundedPrepared = prepare(dup.findings);
+  const grounded = calibration
+    ? enforceBlockingThreshold(groundedPrepared.findings, calibration)
+    : groundedPrepared.findings;
+  const ungroundedPrepared = prepare(gated.ungrounded);
+  const ungrounded = ungroundedPrepared.findings;
   // Restatements are treated exactly like the ungrounded bucket: calibrated,
   // trust-budgeted, appended after every grounded novel finding, and excluded
   // from the grade. A restating model therefore produces a visibly empty review
   // rather than an invisibly worthless one.
-  const restated = prepare(dup.restatements);
+  const restatedPrepared = prepare(dup.restatements);
+  const restated = restatedPrepared.findings;
+  // The trust-budget cap's withholdings across all three buckets, disclosed (F3)
+  // rather than dropped in silence.
+  const withheldFindings = mergeWithheld([
+    groundedPrepared.withheld,
+    ungroundedPrepared.withheld,
+    restatedPrepared.withheld,
+  ]);
 
   // Grade is reconciled against the GROUNDED NOVEL findings only: a restated or
   // ungrounded finding must never drive the verdict.
@@ -159,6 +197,7 @@ export function runValidationTail(input: ValidationTailInput): ValidationTailRes
     // grade (grounded) plus honest-but-unlocatable novel observations
     // (ungrounded). Restatements and duplicates are excluded by construction.
     netNewFindings: grounded.length + ungrounded.length,
+    withheldFindings,
     calibration,
   };
 }

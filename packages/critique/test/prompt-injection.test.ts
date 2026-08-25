@@ -47,6 +47,7 @@ describe("label prompt-injection defense (judge-unlock §2.6)", () => {
     expect(rendered).not.toContain("</untrusted_page_content>");
     // The residual text is inert data on the element line, not an instruction the
     // block structure could act on.
-    expect(rendered).toContain("#hero (heading)");
+    expect(rendered).toContain("- #hero box ");
+    expect(rendered).toContain("role=heading");
   });
 });

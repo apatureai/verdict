@@ -1,0 +1,2177 @@
+[
+  {
+    "route": "/",
+    "viewport": "mobile",
+    "selector": "body > header",
+    "role": "generic",
+    "rect": {
+      "x": 0,
+      "y": 0,
+      "width": 390,
+      "height": 48
+    },
+    "style": {
+      "fontFamily": "Helvetica Neue",
+      "fontSizePx": 16,
+      "fontWeight": 400,
+      "lineHeightPx": null,
+      "color": "#101828",
+      "backgroundColor": "transparent",
+      "paddingPx": [
+        13,
+        27,
+        13,
+        27
+      ],
+      "marginPx": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "gapPx": [
+        0,
+        0
+      ],
+      "borderRadiusPx": 0,
+      "display": "flex"
+    },
+    "overflowsX": false
+  },
+  {
+    "route": "/",
+    "viewport": "mobile",
+    "selector": "body > header > span",
+    "role": "generic",
+    "rect": {
+      "x": 27,
+      "y": 13,
+      "width": 84.36,
+      "height": 21
+    },
+    "style": {
+      "fontFamily": "Helvetica Neue",
+      "fontSizePx": 17,
+      "fontWeight": 700,
+      "lineHeightPx": null,
+      "color": "#101828",
+      "backgroundColor": "transparent",
+      "paddingPx": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "marginPx": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "gapPx": null,
+      "borderRadiusPx": 0,
+      "display": null
+    },
+    "label": "Northwind",
+    "overflowsX": false
+  },
+  {
+    "route": "/",
+    "viewport": "mobile",
+    "selector": "body > header > nav",
+    "role": "navigation",
+    "rect": {
+      "x": 237.8,
+      "y": 13.5,
+      "width": 125.2,
+      "height": 20
+    },
+    "style": {
+      "fontFamily": "Helvetica Neue",
+      "fontSizePx": 16,
+      "fontWeight": 400,
+      "lineHeightPx": null,
+      "color": "#101828",
+      "backgroundColor": "transparent",
+      "paddingPx": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "marginPx": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "gapPx": [
+        7,
+        7
+      ],
+      "borderRadiusPx": 0,
+      "display": "flex"
+    },
+    "overflowsX": false
+  },
+  {
+    "route": "/",
+    "viewport": "mobile",
+    "selector": "body > header > nav > a:nth-of-type(1)",
+    "role": "link",
+    "rect": {
+      "x": 237.8,
+      "y": 16,
+      "width": 28.28,
+      "height": 15
+    },
+    "style": {
+      "fontFamily": "Georgia",
+      "fontSizePx": 13,
+      "fontWeight": 400,
+      "lineHeightPx": null,
+      "color": "#b3b3b3",
+      "backgroundColor": "transparent",
+      "paddingPx": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "marginPx": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "gapPx": null,
+      "borderRadiusPx": 0,
+      "display": null
+    },
+    "label": "Docs",
+    "overflowsX": false
+  },
+  {
+    "route": "/",
+    "viewport": "mobile",
+    "selector": "body > header > nav > a:nth-of-type(2)",
+    "role": "link",
+    "rect": {
+      "x": 273.08,
+      "y": 16,
+      "width": 35.92,
+      "height": 15
+    },
+    "style": {
+      "fontFamily": "Georgia",
+      "fontSizePx": 13,
+      "fontWeight": 400,
+      "lineHeightPx": null,
+      "color": "#b3b3b3",
+      "backgroundColor": "transparent",
+      "paddingPx": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "marginPx": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "gapPx": null,
+      "borderRadiusPx": 0,
+      "display": null
+    },
+    "label": "Status",
+    "overflowsX": false
+  },
+  {
+    "route": "/",
+    "viewport": "mobile",
+    "selector": "#bell",
+    "role": "button",
+    "rect": {
+      "x": 316,
+      "y": 13.5,
+      "width": 20,
+      "height": 20
+    },
+    "style": {
+      "fontFamily": "Arial",
+      "fontSizePx": 10,
+      "fontWeight": 400,
+      "lineHeightPx": 18,
+      "color": "#b3b3b3",
+      "backgroundColor": "#ffffff",
+      "paddingPx": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "marginPx": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "gapPx": null,
+      "borderRadiusPx": 4,
+      "display": null
+    },
+    "label": "B",
+    "overflowsX": false
+  },
+  {
+    "route": "/",
+    "viewport": "mobile",
+    "selector": "#gear",
+    "role": "button",
+    "rect": {
+      "x": 343,
+      "y": 13.5,
+      "width": 20,
+      "height": 20
+    },
+    "style": {
+      "fontFamily": "Arial",
+      "fontSizePx": 10,
+      "fontWeight": 400,
+      "lineHeightPx": 18,
+      "color": "#b3b3b3",
+      "backgroundColor": "#ffffff",
+      "paddingPx": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "marginPx": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "gapPx": null,
+      "borderRadiusPx": 4,
+      "display": null
+    },
+    "label": "G",
+    "overflowsX": false
+  },
+  {
+    "route": "/",
+    "viewport": "mobile",
+    "selector": "body > main",
+    "role": "generic",
+    "rect": {
+      "x": 0,
+      "y": 48,
+      "width": 390,
+      "height": 697.59
+    },
+    "style": {
+      "fontFamily": "Helvetica Neue",
+      "fontSizePx": 16,
+      "fontWeight": 400,
+      "lineHeightPx": null,
+      "color": "#101828",
+      "backgroundColor": "transparent",
+      "paddingPx": [
+        27,
+        13,
+        41,
+        13
+      ],
+      "marginPx": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "gapPx": null,
+      "borderRadiusPx": 0,
+      "display": null
+    },
+    "overflowsX": true
+  },
+  {
+    "route": "/",
+    "viewport": "mobile",
+    "selector": "body > main > h1",
+    "role": "heading",
+    "rect": {
+      "x": 13,
+      "y": 75,
+      "width": 364,
+      "height": 24
+    },
+    "style": {
+      "fontFamily": "Helvetica Neue",
+      "fontSizePx": 19,
+      "fontWeight": 600,
+      "lineHeightPx": null,
+      "color": "#101828",
+      "backgroundColor": "transparent",
+      "paddingPx": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "marginPx": [
+        0,
+        0,
+        7,
+        0
+      ],
+      "gapPx": null,
+      "borderRadiusPx": 0,
+      "display": null
+    },
+    "label": "Billing",
+    "overflowsX": false
+  },
+  {
+    "route": "/",
+    "viewport": "mobile",
+    "selector": "body > main > p:nth-of-type(1)",
+    "role": "generic",
+    "rect": {
+      "x": 13,
+      "y": 106,
+      "width": 364,
+      "height": 16
+    },
+    "style": {
+      "fontFamily": "Helvetica Neue",
+      "fontSizePx": 14,
+      "fontWeight": 400,
+      "lineHeightPx": null,
+      "color": "#a8a8a8",
+      "backgroundColor": "transparent",
+      "paddingPx": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "marginPx": [
+        0,
+        0,
+        27,
+        0
+      ],
+      "gapPx": null,
+      "borderRadiusPx": 0,
+      "display": null
+    },
+    "label": "Manage your plan and invoices.",
+    "overflowsX": false
+  },
+  {
+    "route": "/",
+    "viewport": "mobile",
+    "selector": "body > main > section:nth-of-type(1)",
+    "role": "generic",
+    "rect": {
+      "x": 13,
+      "y": 149,
+      "width": 364,
+      "height": 120
+    },
+    "style": {
+      "fontFamily": "Helvetica Neue",
+      "fontSizePx": 16,
+      "fontWeight": 400,
+      "lineHeightPx": null,
+      "color": "#101828",
+      "backgroundColor": "transparent",
+      "paddingPx": [
+        13,
+        13,
+        13,
+        13
+      ],
+      "marginPx": [
+        0,
+        0,
+        41,
+        0
+      ],
+      "gapPx": null,
+      "borderRadiusPx": 10,
+      "display": null
+    },
+    "overflowsX": false
+  },
+  {
+    "route": "/",
+    "viewport": "mobile",
+    "selector": "body > main > section:nth-of-type(1) > h2",
+    "role": "heading",
+    "rect": {
+      "x": 27,
+      "y": 163,
+      "width": 336,
+      "height": 18
+    },
+    "style": {
+      "fontFamily": "Helvetica Neue",
+      "fontSizePx": 15,
+      "fontWeight": 600,
+      "lineHeightPx": null,
+      "color": "#101828",
+      "backgroundColor": "transparent",
+      "paddingPx": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "marginPx": [
+        0,
+        0,
+        7,
+        0
+      ],
+      "gapPx": null,
+      "borderRadiusPx": 0,
+      "display": null
+    },
+    "label": "Current plan",
+    "overflowsX": false
+  },
+  {
+    "route": "/",
+    "viewport": "mobile",
+    "selector": "body > main > section:nth-of-type(1) > p",
+    "role": "generic",
+    "rect": {
+      "x": 27,
+      "y": 188,
+      "width": 336,
+      "height": 30
+    },
+    "style": {
+      "fontFamily": "Helvetica Neue",
+      "fontSizePx": 13,
+      "fontWeight": 400,
+      "lineHeightPx": null,
+      "color": "#b3b3b3",
+      "backgroundColor": "transparent",
+      "paddingPx": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "marginPx": [
+        0,
+        0,
+        13,
+        0
+      ],
+      "gapPx": null,
+      "borderRadiusPx": 0,
+      "display": null
+    },
+    "label": "You are on the Growth plan, billed monthly at $4",
+    "overflowsX": false
+  },
+  {
+    "route": "/",
+    "viewport": "mobile",
+    "selector": "#upgrade",
+    "role": "button",
+    "rect": {
+      "x": 27,
+      "y": 231,
+      "width": 64.03,
+      "height": 24
+    },
+    "style": {
+      "fontFamily": "Arial",
+      "fontSizePx": 12,
+      "fontWeight": 400,
+      "lineHeightPx": null,
+      "color": "#ffffff",
+      "backgroundColor": "#7aa7ff",
+      "paddingPx": [
+        5,
+        9,
+        5,
+        9
+      ],
+      "marginPx": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "gapPx": null,
+      "borderRadiusPx": 6,
+      "display": "inline-block"
+    },
+    "label": "Upgrade",
+    "overflowsX": false
+  },
+  {
+    "route": "/",
+    "viewport": "mobile",
+    "selector": "body > main > section:nth-of-type(1) > a",
+    "role": "link",
+    "rect": {
+      "x": 102.48,
+      "y": 238,
+      "width": 46.02,
+      "height": 13
+    },
+    "style": {
+      "fontFamily": "Helvetica Neue",
+      "fontSizePx": 9,
+      "fontWeight": 400,
+      "lineHeightPx": null,
+      "color": "#bcbcbc",
+      "backgroundColor": "transparent",
+      "paddingPx": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "marginPx": [
+        0,
+        0,
+        0,
+        7
+      ],
+      "gapPx": null,
+      "borderRadiusPx": 0,
+      "display": "inline-block"
+    },
+    "label": "cancel plan",
+    "overflowsX": false
+  },
+  {
+    "route": "/",
+    "viewport": "mobile",
+    "selector": "body > main > section:nth-of-type(2)",
+    "role": "generic",
+    "rect": {
+      "x": 13,
+      "y": 310,
+      "width": 364,
+      "height": 170
+    },
+    "style": {
+      "fontFamily": "Helvetica Neue",
+      "fontSizePx": 16,
+      "fontWeight": 400,
+      "lineHeightPx": null,
+      "color": "#101828",
+      "backgroundColor": "transparent",
+      "paddingPx": [
+        13,
+        13,
+        13,
+        13
+      ],
+      "marginPx": [
+        0,
+        0,
+        41,
+        0
+      ],
+      "gapPx": null,
+      "borderRadiusPx": 10,
+      "display": null
+    },
+    "overflowsX": true
+  },
+  {
+    "route": "/",
+    "viewport": "mobile",
+    "selector": "body > main > section:nth-of-type(2) > h2",
+    "role": "heading",
+    "rect": {
+      "x": 27,
+      "y": 324,
+      "width": 336,
+      "height": 18
+    },
+    "style": {
+      "fontFamily": "Helvetica Neue",
+      "fontSizePx": 15,
+      "fontWeight": 600,
+      "lineHeightPx": null,
+      "color": "#101828",
+      "backgroundColor": "transparent",
+      "paddingPx": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "marginPx": [
+        0,
+        0,
+        7,
+        0
+      ],
+      "gapPx": null,
+      "borderRadiusPx": 0,
+      "display": null
+    },
+    "label": "Recent invoices",
+    "overflowsX": false
+  },
+  {
+    "route": "/",
+    "viewport": "mobile",
+    "selector": "body > main > section:nth-of-type(2) > table",
+    "role": "generic",
+    "rect": {
+      "x": 27,
+      "y": 349,
+      "width": 900,
+      "height": 117
+    },
+    "style": {
+      "fontFamily": "Helvetica Neue",
+      "fontSizePx": 12,
+      "fontWeight": 400,
+      "lineHeightPx": null,
+      "color": "#101828",
+      "backgroundColor": "transparent",
+      "paddingPx": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "marginPx": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "gapPx": null,
+      "borderRadiusPx": 0,
+      "display": "table"
+    },
+    "overflowsX": true
+  },
+  {
+    "route": "/",
+    "viewport": "mobile",
+    "selector": "body > main > section:nth-of-type(2) > table > thead",
+    "role": "generic",
+    "rect": {
+      "x": 27,
+      "y": 349,
+      "width": 900,
+      "height": 29.5
+    },
+    "style": {
+      "fontFamily": "Helvetica Neue",
+      "fontSizePx": 12,
+      "fontWeight": 400,
+      "lineHeightPx": null,
+      "color": "#101828",
+      "backgroundColor": "transparent",
+      "paddingPx": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "marginPx": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "gapPx": null,
+      "borderRadiusPx": 0,
+      "display": "table-header-group"
+    },
+    "overflowsX": true
+  },
+  {
+    "route": "/",
+    "viewport": "mobile",
+    "selector": "body > main > section:nth-of-type(2) > table > thead > tr",
+    "role": "generic",
+    "rect": {
+      "x": 27,
+      "y": 349,
+      "width": 900,
+      "height": 29.5
+    },
+    "style": {
+      "fontFamily": "Helvetica Neue",
+      "fontSizePx": 12,
+      "fontWeight": 400,
+      "lineHeightPx": null,
+      "color": "#101828",
+      "backgroundColor": "transparent",
+      "paddingPx": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "marginPx": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "gapPx": null,
+      "borderRadiusPx": 0,
+      "display": "table-row"
+    },
+    "overflowsX": true
+  },
+  {
+    "route": "/",
+    "viewport": "mobile",
+    "selector": "main > section:nth-of-type(2) > table > thead > tr > th:nth-of-type(1)",
+    "role": "generic",
+    "rect": {
+      "x": 27,
+      "y": 349,
+      "width": 107.44,
+      "height": 29.5
+    },
+    "style": {
+      "fontFamily": "Helvetica Neue",
+      "fontSizePx": 12,
+      "fontWeight": 600,
+      "lineHeightPx": null,
+      "color": "#b3b3b3",
+      "backgroundColor": "transparent",
+      "paddingPx": [
+        7,
+        13,
+        7,
+        13
+      ],
+      "marginPx": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "gapPx": null,
+      "borderRadiusPx": 0,
+      "display": "table-cell"
+    },
+    "label": "Invoice",
+    "overflowsX": false
+  },
+  {
+    "route": "/",
+    "viewport": "mobile",
+    "selector": "main > section:nth-of-type(2) > table > thead > tr > th:nth-of-type(2)",
+    "role": "generic",
+    "rect": {
+      "x": 134.44,
+      "y": 349,
+      "width": 115.55,
+      "height": 29.5
+    },
+    "style": {
+      "fontFamily": "Helvetica Neue",
+      "fontSizePx": 12,
+      "fontWeight": 600,
+      "lineHeightPx": null,
+      "color": "#b3b3b3",
+      "backgroundColor": "transparent",
+      "paddingPx": [
+        7,
+        13,
+        7,
+        13
+      ],
+      "marginPx": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "gapPx": null,
+      "borderRadiusPx": 0,
+      "display": "table-cell"
+    },
+    "label": "Issued",
+    "overflowsX": false
+  },
+  {
+    "route": "/",
+    "viewport": "mobile",
+    "selector": "main > section:nth-of-type(2) > table > thead > tr > th:nth-of-type(3)",
+    "role": "generic",
+    "rect": {
+      "x": 249.98,
+      "y": 349,
+      "width": 140.73,
+      "height": 29.5
+    },
+    "style": {
+      "fontFamily": "Helvetica Neue",
+      "fontSizePx": 12,
+      "fontWeight": 600,
+      "lineHeightPx": null,
+      "color": "#b3b3b3",
+      "backgroundColor": "transparent",
+      "paddingPx": [
+        7,
+        13,
+        7,
+        13
+      ],
+      "marginPx": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "gapPx": null,
+      "borderRadiusPx": 0,
+      "display": "table-cell"
+    },
+    "label": "Period",
+    "overflowsX": false
+  },
+  {
+    "route": "/",
+    "viewport": "mobile",
+    "selector": "main > section:nth-of-type(2) > table > thead > tr > th:nth-of-type(4)",
+    "role": "generic",
+    "rect": {
+      "x": 390.72,
+      "y": 349,
+      "width": 75.84,
+      "height": 29.5
+    },
+    "style": {
+      "fontFamily": "Helvetica Neue",
+      "fontSizePx": 12,
+      "fontWeight": 600,
+      "lineHeightPx": null,
+      "color": "#b3b3b3",
+      "backgroundColor": "transparent",
+      "paddingPx": [
+        7,
+        13,
+        7,
+        13
+      ],
+      "marginPx": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "gapPx": null,
+      "borderRadiusPx": 0,
+      "display": "table-cell"
+    },
+    "label": "Seats",
+    "overflowsX": true
+  },
+  {
+    "route": "/",
+    "viewport": "mobile",
+    "selector": "main > section:nth-of-type(2) > table > thead > tr > th:nth-of-type(5)",
+    "role": "generic",
+    "rect": {
+      "x": 466.56,
+      "y": 349,
+      "width": 103.41,
+      "height": 29.5
+    },
+    "style": {
+      "fontFamily": "Helvetica Neue",
+      "fontSizePx": 12,
+      "fontWeight": 600,
+      "lineHeightPx": null,
+      "color": "#b3b3b3",
+      "backgroundColor": "transparent",
+      "paddingPx": [
+        7,
+        13,
+        7,
+        13
+      ],
+      "marginPx": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "gapPx": null,
+      "borderRadiusPx": 0,
+      "display": "table-cell"
+    },
+    "label": "Amount",
+    "overflowsX": true
+  },
+  {
+    "route": "/",
+    "viewport": "mobile",
+    "selector": "main > section:nth-of-type(2) > table > thead > tr > th:nth-of-type(6)",
+    "role": "generic",
+    "rect": {
+      "x": 569.97,
+      "y": 349,
+      "width": 81.64,
+      "height": 29.5
+    },
+    "style": {
+      "fontFamily": "Helvetica Neue",
+      "fontSizePx": 12,
+      "fontWeight": 600,
+      "lineHeightPx": null,
+      "color": "#b3b3b3",
+      "backgroundColor": "transparent",
+      "paddingPx": [
+        7,
+        13,
+        7,
+        13
+      ],
+      "marginPx": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "gapPx": null,
+      "borderRadiusPx": 0,
+      "display": "table-cell"
+    },
+    "label": "Status",
+    "overflowsX": true
+  },
+  {
+    "route": "/",
+    "viewport": "mobile",
+    "selector": "main > section:nth-of-type(2) > table > thead > tr > th:nth-of-type(7)",
+    "role": "generic",
+    "rect": {
+      "x": 651.61,
+      "y": 349,
+      "width": 275.39,
+      "height": 29.5
+    },
+    "style": {
+      "fontFamily": "Helvetica Neue",
+      "fontSizePx": 12,
+      "fontWeight": 600,
+      "lineHeightPx": null,
+      "color": "#b3b3b3",
+      "backgroundColor": "transparent",
+      "paddingPx": [
+        7,
+        13,
+        7,
+        13
+      ],
+      "marginPx": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "gapPx": null,
+      "borderRadiusPx": 0,
+      "display": "table-cell"
+    },
+    "label": "Reference",
+    "overflowsX": true
+  },
+  {
+    "route": "/",
+    "viewport": "mobile",
+    "selector": "body > main > section:nth-of-type(2) > table > tbody",
+    "role": "generic",
+    "rect": {
+      "x": 27,
+      "y": 378.5,
+      "width": 900,
+      "height": 87
+    },
+    "style": {
+      "fontFamily": "Helvetica Neue",
+      "fontSizePx": 12,
+      "fontWeight": 400,
+      "lineHeightPx": null,
+      "color": "#101828",
+      "backgroundColor": "transparent",
+      "paddingPx": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "marginPx": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "gapPx": null,
+      "borderRadiusPx": 0,
+      "display": "table-row-group"
+    },
+    "overflowsX": true
+  },
+  {
+    "route": "/",
+    "viewport": "mobile",
+    "selector": "body > main > section:nth-of-type(2) > table > tbody > tr:nth-of-type(1)",
+    "role": "generic",
+    "rect": {
+      "x": 27,
+      "y": 378.5,
+      "width": 900,
+      "height": 29
+    },
+    "style": {
+      "fontFamily": "Helvetica Neue",
+      "fontSizePx": 12,
+      "fontWeight": 400,
+      "lineHeightPx": null,
+      "color": "#101828",
+      "backgroundColor": "transparent",
+      "paddingPx": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "marginPx": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "gapPx": null,
+      "borderRadiusPx": 0,
+      "display": "table-row"
+    },
+    "overflowsX": true
+  },
+  {
+    "route": "/",
+    "viewport": "mobile",
+    "selector": "main > section:nth-of-type(2) > table > tbody > tr:nth-of-type(1) > td:nth-of-type(1)",
+    "role": "generic",
+    "rect": {
+      "x": 27,
+      "y": 378.5,
+      "width": 107.44,
+      "height": 29
+    },
+    "style": {
+      "fontFamily": "Helvetica Neue",
+      "fontSizePx": 12,
+      "fontWeight": 400,
+      "lineHeightPx": null,
+      "color": "#101828",
+      "backgroundColor": "transparent",
+      "paddingPx": [
+        7,
+        13,
+        7,
+        13
+      ],
+      "marginPx": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "gapPx": null,
+      "borderRadiusPx": 0,
+      "display": "table-cell"
+    },
+    "label": "INV-10041",
+    "overflowsX": false
+  },
+  {
+    "route": "/",
+    "viewport": "mobile",
+    "selector": "main > section:nth-of-type(2) > table > tbody > tr:nth-of-type(1) > td:nth-of-type(2)",
+    "role": "generic",
+    "rect": {
+      "x": 134.44,
+      "y": 378.5,
+      "width": 115.55,
+      "height": 29
+    },
+    "style": {
+      "fontFamily": "Helvetica Neue",
+      "fontSizePx": 12,
+      "fontWeight": 400,
+      "lineHeightPx": null,
+      "color": "#101828",
+      "backgroundColor": "transparent",
+      "paddingPx": [
+        7,
+        13,
+        7,
+        13
+      ],
+      "marginPx": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "gapPx": null,
+      "borderRadiusPx": 0,
+      "display": "table-cell"
+    },
+    "label": "2026-08-01",
+    "overflowsX": false
+  },
+  {
+    "route": "/",
+    "viewport": "mobile",
+    "selector": "main > section:nth-of-type(2) > table > tbody > tr:nth-of-type(1) > td:nth-of-type(3)",
+    "role": "generic",
+    "rect": {
+      "x": 249.98,
+      "y": 378.5,
+      "width": 140.73,
+      "height": 29
+    },
+    "style": {
+      "fontFamily": "Helvetica Neue",
+      "fontSizePx": 12,
+      "fontWeight": 400,
+      "lineHeightPx": null,
+      "color": "#101828",
+      "backgroundColor": "transparent",
+      "paddingPx": [
+        7,
+        13,
+        7,
+        13
+      ],
+      "marginPx": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "gapPx": null,
+      "borderRadiusPx": 0,
+      "display": "table-cell"
+    },
+    "label": "Aug 1 – Aug 31",
+    "overflowsX": false
+  },
+  {
+    "route": "/",
+    "viewport": "mobile",
+    "selector": "main > section:nth-of-type(2) > table > tbody > tr:nth-of-type(1) > td:nth-of-type(4)",
+    "role": "generic",
+    "rect": {
+      "x": 390.72,
+      "y": 378.5,
+      "width": 75.84,
+      "height": 29
+    },
+    "style": {
+      "fontFamily": "Helvetica Neue",
+      "fontSizePx": 12,
+      "fontWeight": 400,
+      "lineHeightPx": null,
+      "color": "#101828",
+      "backgroundColor": "transparent",
+      "paddingPx": [
+        7,
+        13,
+        7,
+        13
+      ],
+      "marginPx": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "gapPx": null,
+      "borderRadiusPx": 0,
+      "display": "table-cell"
+    },
+    "label": "24",
+    "overflowsX": true
+  },
+  {
+    "route": "/",
+    "viewport": "mobile",
+    "selector": "main > section:nth-of-type(2) > table > tbody > tr:nth-of-type(1) > td:nth-of-type(5)",
+    "role": "generic",
+    "rect": {
+      "x": 466.56,
+      "y": 378.5,
+      "width": 103.41,
+      "height": 29
+    },
+    "style": {
+      "fontFamily": "Helvetica Neue",
+      "fontSizePx": 12,
+      "fontWeight": 400,
+      "lineHeightPx": null,
+      "color": "#101828",
+      "backgroundColor": "transparent",
+      "paddingPx": [
+        7,
+        13,
+        7,
+        13
+      ],
+      "marginPx": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "gapPx": null,
+      "borderRadiusPx": 0,
+      "display": "table-cell"
+    },
+    "label": "$1,176.00",
+    "overflowsX": true
+  },
+  {
+    "route": "/",
+    "viewport": "mobile",
+    "selector": "main > section:nth-of-type(2) > table > tbody > tr:nth-of-type(1) > td:nth-of-type(6)",
+    "role": "generic",
+    "rect": {
+      "x": 569.97,
+      "y": 378.5,
+      "width": 81.64,
+      "height": 29
+    },
+    "style": {
+      "fontFamily": "Helvetica Neue",
+      "fontSizePx": 12,
+      "fontWeight": 400,
+      "lineHeightPx": null,
+      "color": "#101828",
+      "backgroundColor": "transparent",
+      "paddingPx": [
+        7,
+        13,
+        7,
+        13
+      ],
+      "marginPx": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "gapPx": null,
+      "borderRadiusPx": 0,
+      "display": "table-cell"
+    },
+    "label": "Paid",
+    "overflowsX": true
+  },
+  {
+    "route": "/",
+    "viewport": "mobile",
+    "selector": "main > section:nth-of-type(2) > table > tbody > tr:nth-of-type(1) > td:nth-of-type(7)",
+    "role": "generic",
+    "rect": {
+      "x": 651.61,
+      "y": 378.5,
+      "width": 275.39,
+      "height": 29
+    },
+    "style": {
+      "fontFamily": "Helvetica Neue",
+      "fontSizePx": 12,
+      "fontWeight": 400,
+      "lineHeightPx": null,
+      "color": "#101828",
+      "backgroundColor": "transparent",
+      "paddingPx": [
+        7,
+        13,
+        7,
+        13
+      ],
+      "marginPx": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "gapPx": null,
+      "borderRadiusPx": 0,
+      "display": "table-cell"
+    },
+    "label": "ch_3PqZk2LmNoPqRsTuVwXyZ01",
+    "overflowsX": true
+  },
+  {
+    "route": "/",
+    "viewport": "mobile",
+    "selector": "body > main > section:nth-of-type(2) > table > tbody > tr:nth-of-type(2)",
+    "role": "generic",
+    "rect": {
+      "x": 27,
+      "y": 407.5,
+      "width": 900,
+      "height": 29
+    },
+    "style": {
+      "fontFamily": "Helvetica Neue",
+      "fontSizePx": 12,
+      "fontWeight": 400,
+      "lineHeightPx": null,
+      "color": "#101828",
+      "backgroundColor": "transparent",
+      "paddingPx": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "marginPx": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "gapPx": null,
+      "borderRadiusPx": 0,
+      "display": "table-row"
+    },
+    "overflowsX": true
+  },
+  {
+    "route": "/",
+    "viewport": "mobile",
+    "selector": "main > section:nth-of-type(2) > table > tbody > tr:nth-of-type(2) > td:nth-of-type(1)",
+    "role": "generic",
+    "rect": {
+      "x": 27,
+      "y": 407.5,
+      "width": 107.44,
+      "height": 29
+    },
+    "style": {
+      "fontFamily": "Helvetica Neue",
+      "fontSizePx": 12,
+      "fontWeight": 400,
+      "lineHeightPx": null,
+      "color": "#101828",
+      "backgroundColor": "transparent",
+      "paddingPx": [
+        7,
+        13,
+        7,
+        13
+      ],
+      "marginPx": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "gapPx": null,
+      "borderRadiusPx": 0,
+      "display": "table-cell"
+    },
+    "label": "INV-10032",
+    "overflowsX": false
+  },
+  {
+    "route": "/",
+    "viewport": "mobile",
+    "selector": "main > section:nth-of-type(2) > table > tbody > tr:nth-of-type(2) > td:nth-of-type(2)",
+    "role": "generic",
+    "rect": {
+      "x": 134.44,
+      "y": 407.5,
+      "width": 115.55,
+      "height": 29
+    },
+    "style": {
+      "fontFamily": "Helvetica Neue",
+      "fontSizePx": 12,
+      "fontWeight": 400,
+      "lineHeightPx": null,
+      "color": "#101828",
+      "backgroundColor": "transparent",
+      "paddingPx": [
+        7,
+        13,
+        7,
+        13
+      ],
+      "marginPx": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "gapPx": null,
+      "borderRadiusPx": 0,
+      "display": "table-cell"
+    },
+    "label": "2026-07-01",
+    "overflowsX": false
+  },
+  {
+    "route": "/",
+    "viewport": "mobile",
+    "selector": "main > section:nth-of-type(2) > table > tbody > tr:nth-of-type(2) > td:nth-of-type(3)",
+    "role": "generic",
+    "rect": {
+      "x": 249.98,
+      "y": 407.5,
+      "width": 140.73,
+      "height": 29
+    },
+    "style": {
+      "fontFamily": "Helvetica Neue",
+      "fontSizePx": 12,
+      "fontWeight": 400,
+      "lineHeightPx": null,
+      "color": "#101828",
+      "backgroundColor": "transparent",
+      "paddingPx": [
+        7,
+        13,
+        7,
+        13
+      ],
+      "marginPx": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "gapPx": null,
+      "borderRadiusPx": 0,
+      "display": "table-cell"
+    },
+    "label": "Jul 1 – Jul 31",
+    "overflowsX": false
+  },
+  {
+    "route": "/",
+    "viewport": "mobile",
+    "selector": "main > section:nth-of-type(2) > table > tbody > tr:nth-of-type(2) > td:nth-of-type(4)",
+    "role": "generic",
+    "rect": {
+      "x": 390.72,
+      "y": 407.5,
+      "width": 75.84,
+      "height": 29
+    },
+    "style": {
+      "fontFamily": "Helvetica Neue",
+      "fontSizePx": 12,
+      "fontWeight": 400,
+      "lineHeightPx": null,
+      "color": "#101828",
+      "backgroundColor": "transparent",
+      "paddingPx": [
+        7,
+        13,
+        7,
+        13
+      ],
+      "marginPx": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "gapPx": null,
+      "borderRadiusPx": 0,
+      "display": "table-cell"
+    },
+    "label": "24",
+    "overflowsX": true
+  },
+  {
+    "route": "/",
+    "viewport": "mobile",
+    "selector": "main > section:nth-of-type(2) > table > tbody > tr:nth-of-type(2) > td:nth-of-type(5)",
+    "role": "generic",
+    "rect": {
+      "x": 466.56,
+      "y": 407.5,
+      "width": 103.41,
+      "height": 29
+    },
+    "style": {
+      "fontFamily": "Helvetica Neue",
+      "fontSizePx": 12,
+      "fontWeight": 400,
+      "lineHeightPx": null,
+      "color": "#101828",
+      "backgroundColor": "transparent",
+      "paddingPx": [
+        7,
+        13,
+        7,
+        13
+      ],
+      "marginPx": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "gapPx": null,
+      "borderRadiusPx": 0,
+      "display": "table-cell"
+    },
+    "label": "$1,176.00",
+    "overflowsX": true
+  },
+  {
+    "route": "/",
+    "viewport": "mobile",
+    "selector": "main > section:nth-of-type(2) > table > tbody > tr:nth-of-type(2) > td:nth-of-type(6)",
+    "role": "generic",
+    "rect": {
+      "x": 569.97,
+      "y": 407.5,
+      "width": 81.64,
+      "height": 29
+    },
+    "style": {
+      "fontFamily": "Helvetica Neue",
+      "fontSizePx": 12,
+      "fontWeight": 400,
+      "lineHeightPx": null,
+      "color": "#101828",
+      "backgroundColor": "transparent",
+      "paddingPx": [
+        7,
+        13,
+        7,
+        13
+      ],
+      "marginPx": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "gapPx": null,
+      "borderRadiusPx": 0,
+      "display": "table-cell"
+    },
+    "label": "Paid",
+    "overflowsX": true
+  },
+  {
+    "route": "/",
+    "viewport": "mobile",
+    "selector": "main > section:nth-of-type(2) > table > tbody > tr:nth-of-type(2) > td:nth-of-type(7)",
+    "role": "generic",
+    "rect": {
+      "x": 651.61,
+      "y": 407.5,
+      "width": 275.39,
+      "height": 29
+    },
+    "style": {
+      "fontFamily": "Helvetica Neue",
+      "fontSizePx": 12,
+      "fontWeight": 400,
+      "lineHeightPx": null,
+      "color": "#101828",
+      "backgroundColor": "transparent",
+      "paddingPx": [
+        7,
+        13,
+        7,
+        13
+      ],
+      "marginPx": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "gapPx": null,
+      "borderRadiusPx": 0,
+      "display": "table-cell"
+    },
+    "label": "ch_3PdYj1KlMnOpQrStUvWxY02",
+    "overflowsX": true
+  },
+  {
+    "route": "/",
+    "viewport": "mobile",
+    "selector": "body > main > section:nth-of-type(2) > table > tbody > tr:nth-of-type(3)",
+    "role": "generic",
+    "rect": {
+      "x": 27,
+      "y": 436.5,
+      "width": 900,
+      "height": 29
+    },
+    "style": {
+      "fontFamily": "Helvetica Neue",
+      "fontSizePx": 12,
+      "fontWeight": 400,
+      "lineHeightPx": null,
+      "color": "#101828",
+      "backgroundColor": "transparent",
+      "paddingPx": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "marginPx": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "gapPx": null,
+      "borderRadiusPx": 0,
+      "display": "table-row"
+    },
+    "overflowsX": true
+  },
+  {
+    "route": "/",
+    "viewport": "mobile",
+    "selector": "main > section:nth-of-type(2) > table > tbody > tr:nth-of-type(3) > td:nth-of-type(1)",
+    "role": "generic",
+    "rect": {
+      "x": 27,
+      "y": 436.5,
+      "width": 107.44,
+      "height": 29
+    },
+    "style": {
+      "fontFamily": "Helvetica Neue",
+      "fontSizePx": 12,
+      "fontWeight": 400,
+      "lineHeightPx": null,
+      "color": "#101828",
+      "backgroundColor": "transparent",
+      "paddingPx": [
+        7,
+        13,
+        7,
+        13
+      ],
+      "marginPx": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "gapPx": null,
+      "borderRadiusPx": 0,
+      "display": "table-cell"
+    },
+    "label": "INV-10023",
+    "overflowsX": false
+  },
+  {
+    "route": "/",
+    "viewport": "mobile",
+    "selector": "main > section:nth-of-type(2) > table > tbody > tr:nth-of-type(3) > td:nth-of-type(2)",
+    "role": "generic",
+    "rect": {
+      "x": 134.44,
+      "y": 436.5,
+      "width": 115.55,
+      "height": 29
+    },
+    "style": {
+      "fontFamily": "Helvetica Neue",
+      "fontSizePx": 12,
+      "fontWeight": 400,
+      "lineHeightPx": null,
+      "color": "#101828",
+      "backgroundColor": "transparent",
+      "paddingPx": [
+        7,
+        13,
+        7,
+        13
+      ],
+      "marginPx": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "gapPx": null,
+      "borderRadiusPx": 0,
+      "display": "table-cell"
+    },
+    "label": "2026-06-01",
+    "overflowsX": false
+  },
+  {
+    "route": "/",
+    "viewport": "mobile",
+    "selector": "main > section:nth-of-type(2) > table > tbody > tr:nth-of-type(3) > td:nth-of-type(3)",
+    "role": "generic",
+    "rect": {
+      "x": 249.98,
+      "y": 436.5,
+      "width": 140.73,
+      "height": 29
+    },
+    "style": {
+      "fontFamily": "Helvetica Neue",
+      "fontSizePx": 12,
+      "fontWeight": 400,
+      "lineHeightPx": null,
+      "color": "#101828",
+      "backgroundColor": "transparent",
+      "paddingPx": [
+        7,
+        13,
+        7,
+        13
+      ],
+      "marginPx": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "gapPx": null,
+      "borderRadiusPx": 0,
+      "display": "table-cell"
+    },
+    "label": "Jun 1 – Jun 30",
+    "overflowsX": false
+  },
+  {
+    "route": "/",
+    "viewport": "mobile",
+    "selector": "main > section:nth-of-type(2) > table > tbody > tr:nth-of-type(3) > td:nth-of-type(4)",
+    "role": "generic",
+    "rect": {
+      "x": 390.72,
+      "y": 436.5,
+      "width": 75.84,
+      "height": 29
+    },
+    "style": {
+      "fontFamily": "Helvetica Neue",
+      "fontSizePx": 12,
+      "fontWeight": 400,
+      "lineHeightPx": null,
+      "color": "#101828",
+      "backgroundColor": "transparent",
+      "paddingPx": [
+        7,
+        13,
+        7,
+        13
+      ],
+      "marginPx": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "gapPx": null,
+      "borderRadiusPx": 0,
+      "display": "table-cell"
+    },
+    "label": "22",
+    "overflowsX": true
+  },
+  {
+    "route": "/",
+    "viewport": "mobile",
+    "selector": "main > section:nth-of-type(2) > table > tbody > tr:nth-of-type(3) > td:nth-of-type(5)",
+    "role": "generic",
+    "rect": {
+      "x": 466.56,
+      "y": 436.5,
+      "width": 103.41,
+      "height": 29
+    },
+    "style": {
+      "fontFamily": "Helvetica Neue",
+      "fontSizePx": 12,
+      "fontWeight": 400,
+      "lineHeightPx": null,
+      "color": "#101828",
+      "backgroundColor": "transparent",
+      "paddingPx": [
+        7,
+        13,
+        7,
+        13
+      ],
+      "marginPx": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "gapPx": null,
+      "borderRadiusPx": 0,
+      "display": "table-cell"
+    },
+    "label": "$1,078.00",
+    "overflowsX": true
+  },
+  {
+    "route": "/",
+    "viewport": "mobile",
+    "selector": "main > section:nth-of-type(2) > table > tbody > tr:nth-of-type(3) > td:nth-of-type(6)",
+    "role": "generic",
+    "rect": {
+      "x": 569.97,
+      "y": 436.5,
+      "width": 81.64,
+      "height": 29
+    },
+    "style": {
+      "fontFamily": "Helvetica Neue",
+      "fontSizePx": 12,
+      "fontWeight": 400,
+      "lineHeightPx": null,
+      "color": "#101828",
+      "backgroundColor": "transparent",
+      "paddingPx": [
+        7,
+        13,
+        7,
+        13
+      ],
+      "marginPx": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "gapPx": null,
+      "borderRadiusPx": 0,
+      "display": "table-cell"
+    },
+    "label": "Paid",
+    "overflowsX": true
+  },
+  {
+    "route": "/",
+    "viewport": "mobile",
+    "selector": "main > section:nth-of-type(2) > table > tbody > tr:nth-of-type(3) > td:nth-of-type(7)",
+    "role": "generic",
+    "rect": {
+      "x": 651.61,
+      "y": 436.5,
+      "width": 275.39,
+      "height": 29
+    },
+    "style": {
+      "fontFamily": "Helvetica Neue",
+      "fontSizePx": 12,
+      "fontWeight": 400,
+      "lineHeightPx": null,
+      "color": "#101828",
+      "backgroundColor": "transparent",
+      "paddingPx": [
+        7,
+        13,
+        7,
+        13
+      ],
+      "marginPx": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "gapPx": null,
+      "borderRadiusPx": 0,
+      "display": "table-cell"
+    },
+    "label": "ch_3PcXi0JkLmNoPqRsTuVwX03",
+    "overflowsX": true
+  },
+  {
+    "route": "/",
+    "viewport": "mobile",
+    "selector": "body > main > section:nth-of-type(3)",
+    "role": "generic",
+    "rect": {
+      "x": 13,
+      "y": 521,
+      "width": 364,
+      "height": 94
+    },
+    "style": {
+      "fontFamily": "Helvetica Neue",
+      "fontSizePx": 16,
+      "fontWeight": 400,
+      "lineHeightPx": null,
+      "color": "#101828",
+      "backgroundColor": "transparent",
+      "paddingPx": [
+        13,
+        13,
+        13,
+        13
+      ],
+      "marginPx": [
+        0,
+        0,
+        41,
+        0
+      ],
+      "gapPx": null,
+      "borderRadiusPx": 10,
+      "display": null
+    },
+    "overflowsX": true
+  },
+  {
+    "route": "/",
+    "viewport": "mobile",
+    "selector": "body > main > section:nth-of-type(3) > h2",
+    "role": "heading",
+    "rect": {
+      "x": 27,
+      "y": 535,
+      "width": 336,
+      "height": 18
+    },
+    "style": {
+      "fontFamily": "Helvetica Neue",
+      "fontSizePx": 15,
+      "fontWeight": 600,
+      "lineHeightPx": null,
+      "color": "#101828",
+      "backgroundColor": "transparent",
+      "paddingPx": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "marginPx": [
+        0,
+        0,
+        7,
+        0
+      ],
+      "gapPx": null,
+      "borderRadiusPx": 0,
+      "display": null
+    },
+    "label": "Payment method",
+    "overflowsX": false
+  },
+  {
+    "route": "/",
+    "viewport": "mobile",
+    "selector": "body > main > section:nth-of-type(3) > p:nth-of-type(1)",
+    "role": "generic",
+    "rect": {
+      "x": 27,
+      "y": 560,
+      "width": 336,
+      "height": 15
+    },
+    "style": {
+      "fontFamily": "Helvetica Neue",
+      "fontSizePx": 13,
+      "fontWeight": 400,
+      "lineHeightPx": null,
+      "color": "#b3b3b3",
+      "backgroundColor": "transparent",
+      "paddingPx": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "marginPx": [
+        0,
+        0,
+        13,
+        0
+      ],
+      "gapPx": null,
+      "borderRadiusPx": 0,
+      "display": null
+    },
+    "label": "Visa ending 4242, expires 09/2027.",
+    "overflowsX": false
+  },
+  {
+    "route": "/",
+    "viewport": "mobile",
+    "selector": "body > main > section:nth-of-type(3) > p:nth-of-type(2)",
+    "role": "generic",
+    "rect": {
+      "x": 27,
+      "y": 588,
+      "width": 336,
+      "height": 13
+    },
+    "style": {
+      "fontFamily": "SF Mono",
+      "fontSizePx": 11,
+      "fontWeight": 400,
+      "lineHeightPx": null,
+      "color": "#a8a8a8",
+      "backgroundColor": "transparent",
+      "paddingPx": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "marginPx": [
+        13,
+        0,
+        0,
+        0
+      ],
+      "gapPx": null,
+      "borderRadiusPx": 0,
+      "display": null
+    },
+    "label": "webhook_endpoint_id=we_1QzYxWvUtSrQpOnMlKjIhGfEd",
+    "overflowsX": true
+  },
+  {
+    "route": "/",
+    "viewport": "mobile",
+    "selector": "body > main > p:nth-of-type(2)",
+    "role": "generic",
+    "rect": {
+      "x": 13,
+      "y": 656,
+      "width": 364,
+      "height": 21.59
+    },
+    "style": {
+      "fontFamily": "Helvetica Neue",
+      "fontSizePx": 9,
+      "fontWeight": 400,
+      "lineHeightPx": 10.8,
+      "color": "#bcbcbc",
+      "backgroundColor": "transparent",
+      "paddingPx": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "marginPx": [
+        0,
+        0,
+        27,
+        0
+      ],
+      "gapPx": null,
+      "borderRadiusPx": 0,
+      "display": null
+    },
+    "label": "By continuing you agree to the Northwind master ",
+    "overflowsX": false
+  },
+  {
+    "route": "/",
+    "viewport": "mobile",
+    "selector": "body > footer",
+    "role": "generic",
+    "rect": {
+      "x": 0,
+      "y": 745.59,
+      "width": 390,
+      "height": 124
+    },
+    "style": {
+      "fontFamily": "Helvetica Neue",
+      "fontSizePx": 16,
+      "fontWeight": 400,
+      "lineHeightPx": null,
+      "color": "#101828",
+      "backgroundColor": "transparent",
+      "paddingPx": [
+        41,
+        13,
+        41,
+        13
+      ],
+      "marginPx": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "gapPx": null,
+      "borderRadiusPx": 0,
+      "display": null
+    },
+    "overflowsX": false
+  },
+  {
+    "route": "/",
+    "viewport": "mobile",
+    "selector": "body > footer > a",
+    "role": "link",
+    "rect": {
+      "x": 13,
+      "y": 787.59,
+      "width": 98.81,
+      "height": 40
+    },
+    "style": {
+      "fontFamily": "Helvetica Neue",
+      "fontSizePx": 34,
+      "fontWeight": 800,
+      "lineHeightPx": null,
+      "color": "#101828",
+      "backgroundColor": "transparent",
+      "paddingPx": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "marginPx": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "gapPx": null,
+      "borderRadiusPx": 0,
+      "display": null
+    },
+    "label": "Terms",
+    "overflowsX": false
+  }
+]

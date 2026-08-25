@@ -5,6 +5,7 @@ import {
   citableSelectors,
   estimateImageTokens,
   estimateTextTokens,
+  MAX_GEOMETRY_CHARS_PER_VIEWPORT,
   renderGeometry,
   resolveGeometryBudgetDecision,
   type DeepPassDeps,
@@ -92,7 +93,8 @@ describe("resolveGeometryBudgetDecision (C2)", () => {
       renderPromptText,
     });
     expect(d.mode).toBe("degraded");
-    expect(d.budget?.maxCharsPerViewport).toBeLessThan(6000);
+    // Degraded below the module-default per-viewport budget (a real shrink step).
+    expect(d.budget?.maxCharsPerViewport).toBeLessThan(MAX_GEOMETRY_CHARS_PER_VIEWPORT);
     expect(d.estimatedTotalTokens).toBeLessThanOrEqual(window);
     // Deterministic: same inputs → same decision.
     const again = resolveGeometryBudgetDecision({

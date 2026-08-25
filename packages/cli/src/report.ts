@@ -202,6 +202,22 @@ export function renderFindings(result: EngineReviewResult): string[] {
 }
 
 /**
+ * The trust-budget withholding disclosure (F3): how many findings the cap held
+ * back, and in which dimensions, so a whole withheld class is never hidden from
+ * the terminal reader. Empty when the cap withheld nothing.
+ */
+export function renderWithheld(result: EngineReviewResult): string[] {
+  const withheld = result.withheldFindings;
+  if (!withheld || withheld.total <= 0) return [];
+  const noun = withheld.total === 1 ? "finding" : "findings";
+  const breakdown =
+    withheld.byDimension.length > 0
+      ? ` (${withheld.byDimension.map((d) => `${d.dimension} ${d.count}`).join(", ")})`
+      : "";
+  return [`  … ${withheld.total} more ${noun}${breakdown} withheld by the trust budget (not shown)`];
+}
+
+/**
  * The replayed critique of an offline run. Never numbered and never called a
  * finding: this text was authored in a fixture before the page existed, and the
  * only thing it proves is that the pipeline carried it end to end.
@@ -337,6 +353,7 @@ export function renderReview(summary: RunSummary): string[] {
     `  ${pad("blocking")}${result.blockingEnabled ? "enabled" : "advisory only"}`,
     "",
     ...renderFindings(result),
+    ...renderWithheld(result),
     // A partial review is still a real review, and the routes it skipped are a
     // fact about it. They were already in review.json and nowhere on screen.
     ...(result.notReviewed.length > 0 ? ["", ...renderNotReviewed(result)] : []),

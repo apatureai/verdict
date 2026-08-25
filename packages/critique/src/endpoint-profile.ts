@@ -41,7 +41,21 @@ export interface EndpointProfile {
   structuredOutput: "json_schema" | "json_object" | "none";
   /** Reasoning delta field this endpoint is expected to stream (both are read). */
   reasoningDeltaField: "reasoning_content" | "reasoning";
+  /**
+   * The endpoint's typical advertised context window in tokens (C2). This is what
+   * the deep-pass context-window preflight estimates the prompt + reserved
+   * completion against, so the geometry map is degraded deterministically (or the
+   * run fails loudly) rather than the endpoint silently context-shifting it out
+   * mid-generation. It is a DEFAULT for the backend, overridable per run by
+   * `MODEL_CONTEXT_WINDOW` (a deployment that serves a smaller/larger window says
+   * so there). The recommended local tag is `qwen3vl-32k` (32768); the 12k tag
+   * overflows the unlocked prompt, which is exactly the run the preflight catches.
+   */
+  contextWindowTokens: number;
 }
+
+/** The Qwen3-VL served context this project standardises on (the `qwen3vl-32k` tag). */
+const QWEN3VL_32K = 32_768;
 
 /** No vendor-specific keys; two-step coercion; both reasoning fields read. */
 export const CONSERVATIVE_PROFILE: EndpointProfile = {
@@ -49,6 +63,7 @@ export const CONSERVATIVE_PROFILE: EndpointProfile = {
   sendMaxPixels: false,
   structuredOutput: "json_object",
   reasoningDeltaField: "reasoning",
+  contextWindowTokens: QWEN3VL_32K,
 };
 
 const PROFILES: Record<Exclude<ModelBackend, "mock">, EndpointProfile> = {
@@ -60,6 +75,7 @@ const PROFILES: Record<Exclude<ModelBackend, "mock">, EndpointProfile> = {
     sendMaxPixels: true,
     structuredOutput: "json_object",
     reasoningDeltaField: "reasoning_content",
+    contextWindowTokens: QWEN3VL_32K,
   },
   // vLLM / SGLang self-host: guided decoding (xgrammar/outlines) does Thinking +
   // json_schema in ONE call, and accepts the Qwen `max_pixels` extra.
@@ -68,6 +84,7 @@ const PROFILES: Record<Exclude<ModelBackend, "mock">, EndpointProfile> = {
     sendMaxPixels: true,
     structuredOutput: "json_schema",
     reasoningDeltaField: "reasoning",
+    contextWindowTokens: QWEN3VL_32K,
   },
   // Historical alias for a vLLM/SGLang guided-decoding endpoint.
   "self-host": {
@@ -75,6 +92,7 @@ const PROFILES: Record<Exclude<ModelBackend, "mock">, EndpointProfile> = {
     sendMaxPixels: true,
     structuredOutput: "json_schema",
     reasoningDeltaField: "reasoning",
+    contextWindowTokens: QWEN3VL_32K,
   },
   // OpenAI: Structured Outputs (json_schema) in one call; no DashScope extras.
   openai: {
@@ -82,15 +100,20 @@ const PROFILES: Record<Exclude<ModelBackend, "mock">, EndpointProfile> = {
     sendMaxPixels: false,
     structuredOutput: "json_schema",
     reasoningDeltaField: "reasoning",
+    contextWindowTokens: 128_000,
   },
   // Ollama OpenAI-compatible mode: supports a json_schema `response_format` for
   // single-call structured output; ignores DashScope extras (which is exactly
-  // what broke the two-step here), and streams `reasoning`.
+  // what broke the two-step here), and streams `reasoning`. The recommended tag
+  // is `qwen3vl-32k`; the `qwen3vl-12k` tag overflows the unlocked prompt (set
+  // `MODEL_CONTEXT_WINDOW=12288` there so the preflight degrades instead of
+  // silently context-shifting).
   ollama: {
     sendEnableThinking: false,
     sendMaxPixels: false,
     structuredOutput: "json_schema",
     reasoningDeltaField: "reasoning",
+    contextWindowTokens: QWEN3VL_32K,
   },
   // OpenRouter proxies many models with uneven structured-output support, so it
   // stays on the conservative two-step and leans on the salvage path.
@@ -99,6 +122,7 @@ const PROFILES: Record<Exclude<ModelBackend, "mock">, EndpointProfile> = {
     sendMaxPixels: false,
     structuredOutput: "json_object",
     reasoningDeltaField: "reasoning",
+    contextWindowTokens: QWEN3VL_32K,
   },
 };
 
@@ -106,6 +130,28 @@ const PROFILES: Record<Exclude<ModelBackend, "mock">, EndpointProfile> = {
 export function endpointProfile(backend: ModelBackend): EndpointProfile {
   if (backend === "mock") return CONSERVATIVE_PROFILE;
   return PROFILES[backend] ?? CONSERVATIVE_PROFILE;
+}
+
+/**
+ * The deep-pass context window a backend's preflight should use (C2): the explicit
+ * `MODEL_CONTEXT_WINDOW` override when a deployment sets a positive integer there,
+ * otherwise the backend profile's default. This is the single place the CLI, the
+ * local server and the runtime worker resolve the window from, so the preflight
+ * runs with the same number on every surface — and actually runs at all, closing
+ * the gap where `contextWindow` was dead code and the preflight never fired on a
+ * real run. A non-numeric / non-positive override is ignored (falls back to the
+ * profile default) rather than disabling the preflight.
+ */
+export function resolveContextWindowTokens(
+  backend: ModelBackend,
+  env: Record<string, string | undefined> = {},
+): number {
+  const raw = (env.MODEL_CONTEXT_WINDOW ?? "").trim();
+  if (raw.length > 0) {
+    const parsed = Number(raw);
+    if (Number.isInteger(parsed) && parsed > 0) return parsed;
+  }
+  return endpointProfile(backend).contextWindowTokens;
 }
 
 /**

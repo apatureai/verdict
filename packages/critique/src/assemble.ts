@@ -103,6 +103,7 @@ export function assembleCritique(routes: DeepPassRouteResult[], deps: AssembleCr
     netNewFindings: tail.netNewFindings,
     duplicateFactDrops: tail.duplicateFactDrops,
     restatedFindings: tail.restatedFindings,
+    withheldFindings: tail.withheldFindings,
   });
 
   const notReviewed = dedupeStrings([
@@ -136,6 +137,9 @@ export function assembleCritique(routes: DeepPassRouteResult[], deps: AssembleCr
             netNewFindings: tail.netNewFindings,
           }
         : {}),
+      // F3: what the trust-budget cap withheld, emitted only when it held
+      // something back (byte-identical when it withheld nothing).
+      ...(tail.withheldFindings.total > 0 ? { withheldFindings: tail.withheldFindings } : {}),
     },
     metadata: buildResultMetadata({
       engineVersion,

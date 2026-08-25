@@ -12,6 +12,7 @@ export { DashScopeModelClient, createOpenAICompatibleCreate } from "./dashscope.
 export {
   endpointProfile,
   backendUsesGuidedDecoding,
+  resolveContextWindowTokens,
   CONSERVATIVE_PROFILE,
 } from "./endpoint-profile.js";
 export type { EndpointProfile } from "./endpoint-profile.js";
@@ -83,7 +84,7 @@ export {
   critiqueJsonSchema,
 } from "./schema.js";
 export type { CritiqueOutput, ModelFinding, ParseResult } from "./schema.js";
-export { hallucinationGate } from "./hallucination-gate.js";
+export { hallucinationGate, normalizeCitation } from "./hallucination-gate.js";
 export type { CapturedShot, HallucinationGateInput, HallucinationGateResult } from "./hallucination-gate.js";
 export { postFilter } from "./post-filter.js";
 export type { PostFilterOptions } from "./post-filter.js";
@@ -119,6 +120,7 @@ export {
   renderBuildFacts,
   renderGenomeRules,
   renderGeometry,
+  planGeometry,
   citableSelectors,
   substantiveText,
   renderStyleCensus,
@@ -144,6 +146,8 @@ export {
 export type { ResolveGeometryBudgetInput, GeometryBudgetDecision } from "./context-preflight.js";
 export { assembleCritique } from "./assemble.js";
 export type { AssembleCritiqueDeps } from "./assemble.js";
+export { runValidationTail } from "./validation-tail.js";
+export type { ValidationTailInput, ValidationTailResult } from "./validation-tail.js";
 // canon#64 consumer side: suppress blocking when grounded on a revoked version.
 export {
   authorizeGrounding,

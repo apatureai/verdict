@@ -10,6 +10,7 @@ import type {
   ModelResponse,
   PassModelConfig,
 } from "@apatureai/verdict-critique";
+import { ContextBudgetError } from "@apatureai/verdict-critique";
 import type { ContextBlockInput, Embedder, GenomeRule } from "@apatureai/verdict-context";
 import { describe, expect, it } from "vitest";
 import {
@@ -637,5 +638,46 @@ describe("runLocalReview on a page it measured and nothing judged", () => {
     expect(outcome.modelFindingsSeen).toBe(1);
     expect(outcome.result.findings).toEqual([]);
     expect(outcome.result.gradeUnavailableReason).toBe("nothing_survived_validation");
+  });
+});
+
+/**
+ * F5 — the context-window preflight (C2) actually runs on a real run. Before this
+ * `contextWindow` was dead code: no front door passed it, so
+ * `resolveRouteGeometryBudget` returned undefined every time and the preflight
+ * never fired. `runLocalReview` now forwards it into the deep pass, so a request
+ * that carries a window degrades the map or fails loud instead of letting the
+ * endpoint silently context-shift it.
+ */
+describe("F5 — runLocalReview forwards contextWindow into the deep-pass preflight", () => {
+  async function reviewWithWindow(contextWindow: number): Promise<LocalReviewOutcome> {
+    return runLocalReview(
+      {
+        url: "http://127.0.0.1:5000",
+        routes: ["/pricing"],
+        viewports: ["mobile", "desktop"],
+        installationId: "test",
+        depth: "deep",
+        context: CONTEXT,
+        contextWindow,
+      },
+      {
+        browser: fakeBrowser({ overflowing: true }),
+        sink: memorySink(),
+        modelFactory: deepModel([modelFinding({ elementRef: "#hero-title" })]),
+      },
+    );
+  }
+
+  it("a comfortable window lets the run proceed (preflight ran, prompt fit)", async () => {
+    const outcome = await reviewWithWindow(32_768);
+    expect(outcome.result.findings).toHaveLength(1);
+  });
+
+  it("a tiny window makes the preflight FAIL LOUD — proof contextWindow reached the deep pass", async () => {
+    // 64 tokens cannot hold the prompt even with the map dropped, so the preflight
+    // throws ContextBudgetError. If contextWindow were still dead code, this would
+    // succeed exactly like the comfortable-window run above.
+    await expect(reviewWithWindow(64)).rejects.toThrow(ContextBudgetError);
   });
 });

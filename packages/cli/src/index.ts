@@ -31,7 +31,7 @@ export {
   LEXICAL_EMBEDDER_DIMENSIONS,
   LEXICAL_EMBEDDER_ID,
 } from "./lexical-embedder.js";
-export { resolveLocalModel, fixturesDir, passModelsFromEnv } from "./model-choice.js";
+export { resolveLocalModel, fixturesDir, passModelsFromEnv, backendFromEnv, contextWindowFromEnv } from "./model-choice.js";
 export type { ResolvedLocalModel, ResolveLocalModelOptions } from "./model-choice.js";
 export {
   CLI_ENGINE_NAME,

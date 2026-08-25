@@ -44,6 +44,8 @@
  * same bytes.
  */
 
+import type { WithheldFindings } from "@apatureai/verdict-types";
+
 export interface NarrativeReconciliationInput {
   /** The model's own summary, verbatim, exactly as it came out of the pass(es). */
   overall: string;
@@ -79,6 +81,13 @@ export interface NarrativeReconciliationInput {
   duplicateFactDrops?: number;
   /** Findings demoted for restating a reported measurement (judge-unlock §4.4). */
   restatedFindings?: number;
+  /**
+   * What the trust-budget cap WITHHELD (F3): findings that cleared every gate but
+   * did not fit the cap. Disclosed in the narrative so a whole withheld class (e.g.
+   * five off-scale spacing nits) is never dropped in silence. Absent/`total: 0` ⇒
+   * nothing withheld, narrative byte-identical.
+   */
+  withheldFindings?: WithheldFindings;
 }
 
 export interface ReconciledNarrative {
@@ -131,6 +140,33 @@ function withUngroundedDisclosure(narrative: ReconciledNarrative, ungrounded: nu
   return { ...narrative, overall };
 }
 
+/** "3 further finding(s) (spacing 2, typography 1) were withheld by the trust budget and are not shown.". */
+function withheldDisclosure(withheld: WithheldFindings): string {
+  const noun = withheld.total === 1 ? "finding" : "findings";
+  const breakdown =
+    withheld.byDimension.length > 0
+      ? ` (${withheld.byDimension.map((d) => `${d.dimension} ${d.count}`).join(", ")})`
+      : "";
+  return (
+    `${withheld.total} further ${noun}${breakdown} were withheld by the trust budget and are not shown in this result.`
+  );
+}
+
+/**
+ * Append the trust-budget withholding disclosure (F3) when the cap held findings
+ * back. Disclosed rather than dropped in silence: a reader is told how many
+ * findings, and in which dimensions, this result is not showing.
+ */
+function withWithheldDisclosure(
+  narrative: ReconciledNarrative,
+  withheld: WithheldFindings | undefined,
+): ReconciledNarrative {
+  if (!withheld || withheld.total <= 0) return narrative;
+  const disclosure = withheldDisclosure(withheld);
+  const overall = narrative.overall.trim().length === 0 ? disclosure : `${narrative.overall} ${disclosure}`;
+  return { ...narrative, overall };
+}
+
 /**
  * Settle `overall` against what survived validation. See the module comment for
  * why each case is what it is.
@@ -170,9 +206,12 @@ export function reconcileNarrative(input: NarrativeReconciliationInput): Reconci
   const ungrounded = Math.max(0, input.ungroundedFindings ?? 0);
 
   if (seen === 0 || deleted === 0) {
-    return withRestatementDisclosure(
-      withUngroundedDisclosure({ overall: input.overall }, ungrounded),
-      input,
+    return withWithheldDisclosure(
+      withRestatementDisclosure(
+        withUngroundedDisclosure({ overall: input.overall }, ungrounded),
+        input,
+      ),
+      input.withheldFindings,
     );
   }
 
@@ -194,18 +233,21 @@ export function reconcileNarrative(input: NarrativeReconciliationInput): Reconci
               `so it is recorded under ungroundedNarrative instead of here.`,
             ungroundedNarrative: input.overall,
           };
-    return withRestatementDisclosure(base, input);
+    return withWithheldDisclosure(withRestatementDisclosure(base, input), input.withheldFindings);
   }
 
   const caveat =
     `Caveat: ${deleted} of the ${seen} finding(s) the model reported were deleted before ` +
     `publication (${clause}). The summary that follows was written before that, so part of it ` +
     `may describe findings that are not in this result.`;
-  return withRestatementDisclosure(
-    withUngroundedDisclosure(
-      { overall: narrative.length === 0 ? caveat : `${caveat} ${input.overall}` },
-      ungrounded,
+  return withWithheldDisclosure(
+    withRestatementDisclosure(
+      withUngroundedDisclosure(
+        { overall: narrative.length === 0 ? caveat : `${caveat} ${input.overall}` },
+        ungrounded,
+      ),
+      input,
     ),
-    input,
+    input.withheldFindings,
   );
 }

@@ -86,6 +86,34 @@ function clampConfidence(value: number): number {
 }
 
 /**
+ * Normalise a model-emitted `element_ref` into the citable selector(s) it means,
+ * defending against two KNOWN rendering/compliance artefacts (F1) WITHOUT ever
+ * loosening the gate into fuzzy matching — each candidate is still matched EXACTLY
+ * against the geometry map:
+ *
+ *   1. A trailing parenthesised ROLE. The geometry block used to render
+ *      `- #upgrade (button) box …` and instruct "cite element_ref EXACTLY as
+ *      written", so the model cited `#upgrade (button)`. A trailing ` (role)` — a
+ *      parenthesised group preceded by WHITESPACE — is stripped. The whitespace is
+ *      load-bearing: it distinguishes the role suffix ` (link)` from a structural
+ *      pseudo-class like `:nth-of-type(1)`, whose paren is NOT preceded by a space
+ *      and is part of the selector.
+ *   2. A COMMA-JOINED multi-selector citation. The model emitted
+ *      `a:nth-of-type(1) (link), a:nth-of-type(2) (link)` for one finding. CSS
+ *      selectors in the geometry map are single-element paths and never contain a
+ *      comma, so a comma is always the model joining two refs; the citation is
+ *      SPLIT into its parts, and the caller reports each part as its own finding
+ *      (or drops the parts that do not resolve). Splitting rather than rejecting
+ *      preserves an honest, correctly-grounded finding.
+ */
+export function normalizeCitation(ref: string): string[] {
+  const parts = ref.includes(",") ? ref.split(",") : [ref];
+  return parts
+    .map((p) => p.trim().replace(/\s+\([^)]*\)\s*$/, "").trim())
+    .filter((p) => p.length > 0);
+}
+
+/**
  * Collision-free key for a `(route, viewport)` pair. JSON-encoding both halves
  * means no separator char can ever be confused for data: two distinct pairs
  * cannot produce the same string regardless of what a route contains.
@@ -112,16 +140,31 @@ export function hallucinationGate(
       hallucinationDrops++;
       continue;
     }
-    // (3) the element half: a cited selector must exist in the geometry map.
-    if (selectors && finding.elementRef !== null && !selectors.has(finding.elementRef)) {
-      hallucinationDrops++;
-      continue;
-    }
     const clamped = { ...finding, confidence: clampConfidence(finding.confidence) };
     // A null elementRef points at the shot but at no element: honest, ungrounded,
     // and kept out of the grade. Not a hallucination, so not counted.
-    if (finding.elementRef === null) ungrounded.push(clamped);
-    else kept.push(clamped);
+    if (finding.elementRef === null) {
+      ungrounded.push(clamped);
+      continue;
+    }
+    // No geometry supplied ⇒ the element half is not verifiable on this path; the
+    // finding is kept with its ref untouched (byte-identical to before).
+    if (!selectors) {
+      kept.push(clamped);
+      continue;
+    }
+    // (3) the element half: the cited selector(s) must exist in the geometry map.
+    // A known-artefact citation (trailing role, or a comma-joined pair) is
+    // normalised to the selector(s) it means and each is matched EXACTLY. A
+    // multi-selector citation SPLITS into one finding per resolved selector, each
+    // pinned to its normalised selector so downstream (duplicate-fact gate, wire)
+    // sees a real selector, never `#upgrade (button)`.
+    const matched = normalizeCitation(finding.elementRef).filter((s) => selectors.has(s));
+    if (matched.length === 0) {
+      hallucinationDrops++;
+      continue;
+    }
+    for (const selector of matched) kept.push({ ...clamped, elementRef: selector });
   }
 
   return { findings: kept, ungrounded, hallucinationDrops };

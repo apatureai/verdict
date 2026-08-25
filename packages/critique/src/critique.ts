@@ -121,6 +121,7 @@ export async function critique(
     netNewFindings: tail.netNewFindings,
     duplicateFactDrops: tail.duplicateFactDrops,
     restatedFindings: tail.restatedFindings,
+    withheldFindings: tail.withheldFindings,
   });
 
   return {
@@ -146,6 +147,8 @@ export async function critique(
             netNewFindings: tail.netNewFindings,
           }
         : {}),
+      // F3: what the trust-budget cap withheld, emitted only when non-empty.
+      ...(tail.withheldFindings.total > 0 ? { withheldFindings: tail.withheldFindings } : {}),
     },
     metadata: buildResultMetadata({
       engineVersion: ENGINE_VERSION,

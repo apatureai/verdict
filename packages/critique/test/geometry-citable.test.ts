@@ -53,7 +53,7 @@ const el = (
 function citableInBlock(block: string): Set<string> {
   const out = new Set<string>();
   for (const line of block.split("\n")) {
-    const full = /^- (.+?) \([^)]*\) box /.exec(line);
+    const full = /^- (.+?) box /.exec(line);
     if (full?.[1]) {
       out.add(full[1]);
       continue;
@@ -112,8 +112,8 @@ describe("C3 — citableSelectors is the single source of truth for the block", 
     // The collapse actually happened: an `also cite` list carries the duplicate rows.
     expect(block).toContain("also cite");
     // The rare-font element got a real full line (it is the representative of its signature).
-    expect(block).toContain("- code.sha (generic) box ");
-    expect(block).toContain("- body > footer > a (link) box ");
+    expect(block).toContain("- code.sha box ");
+    expect(block).toContain("- body > footer > a box ");
   });
 
   it("INVARIANT: the gate accept set (derived from citableSelectors) is never broader than the block", () => {
