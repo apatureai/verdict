@@ -5,7 +5,14 @@ import {
   DashScopeModelClient,
   parseSseData,
   toHttpChatBody,
+  isRetryableStatus,
+  parseRetryAfter,
+  backoffDelayMs,
+  estimateQwenImageTokens,
+  pngDimensionsFromDataUrl,
+  ModelTimeoutError,
   type ChatCreateParams,
+  type HttpModelLog,
 } from "../src/index.js";
 
 /** Wrap SSE text in a byte stream, optionally split at arbitrary points. */
@@ -153,5 +160,210 @@ describe("createHttpChatCompletionsCreate", () => {
       type: "image_url",
       image_url: { url: "https://cdn.example/a.png" },
     });
+  });
+});
+
+/** A 200 SSE response that immediately ends the stream. */
+function okStream(): Response {
+  return new Response(sseStream(["data: [DONE]\n\n"]), { status: 200 });
+}
+
+/** Drain a create() result so its stream (and any idle timer) actually runs. */
+async function drain(stream: AsyncIterable<unknown>): Promise<void> {
+  for await (const chunk of stream) {
+    void chunk;
+  }
+}
+
+describe("retry classification helpers", () => {
+  it("retries 408/425/429 and every 5xx, but not 4xx like 400/401/404", () => {
+    for (const s of [408, 425, 429, 500, 502, 503, 504]) expect(isRetryableStatus(s)).toBe(true);
+    for (const s of [400, 401, 403, 404, 422]) expect(isRetryableStatus(s)).toBe(false);
+  });
+
+  it("parses Retry-After as delta-seconds and as an HTTP-date", () => {
+    expect(parseRetryAfter("2", 0)).toBe(2_000);
+    expect(parseRetryAfter(null, 0)).toBeNull();
+    expect(parseRetryAfter("garbage", 0)).toBeNull();
+    const now = Date.parse("2026-01-01T00:00:00Z");
+    expect(parseRetryAfter("Thu, 01 Jan 2026 00:00:05 GMT", now)).toBe(5_000);
+  });
+
+  it("full-jitter backoff stays within [0, min(cap, base·2^(n-1)))", () => {
+    expect(backoffDelayMs(1, 500, 30_000, () => 0)).toBe(0);
+    expect(backoffDelayMs(1, 500, 30_000, () => 0.999)).toBeLessThan(500);
+    // attempt 4 ceiling = 500·2^3 = 4000, capped by 30000
+    expect(backoffDelayMs(4, 500, 30_000, () => 0.999)).toBeLessThan(4_000);
+    // cap bites: 500·2^10 = 512000 → clamped to 30000
+    expect(backoffDelayMs(11, 500, 30_000, () => 0.5)).toBe(15_000);
+  });
+});
+
+describe("image-token estimate", () => {
+  it("estimates ~one Qwen token per 28×28px block", () => {
+    expect(estimateQwenImageTokens(2880, 1800)).toBe(Math.ceil((2880 * 1800) / 784));
+    expect(estimateQwenImageTokens(28, 28)).toBe(1);
+  });
+
+  it("reads width/height from a PNG data URI and ignores non-PNG urls", () => {
+    // 1×1 PNG.
+    const onePx =
+      "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+M8AAAMBAQDJ/pLvAAAAAElFTkSuQmCC";
+    expect(pngDimensionsFromDataUrl(onePx)).toEqual({ width: 1, height: 1 });
+    expect(pngDimensionsFromDataUrl("https://cdn.example/a.png")).toBeNull();
+    expect(pngDimensionsFromDataUrl("data:image/jpeg;base64,/9j/xxxx")).toBeNull();
+  });
+
+  it("logs a per-call image-token estimate before sending (W1-05)", async () => {
+    const onePx =
+      "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+M8AAAMBAQDJ/pLvAAAAAElFTkSuQmCC";
+    const events: HttpModelLog[] = [];
+    const create = createHttpChatCompletionsCreate({
+      baseUrl: "https://m.example/v1",
+      apiKey: "k",
+      fetchImpl: (async () => okStream()) as unknown as typeof fetch,
+      log: (e) => events.push(e),
+    });
+    await create(
+      {
+        ...PARAMS,
+        messages: [{ role: "user", content: [{ type: "text", text: "hi" }, { type: "image_url", image_url: { url: onePx } }] }] as unknown as ChatCreateParams["messages"],
+      },
+      {},
+    );
+    const request = events.find((e) => e.kind === "request");
+    expect(request).toMatchObject({ kind: "request", images: 1, imageTokenEstimate: 1 });
+  });
+});
+
+describe("createHttpChatCompletionsCreate resilience (W1-05)", () => {
+  const noWait = async () => {}; // skip real backoff sleeps
+  const fixedJitter = () => 0.5;
+
+  it("retries a 503 with backoff then succeeds, and reports the retry", async () => {
+    let calls = 0;
+    const fetchImpl = vi.fn(async () => {
+      calls += 1;
+      return calls === 1 ? new Response("overloaded", { status: 503 }) : okStream();
+    });
+    const events: HttpModelLog[] = [];
+    const create = createHttpChatCompletionsCreate({
+      baseUrl: "https://m.example/v1",
+      apiKey: "k",
+      fetchImpl: fetchImpl as unknown as typeof fetch,
+      sleep: noWait,
+      random: fixedJitter,
+      log: (e) => events.push(e),
+    });
+    await drain(await create(PARAMS, {}));
+    expect(fetchImpl).toHaveBeenCalledTimes(2);
+    expect(events.filter((e) => e.kind === "retry")).toHaveLength(1);
+    expect(events.find((e) => e.kind === "retry")).toMatchObject({ attempt: 1, reason: "status 503" });
+  });
+
+  it("honours a Retry-After header as the backoff floor", async () => {
+    let calls = 0;
+    const delays: number[] = [];
+    const fetchImpl = vi.fn(async () => {
+      calls += 1;
+      return calls === 1
+        ? new Response("slow down", { status: 429, headers: { "retry-after": "2" } })
+        : okStream();
+    });
+    const create = createHttpChatCompletionsCreate({
+      baseUrl: "https://m.example/v1",
+      apiKey: "k",
+      fetchImpl: fetchImpl as unknown as typeof fetch,
+      sleep: async (ms) => {
+        delays.push(ms);
+      },
+      random: fixedJitter,
+    });
+    await drain(await create(PARAMS, {}));
+    // jitter would be ~250ms; Retry-After: 2 pushes the floor to 2000ms.
+    expect(delays).toEqual([2_000]);
+  });
+
+  it("does not retry a non-retryable 401 and surfaces the body", async () => {
+    const fetchImpl = vi.fn(async () => new Response('{"error":"bad key"}', { status: 401 }));
+    const create = createHttpChatCompletionsCreate({
+      baseUrl: "https://m.example/v1",
+      apiKey: "bad",
+      fetchImpl: fetchImpl as unknown as typeof fetch,
+      sleep: noWait,
+    });
+    await expect(create(PARAMS, {})).rejects.toThrow(/returned 401.*bad key/s);
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+  });
+
+  it("retries a transport failure then gives up after maxAttempts, throwing the last error", async () => {
+    const fetchImpl = vi.fn(async () => {
+      throw new Error("ECONNRESET");
+    });
+    const create = createHttpChatCompletionsCreate({
+      baseUrl: "https://m.example/v1",
+      apiKey: "k",
+      fetchImpl: fetchImpl as unknown as typeof fetch,
+      retry: { maxAttempts: 3 },
+      sleep: noWait,
+      random: fixedJitter,
+    });
+    await expect(create(PARAMS, {})).rejects.toThrow(/ECONNRESET/);
+    expect(fetchImpl).toHaveBeenCalledTimes(3);
+  });
+
+  it("never retries a caller-initiated abort (supersession)", async () => {
+    const controller = new AbortController();
+    const fetchImpl = vi.fn(async (_url: string, init: RequestInit) => {
+      controller.abort(new Error("superseded"));
+      // Model the real fetch: reject once the passed signal aborts.
+      throw (init.signal as AbortSignal).reason ?? new Error("aborted");
+    });
+    const create = createHttpChatCompletionsCreate({
+      baseUrl: "https://m.example/v1",
+      apiKey: "k",
+      fetchImpl: fetchImpl as unknown as typeof fetch,
+      retry: { maxAttempts: 5 },
+      sleep: noWait,
+    });
+    await expect(create(PARAMS, { signal: controller.signal })).rejects.toThrow(/superseded/);
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+  });
+
+  it("aborts and surfaces a connect timeout when headers never arrive", async () => {
+    // fetch that resolves only once its signal aborts (a stuck connection).
+    const fetchImpl = vi.fn(
+      (_url: string, init: RequestInit) =>
+        new Promise<Response>((_resolve, reject) => {
+          (init.signal as AbortSignal).addEventListener("abort", () => reject((init.signal as AbortSignal).reason));
+        }),
+    );
+    const create = createHttpChatCompletionsCreate({
+      baseUrl: "https://m.example/v1",
+      apiKey: "k",
+      fetchImpl: fetchImpl as unknown as typeof fetch,
+      timeouts: { connectTimeoutMs: 10 },
+      retry: { maxAttempts: 1 },
+      sleep: noWait,
+    });
+    await expect(create(PARAMS, {})).rejects.toBeInstanceOf(ModelTimeoutError);
+  });
+
+  it("aborts a stalled stream via the idle timeout", async () => {
+    // A stream that emits one chunk then never closes.
+    const stalling = new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.enqueue(new TextEncoder().encode('data: {"choices":[{"delta":{"content":"a"}}]}\n\n'));
+        // never close, never enqueue again → idle
+      },
+    });
+    const create = createHttpChatCompletionsCreate({
+      baseUrl: "https://m.example/v1",
+      apiKey: "k",
+      fetchImpl: (async () => new Response(stalling, { status: 200 })) as unknown as typeof fetch,
+      timeouts: { connectTimeoutMs: 0, idleTimeoutMs: 20 },
+    });
+    const stream = await create(PARAMS, {});
+    await expect(drain(stream)).rejects.toBeInstanceOf(ModelTimeoutError);
   });
 });

@@ -1,5 +1,10 @@
 import { DashScopeModelClient, type ImageUrlResolver } from "./dashscope.js";
-import { createHttpChatCompletionsCreate } from "./http-model.js";
+import {
+  createHttpChatCompletionsCreate,
+  type HttpModelLog,
+  type HttpRetryConfig,
+  type HttpTimeoutConfig,
+} from "./http-model.js";
 import { defaultModelFactory } from "./mock-model.js";
 import type { ModelClientFactory } from "./registry.js";
 
@@ -19,6 +24,42 @@ export interface ModelEnv {
   MODEL_API_KEY?: string | undefined;
   /** OpenAI-compatible base URL, e.g. `https://host/compatible-mode/v1`. */
   MODEL_BASE_URL?: string | undefined;
+  /** Abort if response headers do not arrive within this many ms (default 120000). */
+  MODEL_CONNECT_TIMEOUT_MS?: string | undefined;
+  /** Abort a stalled stream after this many idle ms (default 0 = off). */
+  MODEL_IDLE_TIMEOUT_MS?: string | undefined;
+  /** Abort a whole call, retries included, after this many ms (default 0 = off). */
+  MODEL_TOTAL_TIMEOUT_MS?: string | undefined;
+  /** Total attempts including the first, on 408/425/429/5xx/transport (default 3). */
+  MODEL_MAX_ATTEMPTS?: string | undefined;
+  /** Backoff base in ms for the first retry (default 500). */
+  MODEL_RETRY_BASE_MS?: string | undefined;
+  /** Cap on a single jittered backoff delay in ms (default 30000). */
+  MODEL_RETRY_MAX_MS?: string | undefined;
+}
+
+/** Parse a non-negative integer env var, falling back on absent/invalid input. */
+function nonNegativeInt(value: string | undefined, fallback: number): number {
+  if (value === undefined) return fallback;
+  const trimmed = value.trim();
+  if (!/^\d+$/.test(trimmed)) return fallback;
+  return Number(trimmed);
+}
+
+function resolveTimeouts(env: ModelEnv): HttpTimeoutConfig {
+  return {
+    connectTimeoutMs: nonNegativeInt(env.MODEL_CONNECT_TIMEOUT_MS, 120_000),
+    idleTimeoutMs: nonNegativeInt(env.MODEL_IDLE_TIMEOUT_MS, 0),
+    totalTimeoutMs: nonNegativeInt(env.MODEL_TOTAL_TIMEOUT_MS, 0),
+  };
+}
+
+function resolveRetry(env: ModelEnv): HttpRetryConfig {
+  return {
+    maxAttempts: Math.max(1, nonNegativeInt(env.MODEL_MAX_ATTEMPTS, 3)),
+    baseDelayMs: nonNegativeInt(env.MODEL_RETRY_BASE_MS, 500),
+    maxDelayMs: nonNegativeInt(env.MODEL_RETRY_MAX_MS, 30_000),
+  };
 }
 
 export type ModelRuntimeMode = "mock" | "live";
@@ -43,6 +84,25 @@ export interface ModelRuntimeOptions {
   fetchImpl?: typeof fetch;
   /** Extra headers for the endpoint (gateway/tenant routing). */
   headers?: Record<string, string>;
+  /**
+   * Sink for the transport's structured diagnostics (per-call image-token
+   * estimate, retry notices). Defaults to a compact line on stderr so it never
+   * pollutes a stdout JSON review; pass `() => {}` to silence it.
+   */
+  log?: (event: HttpModelLog) => void;
+}
+
+/** Default diagnostics sink: one compact line per event on stderr. */
+function defaultHttpLog(event: HttpModelLog): void {
+  if (event.kind === "request") {
+    process.stderr.write(
+      `[verdict] model call → ${event.images} image(s), ~${event.imageTokenEstimate} image tokens\n`,
+    );
+  } else {
+    process.stderr.write(
+      `[verdict] model retry ${event.attempt} in ${event.delayMs}ms (${event.reason})\n`,
+    );
+  }
 }
 
 /** Thrown when a live model was requested but the configuration is incomplete. */
@@ -80,6 +140,9 @@ export function resolveModelRuntime(env: ModelEnv, options: ModelRuntimeOptions 
   const create = createHttpChatCompletionsCreate({
     baseUrl,
     apiKey: (env.MODEL_API_KEY as string).trim(),
+    timeouts: resolveTimeouts(env),
+    retry: resolveRetry(env),
+    log: options.log ?? defaultHttpLog,
     ...(options.fetchImpl ? { fetchImpl: options.fetchImpl } : {}),
     ...(options.headers ? { headers: options.headers } : {}),
   });

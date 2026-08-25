@@ -54,6 +54,22 @@ describe("DashScopeModelClient (#27)", () => {
     expect(userMsg.content.some((p) => p.type === "image_url")).toBe(true);
   });
 
+  it("accepts the `reasoning` delta a self-hosted qwen3-vl/ollama server streams (W1-05)", async () => {
+    // ollama's OpenAI-compatible mode streams chain-of-thought as `reasoning`,
+    // not DashScope's `reasoning_content`. Both must land in thinkingText or the
+    // deep pass silently loses the whole reasoning block on the self-host path.
+    const create = async () =>
+      fakeStream([
+        { choices: [{ delta: { content: "", reasoning: "Got" } }] },
+        { choices: [{ delta: { content: "", reasoning: " it" } }] },
+        { choices: [{ delta: { content: '{"grade":"ship"}' }, finish_reason: "stop" }] },
+      ]);
+    const client = new DashScopeModelClient(create, {}, "self-host");
+    const res = await client.complete(deepRequest);
+    expect(res.thinkingText).toBe("Got it");
+    expect(res.text).toBe('{"grade":"ship"}');
+  });
+
   it("sets json_object only on a non-thinking (coercion) call", async () => {
     let seen: ChatCreateParams | undefined;
     const create = async (params: ChatCreateParams) => {
