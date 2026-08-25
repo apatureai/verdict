@@ -21,6 +21,7 @@ export type {
   CaptureImage,
   CaptureStability,
   GeometryRect,
+  StyleDigest,
   PageHealth,
   Capture,
   CaptureInSandbox,

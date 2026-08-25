@@ -38,6 +38,7 @@ export {
   perDimensionPR,
   blockerRecall,
   nitPrecision,
+  netNewFindingRate,
   GRADE_SCALE,
   quadraticWeightedKappa,
   bootstrapKappaCI,
@@ -55,6 +56,8 @@ export type {
   AgreementWeights,
   AgreementOptions,
   AgreementCI,
+  NetNewLedger,
+  NetNewLedgerEntry,
 } from "./metrics.js";
 export { canaryRecall, humanRegressionBeyondCI, regressionGate } from "./regression-gate.js";
 export type {

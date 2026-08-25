@@ -364,6 +364,12 @@ export function toEngineReviewResult(critique: Critique, options: WireProjection
     // a clean page from three findings that could not be pointed at. Emitted even
     // when zero, because zero is the answer to the same question.
     hallucinationDrops: critique.validation.hallucinationDrops,
+    // The north-star footnote (judge-unlock §4.4), projected only when the
+    // duplicate-of-measurement gate ran (so a producer without a ledger stays
+    // byte-identical). Never a finding, never touches the grade.
+    ...(critique.validation.netNewFindings !== undefined
+      ? { netNewFindings: critique.validation.netNewFindings }
+      : {}),
     // The model's prose, on a result where it is not a description of the page:
     // either every finding it was written about was deleted, or nothing was
     // reviewed at all. `overall` above carries the engine's statement in both

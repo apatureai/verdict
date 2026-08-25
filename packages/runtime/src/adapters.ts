@@ -26,11 +26,16 @@ import type { MeasuredCapture, MeasuredCaptureInSandbox } from "./measurement.js
  * quotes verbatim, so it crosses as free text; nothing downstream parses it.
  */
 const deterministicFindingSchema = z.object({
-  kind: z.enum(["contrast", "overflow", "touch_target"]),
+  kind: z.enum(["contrast", "overflow", "touch_target", "page_overflow"]),
   route: z.string().min(1),
   viewport: z.enum(["mobile", "tablet", "desktop"]),
   selector: z.string().min(1),
   detail: z.string().min(1),
+  // Judge-unlock (§4.1): whether the check REPORTED this measurement or looked
+  // and DECLINED it (an exception applied). Named here for the same `.strict()`
+  // reason as `blockEligible`. Absent reads as reported.
+  reported: z.boolean().optional(),
+  declineReason: z.string().optional(),
   // Whether the fleet judged this measurement precise enough for a consumer to
   // gate a merge on. It has to be NAMED here even though it is optional: this
   // schema is `.strict()`, so a fleet that sends the field would otherwise have
@@ -64,6 +69,24 @@ const captureSchema = z.object({
     selector: z.string(),
     role: z.string().nullable(),
     rect: z.object({ x: z.number(), y: z.number(), width: z.number(), height: z.number() }).strict(),
+    // Judge-unlock (§2.2/§2.6): the exact computed-style digest, the sanitized
+    // own-text label, and the overflow flag. All optional and additive; named
+    // here so a `.strict()` schema does not reject a fleet that reports them.
+    style: z.object({
+      fontFamily: z.string(),
+      fontSizePx: z.number(),
+      fontWeight: z.number(),
+      lineHeightPx: z.number().nullable(),
+      color: z.string(),
+      backgroundColor: z.string(),
+      paddingPx: z.tuple([z.number(), z.number(), z.number(), z.number()]),
+      marginPx: z.tuple([z.number(), z.number(), z.number(), z.number()]),
+      gapPx: z.tuple([z.number(), z.number()]).nullable(),
+      borderRadiusPx: z.number(),
+      display: z.string().nullable(),
+    }).strict().optional(),
+    label: z.string().optional(),
+    overflowsX: z.boolean().optional(),
   }).strict()),
   pageHealth: z.object({
     consoleErrors: z.number().int().nonnegative(),
@@ -95,6 +118,10 @@ const captureSchema = z.object({
   // positive statement that the checks ran clean. `measurementGap` in
   // `measurement.ts` is what keeps those two answers apart.
   deterministicFindings: z.array(deterministicFindingSchema).optional(),
+  // Judge-unlock (§4.1): measurements the checks declined (a WCAG-excused touch
+  // target, a deliberate truncation). Optional/additive so a fleet that predates
+  // the field is not rejected; surfaced to the model as its own territory.
+  declinedFindings: z.array(deterministicFindingSchema).optional(),
   // Visible page text per route (#53). UNTRUSTED input: it is quoted into the
   // deep prompt inside `<untrusted_page_content>` and never followed.
   pageText: z.record(z.string(), z.string()).optional(),

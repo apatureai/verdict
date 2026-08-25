@@ -70,6 +70,8 @@ export {
   buildSystemPrompt,
   UNTRUSTED_CONTENT_TAG,
   UNTRUSTED_CONTENT_RULE,
+  DIVISION_OF_LABOUR,
+  YOUR_SCOPE,
   wrapUntrustedPageContent,
 } from "./prompt.js";
 export type { SystemPromptOptions } from "./prompt.js";
@@ -85,6 +87,23 @@ export { hallucinationGate } from "./hallucination-gate.js";
 export type { CapturedShot, HallucinationGateInput, HallucinationGateResult } from "./hallucination-gate.js";
 export { postFilter } from "./post-filter.js";
 export type { PostFilterOptions } from "./post-filter.js";
+export {
+  buildFactLedger,
+  claimClassOfKind,
+  literalKey,
+  measurementLiterals,
+  renderReportedFacts,
+  renderDeclinedFacts,
+} from "./fact-ledger.js";
+export type { ClaimClass, LedgerEntry, FactLedger } from "./fact-ledger.js";
+export {
+  duplicateFactGate,
+  classifyClaim,
+  classifyNovelty,
+} from "./duplicate-fact-gate.js";
+export type { Novelty, DuplicateFactGateResult } from "./duplicate-fact-gate.js";
+export { replayNetNew } from "./replay-harness.js";
+export type { ReplayFixture, ReplayReport } from "./replay-harness.js";
 export { applyConfidenceCeiling } from "./confidence-ceiling.js";
 export {
   applyCalibrationBinding,
@@ -100,8 +119,14 @@ export {
   renderBuildFacts,
   renderGenomeRules,
   renderGeometry,
+  renderStyleCensus,
+  renderReportedFactsBlock,
+  renderDeclinedFactsBlock,
   MAX_BUILD_FACTS,
   MAX_GEOMETRY_ENTRIES,
+  MAX_GEOMETRY_ENTRIES_PER_VIEWPORT,
+  MAX_GEOMETRY_CHARS_PER_VIEWPORT,
+  MAX_GEOMETRY_CHARS_PER_REQUEST,
   REPAIR_MAX_TOKENS,
 } from "./deep-pass.js";
 export type { DeepPassRoute, DeepPassDeps, DeepPassRouteResult } from "./deep-pass.js";

@@ -8,7 +8,12 @@ import {
   type ScreenshotSink,
 } from "./browser-port.js";
 import { runCaptureLifecycle, type CaptureLifecycleOps } from "./capture-lifecycle.js";
-import { deterministicChecks, isBreakage, type DeterministicFinding } from "./checks.js";
+import {
+  deterministicChecks,
+  isBreakage,
+  type DeterministicFinding,
+  type PageMetrics,
+} from "./checks.js";
 import {
   DOM_EXTRACT_EXPRESSION,
   toInteractiveElements,
@@ -89,8 +94,18 @@ export function stabilityRequested(
 
 /** A capture plus the by-products the orchestrator threads into the prompt. */
 export interface BrowserCaptureResult extends Capture {
-  /** Contrast / overflow / touch-target facts (#19) for the deep-pass prompt. */
+  /** Contrast / overflow / touch-target / page-overflow facts (#19) for the deep-pass prompt. */
   deterministicFindings: DeterministicFinding[];
+  /**
+   * Measurements the checks LOOKED AT and DECLINED because an exception applied
+   * (judge-unlock §4.1): a WCAG-excused touch target, a deliberate truncation.
+   * They are NOT published to the reviewer and never enter the wire report, but
+   * they are surfaced to the model as "measured, declined, here is why" so it can
+   * judge them against this repository's stricter rule, and they pin their
+   * element into the geometry map. Excluded from the duplicate-of-measurement
+   * gate. Empty when nothing was declined.
+   */
+  declinedFindings: DeterministicFinding[];
   /** Object keys written to the sink, in capture order. */
   objectKeys: string[];
   /**
@@ -217,6 +232,7 @@ export async function captureWithBrowser(
   const images: CaptureImage[] = [];
   const geometry: GeometryRect[] = [];
   const deterministicFindings: DeterministicFinding[] = [];
+  const declinedFindings: DeterministicFinding[] = [];
   const objectKeys: string[] = [];
   const consoleEvents: Array<{ level: string; text: string }> = [];
   const failedRequests: Array<{ url: string; status: number | null }> = [];
@@ -251,20 +267,37 @@ export async function captureWithBrowser(
         // an element the engine published a measured fact about has to be
         // citable, or the grounding gate (#32) deletes the model's finding about
         // the very measurement this run handed it. See `serializeGeometry`.
-        const pageFindings = deterministicChecks({
+        const pageMetrics = buildPageMetrics(outcome.extracted, route, viewport);
+        const allFindings = deterministicChecks({
           textNodes: toTextNodeStyles(outcome.extracted, route, viewport),
           interactive: toInteractiveElements(outcome.extracted, route, viewport),
+          ...(pageMetrics ? { pages: [pageMetrics] } : {}),
+          // Judge-unlock (§4.1): also collect the measurements the checks looked
+          // at and declined, split out below.
+          includeDeclined: true,
         });
+        // A declined measurement (`reported: false`) is byte-invisible to today's
+        // callers: `deterministicFindings` stays the REPORTED set, so the prompt
+        // fact list, the wire report and every consumer that counts findings are
+        // unchanged. The declined set travels on its own field.
+        const pageFindings = allFindings.filter((f) => f.reported !== false);
+        const pageDeclined = allFindings.filter((f) => f.reported === false);
         deterministicFindings.push(...pageFindings);
+        declinedFindings.push(...pageDeclined);
 
         const rawElements = toRawGeometryElements(outcome.extracted, route, viewport);
-        for (const entry of serializeGeometry(rawElements, pageFindings)) {
+        // The map pins every measured element, INCLUDING the declined ones (§2.4
+        // T0), so a repo-rule finding on a WCAG-excused control is groundable.
+        for (const entry of serializeGeometry(rawElements, [...pageFindings, ...pageDeclined])) {
           geometry.push({
             route: entry.route,
             viewport: entry.viewport,
             selector: entry.selector,
             role: entry.role,
             rect: entry.rect,
+            ...(entry.style !== undefined ? { style: entry.style } : {}),
+            ...(entry.label !== undefined ? { label: entry.label } : {}),
+            ...(entry.overflowsX !== undefined ? { overflowsX: entry.overflowsX } : {}),
           });
         }
 
@@ -302,9 +335,31 @@ export async function captureWithBrowser(
     }),
     captureVersion: BROWSER_CAPTURE_VERSION,
     deterministicFindings,
+    declinedFindings,
     objectKeys,
     pageText,
     stability,
+  };
+}
+
+/**
+ * Build the `page_overflow` input for one captured page (judge-unlock §3.5), or
+ * `null` when the capture did not report the page-level fields (a service too old
+ * to measure them, which reads as "not measured", never "clean").
+ */
+function buildPageMetrics(
+  extracted: ExtractedPage,
+  route: string,
+  viewport: Viewport,
+): PageMetrics | null {
+  if (extracted.documentWidth === undefined || extracted.viewportWidth === undefined) return null;
+  return {
+    route,
+    viewport,
+    viewportWidthPx: extracted.viewportWidth,
+    documentScrollWidthPx: extracted.documentWidth,
+    ...(extracted.rootScrollsX !== undefined ? { rootScrollsX: extracted.rootScrollsX } : {}),
+    ...(extracted.overflowOffenders !== undefined ? { offenders: extracted.overflowOffenders } : {}),
   };
 }
 
@@ -319,8 +374,26 @@ export function createBrowserCapture(
 /** Render deterministic findings for one route as prompt fact lines (#19). */
 export function factsForRoute(findings: DeterministicFinding[], route: string): string[] {
   return findings
-    .filter((f) => f.route === route)
+    // A declined measurement is not a reported fact; it travels on its own block.
+    .filter((f) => f.route === route && f.reported !== false)
     .map((f) => `- [${f.kind}] ${f.selector} (${f.viewport}): ${f.detail}`);
+}
+
+/**
+ * Render the DECLINED measurements for one route as the prompt's "MEASURED AND
+ * DECLINED" lines (judge-unlock §3.3/§4.1). These are the checks that looked at
+ * an element and did not report a violation because a universal-standard
+ * exception applied; the repository's own rule may be stricter, so they are the
+ * model's territory. Kept off the wire and out of the duplicate gate.
+ */
+export function declinedForRoute(declined: DeterministicFinding[], route: string): string[] {
+  return declined
+    .filter((f) => f.route === route && f.reported === false)
+    .map(
+      (f) =>
+        `- [${f.kind}] ${f.selector} (${f.viewport}): ${f.detail}` +
+        (f.declineReason ? ` [declined: ${f.declineReason}]` : ""),
+    );
 }
 
 /**
@@ -338,7 +411,7 @@ export function factsForRoute(findings: DeterministicFinding[], route: string): 
 export function breakageForRoute(findings: DeterministicFinding[], route: string): string[] {
   const lines = new Set<string>();
   for (const finding of findings) {
-    if (finding.route !== route || !isBreakage(finding)) continue;
+    if (finding.route !== route || finding.reported === false || !isBreakage(finding)) continue;
     lines.add(`[${finding.kind}] ${route} ${finding.selector}: ${finding.detail}`);
   }
   return [...lines];

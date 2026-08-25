@@ -1,4 +1,4 @@
-import type { Viewport } from "@apatureai/verdict-types";
+import type { StyleDigest, Viewport } from "@apatureai/verdict-types";
 
 /**
  * The browser surface the live capture worker drives (TRD §4.1). Playwright's
@@ -133,6 +133,24 @@ export interface ExtractedElement {
    * because an unevaluated exception could be the whole of it.
    */
   inlineTarget?: boolean;
+  /**
+   * Exact computed-style digest (judge-unlock, spec §2.2), read off the same
+   * `getComputedStyle` call already made per element. Optional/additive: absent
+   * leaves every downstream artifact byte-identical to before.
+   */
+  style?: StyleDigest;
+  /**
+   * The element's OWN text (its direct text nodes), untruncated and unsanitized
+   * here; `serializeGeometry` sanitizes and caps it into `GeometryRect.label`
+   * (spec §2.6). Optional; absent means no own text was collected.
+   */
+  ownText?: string;
+  /**
+   * True when this element's border-box right edge exceeds the viewport width,
+   * or its scrollWidth exceeds its clientWidth (spec §2.3/§2.4 T1). Optional and
+   * UNKNOWN-when-absent, never `false`.
+   */
+  overflowsX?: boolean;
 }
 
 /** Everything one `page.evaluate` round-trip brings back. */
@@ -152,6 +170,21 @@ export interface ExtractedPage {
    * the contrast check stay silent instead of publishing a guess.
    */
   canvasBackground: string | null;
+  /**
+   * Page-level layout metrics for the `page_overflow` check (judge-unlock,
+   * spec §2.3/§3.5). All four optional/additive: a capture too old to report
+   * them runs no page check, which reads as "not measured", never "clean".
+   */
+  documentWidth?: number;
+  viewportWidth?: number;
+  /** `<html>`/`<body>` computed `overflow-x` ∈ auto|scroll|overlay. */
+  rootScrollsX?: boolean;
+  /**
+   * Elements whose right edge escapes the viewport and whose nearest
+   * horizontally-scrolling ancestor is the document, sorted by right edge desc,
+   * capped at 5. This is what attributes the escaping width to `table.invoices`.
+   */
+  overflowOffenders?: Array<{ selector: string; rightEdgePx: number; widthPx: number }>;
 }
 
 export interface CapturePage {

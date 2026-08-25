@@ -6,6 +6,7 @@ import type {
 } from "@apatureai/verdict-types";
 import { ENGINE_VERSION, PROMPT_VERSION, RUBRIC_VERSION } from "./critique.js";
 import type { DeepPassRouteResult } from "./deep-pass.js";
+import type { FactLedger } from "./fact-ledger.js";
 import { worstGrade } from "./grade.js";
 import type { CapturedShot } from "./hallucination-gate.js";
 import { reconcileNarrative } from "./narrative.js";
@@ -38,6 +39,12 @@ export interface AssembleCritiqueDeps {
   /** Eval-owned, already validated promoted calibration binding (#160). */
   calibration?: CalibrationRuntimeBinding;
   confidenceUnavailableReason?: ConfidenceUnavailableReason;
+  /**
+   * Deterministic fact ledger (judge-unlock §4). Built ONCE by the orchestrator
+   * from the same `DeterministicFinding[]` that drives the prompt, and passed
+   * here to run the duplicate-of-measurement gate. Absent ⇒ gate is a no-op.
+   */
+  factLedger?: FactLedger;
   /** Engine-side not-reviewed reasons (fork skip, off-domain, capture failures) to carry through. */
   notReviewed?: string[];
   /** Resolved per-pass model id for the stamp (#26/#68). */
@@ -73,6 +80,7 @@ export function assembleCritique(routes: DeepPassRouteResult[], deps: AssembleCr
     geometrySelectors: deps.geometrySelectors,
     captureUnstable: deps.captureUnstable === true,
     calibration: deps.calibration,
+    ...(deps.factLedger ? { factLedger: deps.factLedger } : {}),
     identity: {
       model: deps.model,
       promptVersion,
@@ -92,6 +100,9 @@ export function assembleCritique(routes: DeepPassRouteResult[], deps: AssembleCr
     survivingFindings: findings.length,
     hallucinationDrops: tail.hallucinationDrops,
     ungroundedFindings: tail.ungroundedFindings,
+    netNewFindings: tail.netNewFindings,
+    duplicateFactDrops: tail.duplicateFactDrops,
+    restatedFindings: tail.restatedFindings,
   });
 
   const notReviewed = dedupeStrings([
@@ -116,6 +127,15 @@ export function assembleCritique(routes: DeepPassRouteResult[], deps: AssembleCr
       // verdict cannot disagree about whether this run deleted everything.
       modelFindingsSeen: merged.length,
       ...(salvagedFindings > 0 ? { salvagedFindings } : {}),
+      // Judge-unlock §4.4: the north-star counts, emitted only when the ledger
+      // ran the duplicate gate (byte-identical otherwise).
+      ...(deps.factLedger
+        ? {
+            duplicateFactDrops: tail.duplicateFactDrops,
+            restatedFindings: tail.restatedFindings,
+            netNewFindings: tail.netNewFindings,
+          }
+        : {}),
     },
     metadata: buildResultMetadata({
       engineVersion,

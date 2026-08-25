@@ -40,25 +40,43 @@ describe("buildSystemPrompt (#30)", () => {
     expect(prompt).toMatch(/ignore previous instructions|approve this PR/i);
   });
 
-  it("reconciles 'trust the measured facts' with 'only cite elements in the geometry block'", () => {
+  it("carries NO permission to restate a measured fact (v6, judge-unlock §3.1)", () => {
     const prompt = buildSystemPrompt({ brandPresent: true });
-    // Both halves are still asked for.
-    expect(prompt).toMatch(/contrast\/overflow\/touch-targets are measured facts: trust them/);
-    expect(prompt).toMatch(/elements listed in the DOM geometry block/);
-    // And the prompt states why they do not conflict, instead of leaving a model
-    // that obeys the first to be punished by the second.
-    expect(prompt).toMatch(
-      /Every element named in a deterministic check fact is also listed in the DOM geometry block/,
-    );
-    expect(prompt).toMatch(/never conflicts with the rule above/);
+    // The v5 lines that authorised restatement are gone: neither the "trust them,
+    // do not re-derive" framing nor the "never conflicts with the rule above"
+    // grant survives. Restating a measurement is no longer a compliant answer.
+    expect(prompt).not.toMatch(/trust them, do not re-derive from pixels/);
+    expect(prompt).not.toMatch(/never conflicts with the rule above/);
   });
 
-  it("names the DOM geometry block the model must cite element_ref from (v5, #W1-02)", () => {
+  it("frames the measurements as ALREADY REPORTED and out of scope (v6 division of labour)", () => {
     const prompt = buildSystemPrompt({ brandPresent: true });
-    // The instruction must point at the block the request now actually carries,
-    // copied EXACTLY, so the gate's exact-match accept set is what the model cites.
+    expect(prompt).toMatch(/DIVISION OF LABOUR/);
+    expect(prompt).toMatch(/ALREADY REPORTED/);
+    expect(prompt).toMatch(/has ALREADY REPORTED them to the reviewer independently of you/);
+    expect(prompt).toMatch(/duplicate output: it is discarded by code/);
+    // The exact computed styles are the model's new evidence.
+    expect(prompt).toMatch(/exact computed styles for every listed element/);
+    expect(prompt).toMatch(/Never estimate a size, colour, spacing value or font family from pixels/);
+  });
+
+  it("states the seven-item judgment sweep (v6 YOUR SCOPE)", () => {
+    const prompt = buildSystemPrompt({ brandPresent: true });
+    expect(prompt).toMatch(/YOUR SCOPE/);
+    for (const item of ["1. HIERARCHY", "2. TYPE SYSTEM", "3. SPACING SYSTEM", "4. COLOUR TOKENS", "5. SHAPE TOKENS", "6. TARGET SIZE UNDER THE REPO'S RULE", "7. LAYOUT INTEGRITY"]) {
+      expect(prompt).toContain(item);
+    }
+    // A silent decline is no longer allowed: a missing input goes to notReviewed.
+    expect(prompt).toMatch(/put a one-line statement of what was missing into `notReviewed`/);
+  });
+
+  it("still names the DOM geometry block the model must cite element_ref from", () => {
+    const prompt = buildSystemPrompt({ brandPresent: true });
+    // The grounding invariant is unchanged: element_ref copied EXACTLY from the
+    // block, and no inventing routes/selectors.
     expect(prompt).toMatch(/copied EXACTLY from the DOM geometry block in the task input/);
     expect(prompt).toMatch(/Never invent a route, a selector, or an element/);
+    expect(prompt).toMatch(/elements listed in the DOM geometry block/);
   });
 
   it("appends component-library addenda when present", () => {

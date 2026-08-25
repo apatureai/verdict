@@ -285,7 +285,8 @@ describe("measurementReportFor", () => {
     // The fixture captures desktop only, and the touch-target check is scoped to
     // touch viewports, so it never ran. Claiming it did told a consumer "touch
     // targets measured, clean" for a check that structurally refused to execute.
-    expect(report?.checksRun).toEqual(["contrast", "overflow"]);
+    // The page-overflow check is viewport-independent, so it is always run.
+    expect(report?.checksRun).toEqual(["contrast", "overflow", "page_overflow"]);
   });
 
   it("reports the touch check as run once a touch viewport was captured", () => {
@@ -294,13 +295,13 @@ describe("measurementReportFor", () => {
       ...touch,
       images: touch.images.map((image) => ({ ...image, viewport: "mobile" as const })),
     });
-    expect(report?.checksRun).toEqual(["contrast", "overflow", "touch_target"]);
+    expect(report?.checksRun).toEqual(["contrast", "overflow", "touch_target", "page_overflow"]);
   });
 
   it("reports 'measured, clean' as a positive statement", () => {
     const clean: MeasuredCapture = { ...measuredCapture(), deterministicFindings: [], pageText: {} };
     expect(measurementReportFor(clean)).toEqual({
-      checksRun: ["contrast", "overflow"],
+      checksRun: ["contrast", "overflow", "page_overflow"],
       violations: [],
     });
   });
@@ -507,7 +508,9 @@ describe("the deployed pipeline carries what the capture measured", () => {
     const { deepPrompts } = await runJob(measuredCapture());
     expect(deepPrompts).toHaveLength(1);
     const prompt = deepPrompts[0] ?? "";
-    expect(prompt).toContain("Deterministic facts:");
+    // v6 (judge-unlock §3.3): the measurements are framed as ALREADY REPORTED
+    // and out of scope, rather than as "Deterministic facts" the model may echo.
+    expect(prompt).toContain("ALREADY REPORTED by the deterministic checker");
     expect(prompt).toContain("- [contrast] #hero-subtitle (desktop): text contrast 2.31:1 is below WCAG AA 4.5:1");
     expect(prompt).toContain("- [overflow] #pricing-table (mobile)");
     // #53: the page's own text reaches the prompt as untrusted content, which is

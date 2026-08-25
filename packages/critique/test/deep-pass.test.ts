@@ -240,8 +240,8 @@ describe("DOM geometry grounding (#W1-02)", () => {
     const content = userMsg?.content ?? "";
     expect(content).toContain("DOM geometry (cite element_ref EXACTLY as written");
     expect(content).toContain("- #upgrade (button) box ");
-    // Geometry (the map) precedes the deterministic facts (measurements on it).
-    expect(content.indexOf("DOM geometry")).toBeLessThan(content.indexOf("Deterministic facts"));
+    // Geometry (the map) precedes the ALREADY-REPORTED measurements on it (v6).
+    expect(content.indexOf("DOM geometry")).toBeLessThan(content.indexOf("ALREADY REPORTED"));
   });
 
   it("leaves the prompt without a geometry block when none is supplied", async () => {

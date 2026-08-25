@@ -6,6 +6,8 @@ import {
   type CalibrationRuntimeIdentity,
 } from "./calibration-binding.js";
 import { applyConfidenceCeiling } from "./confidence-ceiling.js";
+import { duplicateFactGate } from "./duplicate-fact-gate.js";
+import type { FactLedger } from "./fact-ledger.js";
 import { reconcileGrade } from "./grade.js";
 import { hallucinationGate, type CapturedShot } from "./hallucination-gate.js";
 import { postFilter } from "./post-filter.js";
@@ -48,6 +50,15 @@ export interface ValidationTailInput {
   calibration?: CalibrationRuntimeBinding;
   /** The runtime identity the calibration binding must match to apply. */
   identity: CalibrationRuntimeIdentity;
+  /**
+   * The deterministic fact ledger (judge-unlock §4.1/§4.3). When present, the
+   * duplicate-of-measurement gate runs between the hallucination gate and
+   * calibration: a grounded finding whose substance is an ALREADY-REPORTED
+   * measurement is dropped or demoted, so the trust budget is spent on judgment
+   * rather than on restated facts. Absent ⇒ the gate is a no-op, byte-identical
+   * to before.
+   */
+  factLedger?: FactLedger;
 }
 
 export interface ValidationTailResult {
@@ -58,10 +69,24 @@ export interface ValidationTailResult {
   hallucinationDrops: number;
   /**
    * How many of `findings` are ungrounded (null `elementRef`): held out of the
-   * grade, ranked last, and disclosed by the narrative. The grounded findings are
-   * `findings.slice(0, findings.length - ungroundedFindings)`.
+   * grade, ranked last, and disclosed by the narrative.
    */
   ungroundedFindings: number;
+  /**
+   * Findings dropped because their substance was a measurement already reported
+   * (judge-unlock §4.2). Not published.
+   */
+  duplicateFactDrops: number;
+  /**
+   * Surviving findings kept but DEMOTED for restating a reported measurement:
+   * ranked last, excluded from the grade and from `netNewFindings`.
+   */
+  restatedFindings: number;
+  /**
+   * Surviving findings that made a claim no deterministic check had already
+   * published. THE NORTH-STAR NUMERATOR (judge-unlock §4.4).
+   */
+  netNewFindings: number;
   /** The calibration binding IFF it matched the runtime identity (else undefined). */
   calibration: CalibrationRuntimeBinding | undefined;
 }
@@ -93,19 +118,34 @@ export function runValidationTail(input: ValidationTailInput): ValidationTailRes
     });
   };
 
-  const groundedFiltered = prepare(gated.findings);
+  // The duplicate-of-measurement gate (judge-unlock §4.2/§4.3) runs on the
+  // element-grounded bucket, BEFORE calibration and the trust-budget post-filter,
+  // so the budget is spent on judgment rather than on restated facts. A finding
+  // whose substance is an already-reported measurement is DROPPED; an ambiguous
+  // restatement is DEMOTED and treated exactly like an ungrounded finding. Absent
+  // ledger ⇒ no-op, byte-identical to before.
+  const dup = input.factLedger
+    ? duplicateFactGate(gated.findings, input.factLedger)
+    : { findings: gated.findings, restatements: [] as Finding[], duplicateFactDrops: 0 };
+
+  const groundedFiltered = prepare(dup.findings);
   const grounded = calibration ? enforceBlockingThreshold(groundedFiltered, calibration) : groundedFiltered;
   const ungrounded = prepare(gated.ungrounded);
+  // Restatements are treated exactly like the ungrounded bucket: calibrated,
+  // trust-budgeted, appended after every grounded novel finding, and excluded
+  // from the grade. A restating model therefore produces a visibly empty review
+  // rather than an invisibly worthless one.
+  const restated = prepare(dup.restatements);
 
-  // Grade is reconciled against the GROUNDED findings only: an ungrounded blocker
-  // must not block a PR on an issue the model could not point at.
+  // Grade is reconciled against the GROUNDED NOVEL findings only: a restated or
+  // ungrounded finding must never drive the verdict.
   const reconciledGrade = reconcileGrade(input.modelGrade, grounded);
   const blockingEnabled = calibration?.promotionMode === "blocking";
   const grade = !blockingEnabled && reconciledGrade === "blocked" ? "needs_work" : reconciledGrade;
 
-  // Grounded first, ungrounded last: the array order IS the ranking, so no
-  // ungrounded finding can ever sit above a grounded one.
-  const findings = [...grounded, ...ungrounded];
+  // Grounded first, then ungrounded, then restated: the array order IS the
+  // ranking, so nothing held out of the grade can ever sit above a grounded one.
+  const findings = [...grounded, ...ungrounded, ...restated];
 
   return {
     findings,
@@ -113,6 +153,12 @@ export function runValidationTail(input: ValidationTailInput): ValidationTailRes
     blockingEnabled,
     hallucinationDrops: gated.hallucinationDrops,
     ungroundedFindings: ungrounded.length,
+    duplicateFactDrops: dup.duplicateFactDrops,
+    restatedFindings: restated.length,
+    // The north-star numerator: novel survivors that drive or could drive the
+    // grade (grounded) plus honest-but-unlocatable novel observations
+    // (ungrounded). Restatements and duplicates are excluded by construction.
+    netNewFindings: grounded.length + ungrounded.length,
     calibration,
   };
 }

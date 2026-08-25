@@ -490,7 +490,7 @@ describe("signEvidenceUrls", () => {
     metadata: {
       engineVersion: "0.1.0",
       model: "qwen3-vl-plus",
-      promptVersion: "system-prompt@v5",
+      promptVersion: "system-prompt@v6",
       captureVersion: "capture-http@1",
       rubricVersion: "design-rubric@1",
       uiDnaVersion: null,
@@ -544,7 +544,7 @@ describe("publication guards", () => {
     metadata: {
       engineVersion: "0.1.0",
       model: "qwen3-vl-plus",
-      promptVersion: "system-prompt@v5",
+      promptVersion: "system-prompt@v6",
       captureVersion: "capture-http@1",
       rubricVersion: "design-rubric@1",
       uiDnaVersion: null,

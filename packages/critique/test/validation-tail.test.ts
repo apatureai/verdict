@@ -24,7 +24,7 @@ const shot = (route: string, viewport: Finding["viewport"] = "desktop"): Capture
 
 const identity: CalibrationRuntimeIdentity = {
   model: "qwen3-vl-plus",
-  promptVersion: "system-prompt@v5",
+  promptVersion: "system-prompt@v6",
   engineVersion: "0.1.0",
   captureVersion: "capture@1",
   rubricVersion: "design-rubric@1",

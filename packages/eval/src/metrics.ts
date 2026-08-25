@@ -69,6 +69,62 @@ export function nitPrecision(predicted: LabeledFinding[], truth: LabeledFinding[
   return nits.filter((f) => truthKeys.has(findingKey(f))).length / nits.length;
 }
 
+/**
+ * A minimal, structurally-compatible view of the critique package's `FactLedger`
+ * (judge-unlock §4.1), kept here so the eval boundary depends only on `types`. A
+ * real `FactLedger` is assignable: its entries carry these fields and more.
+ */
+export interface NetNewLedgerEntry {
+  claimClass: string;
+  route: string;
+  selector: string;
+  reported: boolean;
+}
+export interface NetNewLedger {
+  entries: NetNewLedgerEntry[];
+}
+
+/** Dimension → the deterministic claim class it restates, when it restates one. */
+const DIMENSION_TO_CLAIM: Partial<Record<Dimension, string>> = {
+  color_contrast: "contrast",
+  responsiveness: "element_overflow",
+  accessibility: "target_size",
+};
+
+/**
+ * The NORTH STAR (judge-unlock §4.4): the share of published findings that made a
+ * claim no deterministic check had already REPORTED. A finding is a restatement
+ * when its dimension maps to a claim class the checker already reported on the
+ * same element+route; everything else is net-new. Pure, no model, no GPU — so
+ * the number is trackable in CI.
+ *
+ * `duplicateFactDrops === 0` is deliberately NOT a pass condition anywhere: a
+ * model that never restates and a model that stopped restating because the prompt
+ * worked look identical there. The gate is on the NUMERATOR.
+ */
+export function netNewFindingRate(published: LabeledFinding[], ledger: NetNewLedger): number {
+  if (published.length === 0) return 1; // vacuously net-new
+  const reported = new Map<string, Set<string>>();
+  for (const e of ledger.entries) {
+    if (!e.reported) continue;
+    const key = `${e.route}\n${e.selector}`;
+    let set = reported.get(key);
+    if (!set) {
+      set = new Set<string>();
+      reported.set(key, set);
+    }
+    set.add(e.claimClass);
+  }
+  let netNew = 0;
+  for (const f of published) {
+    const cls = DIMENSION_TO_CLAIM[f.dimension];
+    const classes = reported.get(`${f.route}\n${f.elementRef ?? ""}`);
+    const restates = cls !== undefined && classes !== undefined && classes.has(cls);
+    if (!restates) netNew += 1;
+  }
+  return netNew / published.length;
+}
+
 export const GRADE_SCALE: Grade[] = ["ship", "ship_with_nits", "needs_work", "blocked"];
 
 /** Quadratic-weighted Cohen's kappa over the 4-level ordinal grade scale. */

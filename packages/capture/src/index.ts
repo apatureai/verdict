@@ -6,6 +6,7 @@ export {
   classifyClip,
   touchTargetViolations,
   deterministicChecks,
+  pageOverflowViolations,
   isBreakage,
   toMeasurementReport,
   ALL_MEASUREMENT_KINDS,
@@ -28,8 +29,10 @@ export type {
   ClipVerdict,
   DeterministicFinding,
   DeterministicCheckInput,
+  PageMetrics,
   TouchTargetCriterion,
   TouchTargetOptions,
+  DeclineOptions,
 } from "./checks.js";
 
 export {
@@ -68,9 +71,18 @@ export {
   measuredKeys,
   stableSelector,
   serializeGeometry,
+  selectSignificant,
+  significanceScore,
+  sanitizeLabel,
+  MAX_GEOMETRY_ENTRIES_PER_VIEWPORT,
   animatedExclusions,
 } from "./geometry.js";
-export type { RawGeometryElement, GeometryEntry } from "./geometry.js";
+export type {
+  RawGeometryElement,
+  GeometryEntry,
+  SelectSignificantOptions,
+  SelectionResult,
+} from "./geometry.js";
 
 export {
   hammingDistance,
@@ -180,6 +192,7 @@ export {
   createBrowserCapture,
   defaultViewports,
   factsForRoute,
+  declinedForRoute,
   breakageForRoute,
   routeSlug,
   routeUrl,

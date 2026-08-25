@@ -73,7 +73,7 @@ export function displayPath(absolute: string, relativeToCwd: string): string {
 
 /** Count deterministic findings by check kind, in a stable order. */
 export function countByKind(findings: DeterministicFinding[]): Array<[string, number]> {
-  const order = ["contrast", "overflow", "touch_target"];
+  const order = ["contrast", "overflow", "touch_target", "page_overflow"];
   const counts = new Map<string, number>();
   for (const finding of findings) counts.set(finding.kind, (counts.get(finding.kind) ?? 0) + 1);
   return order.filter((kind) => counts.has(kind)).map((kind) => [kind, counts.get(kind) as number]);

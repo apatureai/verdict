@@ -67,6 +67,18 @@ export interface NarrativeReconciliationInput {
    * without them. Defaults to 0.
    */
   ungroundedFindings?: number;
+  /**
+   * Surviving findings that made a claim no deterministic check had already
+   * published (judge-unlock §4.4). When this is 0 and the model produced
+   * findings, the run restated measurements instead of judging, and the narrative
+   * says so in its first sentence — the "visibly unhelpful rather than invisibly
+   * useless" property. Defaults to `survivingFindings` (i.e. no restatement gate).
+   */
+  netNewFindings?: number;
+  /** Findings dropped as duplicates of a reported measurement (judge-unlock §4.4). */
+  duplicateFactDrops?: number;
+  /** Findings demoted for restating a reported measurement (judge-unlock §4.4). */
+  restatedFindings?: number;
 }
 
 export interface ReconciledNarrative {
@@ -80,19 +92,22 @@ export interface ReconciledNarrative {
   ungroundedNarrative?: string;
 }
 
-/** "3 for citing a route or element that was never captured, 1 by the trust budget". */
-function deletionClause(hallucinationDrops: number, filtered: number): string {
+/** "3 for citing a route or element that was never captured, 2 as duplicates of a measurement, 1 by the trust budget". */
+function deletionClause(hallucinationDrops: number, duplicates: number, filtered: number): string {
   const parts: string[] = [];
   if (hallucinationDrops > 0) {
     parts.push(
       `${hallucinationDrops} for citing a route or element that was never captured`,
     );
   }
+  if (duplicates > 0) {
+    parts.push(`${duplicates} for restating a measurement already reported`);
+  }
   if (filtered > 0) {
     parts.push(`${filtered} by the confidence floor and trust budget`);
   }
-  // Both zero cannot reach here (the caller only calls with a positive deleted
-  // count), but a total that is not attributable to either stage is still stated
+  // All zero cannot reach here (the caller only calls with a positive deleted
+  // count), but a total that is not attributable to any stage is still stated
   // rather than silently rounded into one of them.
   if (parts.length === 0) parts.push("by the validation tail");
   return parts.join(", ");
@@ -120,6 +135,34 @@ function withUngroundedDisclosure(narrative: ReconciledNarrative, ungrounded: nu
  * Settle `overall` against what survived validation. See the module comment for
  * why each case is what it is.
  */
+/**
+ * Prepend the zero-net-new statement (judge-unlock §4.4) when the model produced
+ * findings but none survived as a net-new judgment: they all restated
+ * measurements the deterministic checker had already reported. Prepended, not
+ * appended, for the same reason the deletion caveat is: consumers truncate this
+ * field, and a statement that can be truncated away is no statement.
+ */
+function withRestatementDisclosure(
+  narrative: ReconciledNarrative,
+  input: NarrativeReconciliationInput,
+): ReconciledNarrative {
+  const seen = Math.max(0, input.modelFindingsSeen);
+  const netNew = input.netNewFindings ?? Math.max(0, input.survivingFindings);
+  const restated = Math.max(0, input.restatedFindings ?? 0);
+  const dropped = Math.max(0, input.duplicateFactDrops ?? 0);
+  // Only fires when the run PRODUCED findings, none were net-new, and restatement
+  // (drop or demote) was the reason. A run that simply found nothing, or whose
+  // findings were all hallucination-dropped, is explained by the other branches.
+  if (seen === 0 || netNew > 0 || restated + dropped === 0) return narrative;
+  const statement =
+    `The judge produced ${seen} finding(s). All of them restated measurements the deterministic ` +
+    `checker had already reported; none made a judgment the checker could not make. No net-new ` +
+    `finding was produced for this route.`;
+  const overall =
+    narrative.overall.trim().length === 0 ? statement : `${statement} ${narrative.overall}`;
+  return { ...narrative, overall };
+}
+
 export function reconcileNarrative(input: NarrativeReconciliationInput): ReconciledNarrative {
   const seen = Math.max(0, input.modelFindingsSeen);
   const surviving = Math.max(0, input.survivingFindings);
@@ -127,34 +170,42 @@ export function reconcileNarrative(input: NarrativeReconciliationInput): Reconci
   const ungrounded = Math.max(0, input.ungroundedFindings ?? 0);
 
   if (seen === 0 || deleted === 0) {
-    return withUngroundedDisclosure({ overall: input.overall }, ungrounded);
+    return withRestatementDisclosure(
+      withUngroundedDisclosure({ overall: input.overall }, ungrounded),
+      input,
+    );
   }
 
   const drops = Math.max(0, Math.min(input.hallucinationDrops, deleted));
-  const clause = deletionClause(drops, deleted - drops);
+  const duplicates = Math.max(0, Math.min(input.duplicateFactDrops ?? 0, deleted - drops));
+  const clause = deletionClause(drops, duplicates, deleted - drops - duplicates);
   const narrative = input.overall.trim();
 
   if (surviving === 0) {
     const statement =
       `No finding in this review survived validation, so this run reports nothing about the page. ` +
       `The model produced ${seen} finding(s) and all ${seen} were deleted (${clause}).`;
-    if (narrative.length === 0) {
-      return { overall: `${statement} The model wrote no summary.` };
-    }
-    return {
-      overall:
-        `${statement} The summary it wrote describes those deleted findings rather than this page, ` +
-        `so it is recorded under ungroundedNarrative instead of here.`,
-      ungroundedNarrative: input.overall,
-    };
+    const base: ReconciledNarrative =
+      narrative.length === 0
+        ? { overall: `${statement} The model wrote no summary.` }
+        : {
+            overall:
+              `${statement} The summary it wrote describes those deleted findings rather than this page, ` +
+              `so it is recorded under ungroundedNarrative instead of here.`,
+            ungroundedNarrative: input.overall,
+          };
+    return withRestatementDisclosure(base, input);
   }
 
   const caveat =
     `Caveat: ${deleted} of the ${seen} finding(s) the model reported were deleted before ` +
     `publication (${clause}). The summary that follows was written before that, so part of it ` +
     `may describe findings that are not in this result.`;
-  return withUngroundedDisclosure(
-    { overall: narrative.length === 0 ? caveat : `${caveat} ${input.overall}` },
-    ungrounded,
+  return withRestatementDisclosure(
+    withUngroundedDisclosure(
+      { overall: narrative.length === 0 ? caveat : `${caveat} ${input.overall}` },
+      ungrounded,
+    ),
+    input,
   );
 }
