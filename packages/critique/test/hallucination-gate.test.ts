@@ -169,6 +169,52 @@ describe("hallucinationGate (#32)", () => {
       expect(r.hallucinationDrops).toBe(1);
     });
 
+    it("REJECTS a positionless `a` when the only plain sibling is the footer link", () => {
+      // The map keys siblings by position, so the literal suffix `> a` matched ONLY
+      // the one element written without a position. A model citing a nav link as
+      // `a` was silently rebound to the footer link and published: a real element,
+      // so nothing fabricated shipped, but the wrong one. Siblings share a kind, so
+      // a positionless citation names the kind and cannot choose between them.
+      const r = hallucinationGate([finding({ elementRef: "a" })], {
+        capturedShots: [shot("/pricing", "desktop")],
+        geometrySelectors: [
+          "body > header > nav > a:nth-of-type(1)",
+          "body > header > nav > a:nth-of-type(2)",
+          "body > footer > a",
+        ],
+      });
+      expect(r.findings).toEqual([]);
+      expect(r.hallucinationDrops).toBe(1);
+    });
+
+    it("still resolves a positionless ref whose kind is unique across positions", () => {
+      const r = hallucinationGate([finding({ elementRef: "h1" })], {
+        capturedShots: [shot("/pricing", "desktop")],
+        geometrySelectors: [
+          "body > main > h1",
+          "body > header > nav > a:nth-of-type(1)",
+          "body > footer > a",
+        ],
+      });
+      expect(r.findings.map((f) => f.elementRef)).toEqual(["body > main > h1"]);
+      expect(r.hallucinationDrops).toBe(0);
+    });
+
+    it("a positional citation is still matched literally", () => {
+      const r = hallucinationGate([finding({ elementRef: "a:nth-of-type(2)" })], {
+        capturedShots: [shot("/pricing", "desktop")],
+        geometrySelectors: [
+          "body > header > nav > a:nth-of-type(1)",
+          "body > header > nav > a:nth-of-type(2)",
+          "body > footer > a",
+        ],
+      });
+      expect(r.findings.map((f) => f.elementRef)).toEqual([
+        "body > header > nav > a:nth-of-type(2)",
+      ]);
+      expect(r.hallucinationDrops).toBe(0);
+    });
+
     it("a fabricated ref still dies even with suffix matching on (no fuzzy match)", () => {
       const r = hallucinationGate([finding({ elementRef: "h7" })], {
         capturedShots: [shot("/pricing", "desktop")],

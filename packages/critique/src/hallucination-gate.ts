@@ -148,16 +148,29 @@ type SelectorResolution =
  *      with `ambiguous_suffix` — the gate is not loosened, an ambiguous or
  *      fabricated ref still dies.
  *
+ * Ambiguity for a POSITIONLESS part is counted across positional variants. The map
+ * keys siblings by position, so `nav > a:nth-of-type(1)`, `nav > a:nth-of-type(2)`
+ * and `footer > a` are three elements of the same kind; a bare `a` names the kind,
+ * not one of them. Matching it on the literal string `> a` would find only the one
+ * sibling that happens to be written without a position and silently bind a
+ * nav-link claim to the footer link — a real element, so nothing fabricated
+ * publishes, but the wrong one. Rejecting is the only honest answer.
+ *
  * A fabricated ref that matches nothing exactly and has no suffix match returns
  * `no_match`, exactly as before.
  */
 function resolveSelector(part: string, selectors: Set<string>): SelectorResolution {
   if (selectors.has(part)) return { ok: true, selector: part };
+  // A part naming its position (`a:nth-of-type(1)`) is matched literally; a
+  // positionless one is matched against each key's final segment with its own
+  // position stripped, so siblings collide and the citation is rejected.
+  const positionless = !part.includes(":");
   const suffix = ` > ${part}`;
   let match: string | null = null;
   let count = 0;
   for (const key of selectors) {
-    if (key.endsWith(suffix)) {
+    const hit = positionless ? segmentKind(lastSegment(key)) === part : key.endsWith(suffix);
+    if (hit) {
       match = key;
       count += 1;
       if (count > 1) break;
@@ -165,6 +178,18 @@ function resolveSelector(part: string, selectors: Set<string>): SelectorResoluti
   }
   if (count === 1 && match !== null) return { ok: true, selector: match };
   return { ok: false, reason: count > 1 ? "ambiguous_suffix" : "no_match" };
+}
+
+/** The final compound segment of a rendered path: `body > main > h1` → `h1`. */
+function lastSegment(selector: string): string {
+  const at = selector.lastIndexOf(" > ");
+  return at === -1 ? selector : selector.slice(at + 3);
+}
+
+/** A segment without its positional pseudo-class: `a:nth-of-type(2)` → `a`. */
+function segmentKind(segment: string): string {
+  const at = segment.indexOf(":");
+  return at === -1 ? segment : segment.slice(0, at);
 }
 
 export function hallucinationGate(
