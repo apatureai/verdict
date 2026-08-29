@@ -130,7 +130,7 @@ export async function createLocalEngine(options: LocalEngineOptions): Promise<Lo
   const model = await resolveLocalModel({
     choice: options.model ?? "auto",
     env,
-    resolveImageUrl: (image) => sink.dataUriFor(image.objectKey),
+    resolveImageUrl: (image, maxPixels) => sink.dataUriFor(image.objectKey, maxPixels),
     ...(options.scriptPath ? { scriptPath: options.scriptPath } : {}),
   });
 

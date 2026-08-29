@@ -32,6 +32,35 @@ export interface PostFilterResult {
   findings: Finding[];
   /** What the cap withheld, for disclosure (never silently dropped). */
   withheld: WithheldFindings;
+  /**
+   * How many findings the cross-viewport dedupe COLLAPSED into a representative it
+   * kept (G1). A collapse is a merge of the SAME issue (same dimension, same
+   * element, same subject) seen on more than one viewport — the finding is still
+   * shown via its representative — never a silent loss of a DISTINCT finding.
+   * Exposed so conservation holds: `findings.length + withheld.total +
+   * mergedDuplicates === input.length`, i.e. every finding that entered is
+   * published, disclosed, or accounted for as a merge — nothing vanishes silently.
+   */
+  mergedDuplicates: number;
+}
+
+/**
+ * The cross-viewport dedupe key (G1). Two findings collapse to one only when they
+ * are the SAME issue. When a finding cites an element, `dimension|elementRef` is
+ * that identity. When `elementRef` is null — an honest "I can't tie this to one
+ * element" — the element cannot be the identity, so the key falls back to the
+ * finding's SUBJECT (its title + description). Without this, EVERY null-ref finding
+ * in a dimension collided on `dimension|` and all but one were silently deleted:
+ * in the live run two distinct honest typography findings on DIFFERENT subjects
+ * (Georgia nav links; the SF Mono ref-line, independently verified TRUE) collided
+ * on `typography|` and one was destroyed before withheld findings were even
+ * computed, so nothing disclosed it. The NUL byte joiner cannot appear in a CSS
+ * selector or in rendered finding text, so a null-ref subject key can never
+ * collide with an element-ref key.
+ */
+function dedupeKey(f: Finding): string {
+  if (f.elementRef !== null) return `${f.dimension}|${f.elementRef}`;
+  return `${f.dimension}|\u0000${f.title}\u0000${f.description}`;
 }
 
 const SEVERITY_RANK: Record<Finding["severity"], number> = { blocker: 0, major: 1, minor: 2, nit: 3 };
@@ -105,20 +134,24 @@ export function postFilter(findings: Finding[], options: PostFilterOptions = {})
   // 1. report-owned calibrated confidence floor (disabled without a binding)
   const confident = findings.filter((f) => f.confidence >= minConfidence);
 
-  // 2. dedupe by elementRef + dimension. Findings are sorted best-first by
-  // compareFindings (severity, THEN confidence), so the first finding per key is
-  // the one to keep. Keeping the first (rather than replacing on raw confidence)
-  // is load-bearing: an explicit `f.confidence > existing.confidence` swap would
-  // downgrade a higher-severity finding (e.g. a mobile `blocker`) to a lower-
-  // severity but higher-confidence one (a desktop `minor`) sharing the same
-  // element+dimension, silently dropping the blocker. Confidence still breaks ties
-  // WITHIN a severity via the sort.
+  // 2. dedupe by `dedupeKey` (dimension + elementRef, OR dimension + subject when
+  // the ref is null — G1). Findings are sorted best-first by compareFindings
+  // (severity, THEN confidence), so the first finding per key is the one to keep.
+  // Keeping the first (rather than replacing on raw confidence) is load-bearing: an
+  // explicit `f.confidence > existing.confidence` swap would downgrade a higher-
+  // severity finding (e.g. a mobile `blocker`) to a lower-severity but higher-
+  // confidence one (a desktop `minor`) sharing the same element+dimension, silently
+  // dropping the blocker. Confidence still breaks ties WITHIN a severity via the
+  // sort. A collapse here merges the SAME issue across viewports; it can no longer
+  // delete a DISTINCT null-ref finding, and however many it merges is COUNTED
+  // (`mergedDuplicates`) so nothing after parsing vanishes unaccounted for.
   const best = new Map<string, Finding>();
   for (const f of [...confident].sort((a, b) => compareFindings(a, b, useConfidence))) {
-    const key = `${f.dimension}|${f.elementRef ?? ""}`;
+    const key = dedupeKey(f);
     if (!best.has(key)) best.set(key, f);
   }
   const deduped = [...best.values()].sort((a, b) => compareFindings(a, b, useConfidence));
+  const mergedDuplicates = confident.length - deduped.length;
 
   // 3. cap: 1 blocker + N others, deliberate and disclosed.
   const blockers = deduped.filter((f) => f.severity === "blocker");
@@ -132,5 +165,6 @@ export function postFilter(findings: Finding[], options: PostFilterOptions = {})
   return {
     findings: [...keptBlockers, ...keptOthers].sort((a, b) => compareFindings(a, b, useConfidence)),
     withheld,
+    mergedDuplicates,
   };
 }

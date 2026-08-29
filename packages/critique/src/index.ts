@@ -119,6 +119,7 @@ export {
   mapWithConcurrency,
   renderBuildFacts,
   renderGenomeRules,
+  invariantPromptPrefix,
   renderGeometry,
   planGeometry,
   citableSelectors,
@@ -158,7 +159,7 @@ export type { AuthorityStatus, AuthorityStatusRef, GroundingAuthorization } from
 export { reconcileGrade, gradeFromFindings, worstGrade } from "./grade.js";
 export { reconcileNarrative } from "./narrative.js";
 export type { NarrativeReconciliationInput, ReconciledNarrative } from "./narrative.js";
-export { cachePrefix, cachedInputTokens, isCacheHit } from "./cache.js";
+export { cachePrefix, cacheablePrefixTokens, cachedInputTokens, isCacheHit } from "./cache.js";
 export { FREE_TIER_PASS_MODELS, passModelsForTier } from "./tier.js";
 export type { BillingTier } from "./tier.js";
 export {

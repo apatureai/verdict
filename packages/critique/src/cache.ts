@@ -13,6 +13,18 @@ export function cachePrefix(systemPrompt: string, contextBlock: string): string 
   return `${systemPrompt}\n\nREPO CONTEXT:\n${contextBlock}`;
 }
 
+/**
+ * Coarse ~4-chars/token estimate of a cacheable prompt PREFIX's size — the input
+ * tokens a prefix-cache HIT avoids re-prefilling on each repeated call (G4). It is a
+ * MEASUREMENT of the reusable prefill, never a promise of a speedup: the realized
+ * saving is whatever the backend echoes back on `ModelUsage.cachedTokens`
+ * (`cachedInputTokens`). Same estimator the context-window preflight uses, so the
+ * two numbers are comparable.
+ */
+export function cacheablePrefixTokens(prefix: string): number {
+  return Math.ceil(prefix.length / 4);
+}
+
 /** Model-reported cached input tokens for a call (#9 telemetry / cache-hit signal). */
 export function cachedInputTokens(usage: { cachedTokens: number }): number {
   return usage.cachedTokens;

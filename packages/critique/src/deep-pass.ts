@@ -674,6 +674,34 @@ export function renderDeclinedFactsBlock(declined: string[] | undefined): string
   );
 }
 
+/**
+ * The INVARIANT prompt prefix (G4): the frozen system prompt, the repo-context
+ * block (#63), this route's TRUSTED design-system rules (#104), the PR-level
+ * build/runtime facts (#98), and the repo-memory digest (#41) — everything a run
+ * re-sends UNCHANGED on every shot. It carries NO per-call interpolation (no route
+ * id, no geometry, no image), so a prefix-caching backend (DashScope context cache,
+ * vLLM/SGLang automatic prefix caching, ollama) reuses its prefill instead of
+ * re-running it every call — the ~10k-token multimodal prefill measured at 108s.
+ *
+ * The design-system rules, build facts and repo memory USED to live inside the
+ * volatile user turn AFTER the per-shot geometry and census, so a caching backend
+ * saw the prefix change at the first geometry byte and re-prefilled all of them
+ * every call. They are TRUSTED grounding (never page-derived), so moving them ahead
+ * of the volatile content is safe; only genuinely per-shot content (geometry, style
+ * census, already-reported measurements) and the UNTRUSTED, fenced page text stay
+ * in the user turn, strictly AFTER the prefix.
+ *
+ * The ordering of the invariant parts is fixed and stable so its bytes never move.
+ */
+export function invariantPromptPrefix(deps: DeepPassDeps, route: DeepPassRoute): string {
+  return (
+    cachePrefix(deps.systemPrompt, deps.contextBlock) +
+    renderGenomeRules(route.genomeRules) +
+    renderBuildFacts(deps.buildFacts) +
+    (route.feedbackDigest ? `\nRepo memory:\n${route.feedbackDigest}` : "")
+  );
+}
+
 function thinkingMessages(deps: DeepPassDeps, route: DeepPassRoute, budget?: GeometryBudget): ModelMessage[] {
   const geometry = renderGeometry(route.geometry, budget);
   const census = renderStyleCensus(route.geometry);
@@ -682,18 +710,16 @@ function thinkingMessages(deps: DeepPassDeps, route: DeepPassRoute, budget?: Geo
   // being a compliant answer here and in the duplicate-of-measurement gate.
   const reported = renderReportedFactsBlock(route.facts);
   const declined = renderDeclinedFactsBlock(route.declinedFacts);
-  const buildFacts = renderBuildFacts(deps.buildFacts);
-  const genomeRules = renderGenomeRules(route.genomeRules);
-  const digest = route.feedbackDigest ? `\nRepo memory:\n${route.feedbackDigest}` : "";
   // Untrusted DOM text is fenced so the model can read it as page content but
-  // never as instructions (#53); trusted facts stay outside the fence.
+  // never as instructions (#53); trusted facts stay outside the fence. It is
+  // per-shot AND untrusted, so it stays in the volatile user turn.
   const pageText = route.pageText ? `\nPage text (untrusted):\n${wrapUntrustedPageContent(route.pageText)}` : "";
   return [
-    // Stable prefix first (context block) so prefix caching reuses it (#34).
-    { role: "system", content: cachePrefix(deps.systemPrompt, deps.contextBlock) },
+    // G4: the invariant, cacheable prefix STRICTLY FIRST — no per-call interpolation.
+    { role: "system", content: invariantPromptPrefix(deps, route) },
     {
       role: "user",
-      content: `Review route ${route.route}. Cite segment labels + element_ref.${geometry}${census}${reported}${declined}${genomeRules}${buildFacts}${digest}${pageText}`,
+      content: `Review route ${route.route}. Cite segment labels + element_ref.${geometry}${census}${reported}${declined}${pageText}`,
       images: route.images,
     },
   ];

@@ -434,13 +434,17 @@ const RESOLVED_GENOME: LocalGenome = {
   source: "/repo/ui-dna.json",
 };
 
-/** Every deep-pass user message this run sent, which is where the rules land. */
+/**
+ * Every deep-pass prompt message this run sent (system + user), across both steps.
+ * The trusted design-system rules now ride the INVARIANT system prefix (G4), while
+ * per-shot geometry rides the user turn, so the assertion looks at all of it.
+ */
 function deepPrompts(requests: ModelRequest[]): string[] {
   return requests
     .filter(
       (r) => !(r.messages.find((m) => m.role === "system")?.content ?? "").startsWith("You are triaging"),
     )
-    .flatMap((r) => r.messages.filter((m) => m.role === "user").map((m) => m.content));
+    .flatMap((r) => r.messages.map((m) => m.content));
 }
 
 async function groundedReview(options: {

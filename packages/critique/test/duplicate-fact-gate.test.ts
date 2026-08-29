@@ -184,14 +184,48 @@ describe("duplicateFactGate (judge-unlock §4.2)", () => {
     });
   });
 
-  it("classifies claims by class, not wording", () => {
-    // A paraphrase with no measurement literal still classifies as contrast.
+  it("classifies claims by lexical markers, and no longer lets the bare dimension prior invent a class (G2)", () => {
+    // A MARKER-BACKED contrast claim still classifies as contrast (a ratio marker).
+    expect(
+      classifyClaim(
+        finding({ dimension: "color_contrast", title: "Nav text fails contrast", description: "the nav text sits at 2.1:1 against its background" }),
+      ),
+    ).toBe("contrast");
+    // G2: a color_contrast finding with ZERO contrast markers no longer classifies
+    // as contrast via the bare dimension prior — it returns null (novel). This is
+    // the fix that stopped a mislabelled token claim ("#upgrade uses #7aa7ff, not
+    // the #1f5eff accent") being matched against a same-element contrast measurement
+    // and hard-dropped. The cost is a genuinely reworded, marker-free contrast
+    // restatement now reads as novel; the instruction chooses that over destroying
+    // the highest-value finding on the page.
     expect(
       classifyClaim(
         finding({ dimension: "color_contrast", title: "Nav text is hard to read", description: "the nav text barely stands out against its background" }),
       ),
-    ).toBe("contrast");
+    ).toBeNull();
     // A visual-hierarchy finding with no markers is not a measurement class.
     expect(classifyClaim(finding({ dimension: "visual_hierarchy", title: "weak hierarchy", description: "the eye lands nowhere first" }))).toBeNull();
+  });
+
+  it("keeps a mislabelled color_contrast token claim as NOVEL against a same-element contrast measurement (G2)", () => {
+    // The exact wire-log case: finding #5, independently verified TRUE and the
+    // single highest-value defect on the page. The model labelled it color_contrast;
+    // its text carries no contrast marker, only a token mismatch. A reported contrast
+    // measurement exists on the SAME element (#upgrade). The old prior classified it
+    // "contrast", matched that measurement, and HARD-DROPPED it. It must survive.
+    const ledger = buildFactLedger([
+      { kind: "contrast", route: "/", viewport: "mobile", selector: "#upgrade", detail: "text contrast 2.39:1 is below WCAG AA 4.5:1" },
+    ] satisfies DeterministicFinding[]);
+    const tokenClaim = finding({
+      dimension: "color_contrast",
+      viewport: "mobile",
+      elementRef: "#upgrade",
+      title: "Primary action not using the accent token",
+      description: "`#upgrade` uses background #7aa7ff, not the accent token #1f5eff.",
+    });
+    const result = duplicateFactGate([tokenClaim], ledger);
+    expect(result.duplicateFactDrops).toBe(0);
+    expect(result.restatements).toHaveLength(0);
+    expect(result.findings).toHaveLength(1);
   });
 });

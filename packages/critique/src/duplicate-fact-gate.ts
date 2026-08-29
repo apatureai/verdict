@@ -46,6 +46,17 @@ const DIMENSION_PRIOR: Partial<Record<Dimension, ClaimClass>> = {
   accessibility: "target_size",
 };
 
+/**
+ * The overflow DIMENSIONS whose findings restate a page-level `page_overflow`
+ * measurement on the same route (F4). This is keyed on the DIMENSION, independently
+ * of G2's marker gating of `classifyClaim`, so the page-overflow demotion stays in
+ * lockstep with `packages/eval/src/metrics.ts` (which classifies purely by
+ * dimension). G2 only stops a MARKER-FREE prior from feeding the hard-DROP branch;
+ * it must not also silence this page-level DEMOTE, or the shipped `netNewFindings`
+ * and the CI `netNewFindingCount` would disagree again (the exact F4 regression).
+ */
+const OVERFLOW_DIMENSIONS = new Set<Dimension>(["responsiveness"]);
+
 /** Lexical markers per claim class (judge-unlock §4.2). */
 const MARKERS: Record<ClaimClass, RegExp[]> = {
   contrast: [/\bcontrast\b/, /\d+(\.\d+)?\s*:\s*1\b/, /wcag aa 4\.5/, /\bratio\b/],
@@ -75,9 +86,21 @@ const ALL_CLASSES: ClaimClass[] = ["contrast", "element_overflow", "page_overflo
 /**
  * The claim class a finding's OWN primary claim makes, or `null` when it is not
  * a measurement class (judge-unlock §4.2). Deterministic:
- *   1. the dimension prior;
- *   2. lexical markers on `title + " " + description` OVERRIDE the prior — the
- *      class with the most marker hits wins; a tie (or a competing prior) → null.
+ *   1. lexical markers on `title + " " + description` — the class with the most
+ *      marker hits wins; a tie → null;
+ *   2. the dimension prior, applied ONLY when a lexical marker for the prior's own
+ *      class is actually present (G2). With NO marker for any class the dimension
+ *      label alone is not evidence of a claim class, so the prior does not fire and
+ *      the finding is treated as novel.
+ *
+ * G2 (the token-mismatch drop): a model can label a finding `color_contrast` whose
+ * text carries ZERO contrast markers — e.g. "`#upgrade` uses background #7aa7ff,
+ * not the accent token #1f5eff", the single highest-value defect on the page.
+ * The old code applied `DIMENSION_PRIOR[color_contrast] = "contrast"` on that
+ * marker-free finding, matched it against the reported contrast measurement on the
+ * same element, and HARD-DROPPED a novel claim. A mislabelled dimension must never
+ * destroy a novel claim, so the prior now requires a marker of its own class to be
+ * present before it can classify.
  */
 export function classifyClaim(finding: Finding): ClaimClass | null {
   const text = `${finding.title} ${finding.description}`.toLowerCase();
@@ -106,7 +129,13 @@ export function classifyClaim(finding: Finding): ClaimClass | null {
     }
     return tie ? null : best;
   }
-  return DIMENSION_PRIOR[finding.dimension] ?? null;
+  // No lexical marker hit for ANY class. The dimension prior is applied ONLY if a
+  // marker for the prior's OWN class is present in the text — which, with `anyHit`
+  // false, it is not. So a marker-free, possibly-mislabelled dimension returns null
+  // (novel) instead of manufacturing a claim class that destroys a novel finding.
+  const prior = DIMENSION_PRIOR[finding.dimension];
+  if (prior && MARKERS[prior].some((re) => re.test(text))) return prior;
+  return null;
 }
 
 /** Whether the finding's text shares a measurement literal with the reported entries for its element. */
@@ -175,8 +204,14 @@ export function classifyNovelty(finding: Finding, ledger: FactLedger): Novelty {
   // measurement and is DROPPED; an element-pinned overflow finding (element_overflow
   // class) may carry design judgment, so it is DEMOTED — the smaller error. Both are
   // excluded from net-new, which is all the metric parity requires.
+  //
+  // The DEMOTE arm keys on the finding's overflow DIMENSION, not on the (now
+  // marker-gated) `cls`, so a marker-free responsiveness restatement is still
+  // demoted — keeping parity with eval's dimension-keyed metric (G2 must not revert
+  // F4). The DROP arm still requires the `page_overflow` marker class: a finding
+  // whose PRIMARY claim IS the page overflow adds nothing over the measurement.
   if (
-    (cls === "page_overflow" || cls === "element_overflow") &&
+    (cls === "page_overflow" || OVERFLOW_DIMENSIONS.has(finding.dimension)) &&
     reportedPageOverflowRoutes(ledger).has(finding.route) &&
     !entries.some((e) => e.claimClass === "element_overflow")
   ) {

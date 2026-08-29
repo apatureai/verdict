@@ -56,6 +56,9 @@ export {
 } from "./downscale.js";
 export type { ScaledDimensions, Point } from "./downscale.js";
 
+export { decodePng, encodePng, boxDownscale, fitPngToBudget } from "./png-resample.js";
+export type { DecodedPng, FittedPng } from "./png-resample.js";
+
 export {
   CHROMIUM_MAX_DEVICE_PX,
   DEFAULT_TILE_OVERLAP,
